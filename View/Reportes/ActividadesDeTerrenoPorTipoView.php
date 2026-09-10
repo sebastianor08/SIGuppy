@@ -242,10 +242,25 @@ extract($datos);
         flex-shrink: 0;
     }
 
-    .icono-azul    { background-color: #e5f0ff; color: #2f7dfa; }
-    .icono-verde   { background-color: #e3f9ec; color: #21a666; }
-    .icono-naranja { background-color: #fff3df; color: #e0952d; }
-    .icono-rojo    { background-color: #fde6e6; color: #e64545; }
+    .icono-azul {
+        background-color: #e5f0ff;
+        color: #2f7dfa;
+    }
+
+    .icono-verde {
+        background-color: #e3f9ec;
+        color: #21a666;
+    }
+
+    .icono-naranja {
+        background-color: #fff3df;
+        color: #e0952d;
+    }
+
+    .icono-rojo {
+        background-color: #fde6e6;
+        color: #e64545;
+    }
 
     .tarjeta p {
         margin: 0 0 4px 0;
@@ -253,11 +268,26 @@ extract($datos);
         font-size: 14px;
     }
 
-    .numero { font-size: 26px; font-weight: bold; }
-    .azul    { color: #2f7dfa; }
-    .verde   { color: #21a666; }
-    .naranja { color: #e0952d; }
-    .rojo    { color: #e64545; }
+    .numero {
+        font-size: 26px;
+        font-weight: bold;
+    }
+
+    .azul {
+        color: #2f7dfa;
+    }
+
+    .verde {
+        color: #21a666;
+    }
+
+    .naranja {
+        color: #e0952d;
+    }
+
+    .rojo {
+        color: #e64545;
+    }
 
     .fila-inferior {
         display: flex;
