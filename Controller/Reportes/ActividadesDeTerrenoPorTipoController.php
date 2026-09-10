@@ -4,7 +4,7 @@ function generarPuntosLinea($valores, $valorMaximo, $anchoGrafico, $altoGrafico,
 {
     $cantidadPuntos = count($valores);
     $espacioEntrePuntos = $anchoGrafico / ($cantidadPuntos - 1);
-    
+
     $puntos = [];
     foreach ($valores as $indice => $valor) {
         $x = $margenIzquierdo + ($indice * $espacioEntrePuntos);
