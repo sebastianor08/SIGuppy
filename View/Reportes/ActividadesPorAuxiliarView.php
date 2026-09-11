@@ -1,41 +1,86 @@
 <?php
+
+/* require_once se utiliza para incluir otro archivo PHP dentro de este archivo. En este caso,
+estamos incluyendo el controlador que se encarga de obtener la información necesaria para mostrar el reporte de actividades por auxiliar.*/
 require_once __DIR__ . '/../../Controller/Reportes/ActividadesPorAuxiliarController.php';
 
+// Se llama a la función obtenerDatosActividadesPorAuxiliar() del controlador para obtener los datos necesarios para el reporte(Todo lo que devuelve la función se guarda dentro de la variable $datos).
 $datos = obtenerDatosActividadesPorAuxiliar();
+
+/*extract() "extrae" los datos que están dentro del arreglo $datos y crea variables utilizando los nombres de las posiciones del arreglo. */
 extract($datos);
 ?>
 
-<div class="caja">
-    <h2 class="titulo-pagina">Actividades De Terreno Por Auxiliar Responsable</h2>
-    <h3>Filtros</h3>
-    <form method="GET">
-        <div class="fila-filtros">
-            <div>
-                <label>Auxiliar</label>
-                <select name="auxiliar">
-                    <option value="">Todos</option>
-                    <?php foreach ($listaAuxiliares as $aux): ?>
-                        <option value="<?= $aux ?>" <?= $filtroAuxiliar === $aux ? 'selected' : '' ?>><?= $aux ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div>
-                <label>Fecha Inicio</label>
-                <input type="date" name="fecha_inicio" value="<?= $filtroFechaInicio ?>">
-            </div>
-            <div>
-                <label>Fecha Fin</label>
-                <input type="date" name="fecha_fin" value="<?= $filtroFechaFin ?>">
-            </div>
-            <div>
-                <button type="button" class="btn-reportes">Generar Reportes</button>
-                <button type="submit" class="btn-aplicar">Aplicar Filtros</button>
-            </div>
+<!-- A continuación, el HTML que se mostrará en la página web. Se utiliza una estructura de cajas
+y tarjetas para mostrar la información de manera organizada y visualmente atractiva. -->
+
+<!-- Esta es una caja principal donde se muestra el título del reporte y los filtros que puede utilizar el usuario.
+<div class="caja"> -->
+
+<!--Título principal de la página.-->
+<h2 class="titulo-pagina">Actividades De Terreno Por Auxiliar Responsable</h2>
+
+<!--Subtítulo que indica que la siguiente sección contiene filtros.-->
+<h3>Filtros</h3>
+
+<!--method="GET" significa que los valores seleccionados se envían en la dirección de la página.-->
+<form method="GET">
+
+    <!--Esta división contiene todos los filtros organizados en una misma fila.-->
+    <div class="fila-filtros">
+
+        <!--Primer bloque de filtro de seleccionar un auxiliar.-->
+        <div>
+
+            <!--texto que indica qué información debe seleccionar usuario que debe seleccionar un auxiliar.-->
+            <label>Auxiliar</label>
+
+            <!--select crea una lista desplegable.-->
+            <select name="auxiliar">
+
+                <!--value="" esta para que no envíe ningún auxiliar en específico.-->
+                <option value="">Todos</option>
+                <?php foreach ($listaAuxiliares as $aux): ?>
+                    <!--$aux representa el auxiliar que se está recorriendo en ese momento.-->
+
+                    <option value="<?= $aux ?>" <?= $filtroAuxiliar === $aux ? 'selected' : '' ?>><?= $aux ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
-    </form>
+
+        <!--Segundo bloque de filtro de seleccionar un fecha.-->
+        <div>
+
+            <!--texto que indica qué información debe seleccionar usuario que debe seleccionar una fecha de inicio.-->
+            <label>Fecha Inicio</label>
+
+            <!--input de tipo date permite seleccionar una fecha mediante el calendario del navegador. -->
+            <input type="date" name="fecha_inicio" value="<?= $filtroFechaInicio ?>">
+        </div>
+
+        <!--Tercer bloque de filtro de seleccionar un fecha.-->
+        <div>
+
+            <!--texto que indica qué información debe seleccionar usuario que debe seleccionar una fecha de fin.-->
+            <label>Fecha Fin</label>
+
+            <!--input de tipo date permite seleccionar una fecha mediante el calendario del navegador. -->
+            <input type="date" name="fecha_fin" value="<?= $filtroFechaFin ?>">
+        </div>
+
+        <!--Botones para aplicar filtros y generar reportes.-->
+        <div>
+            <button type="button" class="btn-aplicar">Aplicar Filtros</button>
+            <button type="button" class="btn-reportes">Generar Reportes</button>
+        </div>
+    </div>
+</form>
 </div>
 
+<!--Esta es la caja que contiene todas las tarjetas de resumen del reporte.-->
 <div class="caja tarjetas">
+
+    <!-- PRIMERA TARJETA -->
     <div class="tarjeta">
         <div class="cabecera-tarjeta">
             <div class="icono icono-azul">📋</div>
@@ -158,14 +203,14 @@ extract($datos);
         <h3>Distribución de Carga de Trabajo</h3>
         <div class="bloque-donut">
             <?php
-                $gradiente = [];
-                $acumulado = 0;
-                foreach ($segmentosDonut as $segmento) {
-                    $inicioSegmento = $acumulado;
-                    $acumulado += $segmento['porcentaje'];
-                    $gradiente[] = "{$segmento['color']} {$inicioSegmento}% {$acumulado}%";
-                }
-                $cssGradiente = implode(', ', $gradiente);
+            $gradiente = [];
+            $acumulado = 0;
+            foreach ($segmentosDonut as $segmento) {
+                $inicioSegmento = $acumulado;
+                $acumulado += $segmento['porcentaje'];
+                $gradiente[] = "{$segmento['color']} {$inicioSegmento}% {$acumulado}%";
+            }
+            $cssGradiente = implode(', ', $gradiente);
             ?>
             <div class="donut" style="background: conic-gradient(<?= $cssGradiente ?>);">
                 <div class="donut-centro">
@@ -196,11 +241,13 @@ extract($datos);
         border-radius: 14px;
         padding: 24px;
         margin-bottom: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         font-family: Arial, Helvetica, sans-serif;
     }
 
-    .caja-gris { background-color: #e9e9ee; }
+    .caja-gris {
+        background-color: #e9e9ee;
+    }
 
     .titulo-pagina {
         text-align: center;
@@ -209,7 +256,10 @@ extract($datos);
         margin-bottom: 24px;
     }
 
-    .caja h3 { margin-top: 0; margin-bottom: 16px; }
+    .caja h3 {
+        margin-top: 0;
+        margin-bottom: 16px;
+    }
 
     .fila-filtros {
         display: flex;
@@ -253,12 +303,27 @@ extract($datos);
         margin-right: 8px;
     }
 
-    .tarjetas { display: flex; gap: 20px; }
+    .tarjetas {
+        display: flex;
+        gap: 20px;
+    }
 
-    .tarjeta { flex: 1; position: relative; }
+    .tarjeta {
+        flex: 1;
+        position: relative;
+    }
 
-    .cabecera-tarjeta { display: flex; align-items: center; gap: 12px; }
-    .cabecera-tarjeta p { margin: 0 0 4px 0; color: #666; font-size: 14px; }
+    .cabecera-tarjeta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .cabecera-tarjeta p {
+        margin: 0 0 4px 0;
+        color: #666;
+        font-size: 14px;
+    }
 
     .icono {
         width: 40px;
@@ -271,20 +336,59 @@ extract($datos);
         flex-shrink: 0;
     }
 
-    .icono-azul    { background-color: #e5f0ff; color: #2f7dfa; }
-    .icono-verde   { background-color: #e3f9ec; color: #21a666; }
-    .icono-naranja { background-color: #fff3df; color: #e0952d; }
-    .icono-rojo    { background-color: #fde6e6; color: #e64545; }
+    .icono-azul {
+        background-color: #e5f0ff;
+        color: #2f7dfa;
+    }
 
-    .numero { font-size: 24px; font-weight: bold; }
-    .azul    { color: #2f7dfa; }
-    .verde   { color: #21a666; }
-    .naranja { color: #e0952d; }
-    .rojo    { color: #e64545; }
+    .icono-verde {
+        background-color: #e3f9ec;
+        color: #21a666;
+    }
 
-    .comparativa { font-size: 12px; margin: 8px 0 0 0; }
-    .positivo { color: #21a666; }
-    .negativo { color: #e64545; }
+    .icono-naranja {
+        background-color: #fff3df;
+        color: #e0952d;
+    }
+
+    .icono-rojo {
+        background-color: #fde6e6;
+        color: #e64545;
+    }
+
+    .numero {
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .azul {
+        color: #2f7dfa;
+    }
+
+    .verde {
+        color: #21a666;
+    }
+
+    .naranja {
+        color: #e0952d;
+    }
+
+    .rojo {
+        color: #e64545;
+    }
+
+    .comparativa {
+        font-size: 12px;
+        margin: 8px 0 0 0;
+    }
+
+    .positivo {
+        color: #21a666;
+    }
+
+    .negativo {
+        color: #e64545;
+    }
 
     .sparkline {
         position: absolute;
@@ -294,19 +398,64 @@ extract($datos);
         height: 40px;
     }
 
-    .fila-inferior { display: flex; gap: 20px; align-items: flex-start; }
-    .fila-inferior .caja { margin-bottom: 0; }
-    .caja-desempeno { flex: 3; }
-    .caja-donut { flex: 2; }
+    .fila-inferior {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
 
-    table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; padding: 10px; color: #555; border-bottom: 2px solid #d7d7dc; }
-    td { padding: 10px; border-bottom: 1px solid #d7d7dc; }
-    tr.fila-total td { font-weight: bold; border-bottom: none; }
+    .fila-inferior .caja {
+        margin-bottom: 0;
+    }
 
-    .celda-cumplimiento { display: flex; align-items: center; gap: 10px; }
-    .barra-fondo { flex: 1; height: 8px; background-color: #dcdce3; border-radius: 6px; overflow: hidden; }
-    .barra-relleno { height: 100%; background-color: #2f7dfa; }
+    .caja-desempeno {
+        flex: 3;
+    }
+
+    .caja-donut {
+        flex: 2;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        text-align: left;
+        padding: 10px;
+        color: #555;
+        border-bottom: 2px solid #d7d7dc;
+    }
+
+    td {
+        padding: 10px;
+        border-bottom: 1px solid #d7d7dc;
+    }
+
+    tr.fila-total td {
+        font-weight: bold;
+        border-bottom: none;
+    }
+
+    .celda-cumplimiento {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .barra-fondo {
+        flex: 1;
+        height: 8px;
+        background-color: #dcdce3;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .barra-relleno {
+        height: 100%;
+        background-color: #2f7dfa;
+    }
 
     .pie-tabla {
         display: flex;
@@ -317,7 +466,10 @@ extract($datos);
         color: #555;
     }
 
-    .paginacion { display: flex; gap: 6px; }
+    .paginacion {
+        display: flex;
+        gap: 6px;
+    }
 
     .boton-pagina {
         display: inline-block;
@@ -337,7 +489,11 @@ extract($datos);
         color: #ffffff;
     }
 
-    .bloque-donut { display: flex; align-items: center; gap: 20px; }
+    .bloque-donut {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
 
     .donut {
         width: 150px;
@@ -349,7 +505,10 @@ extract($datos);
 
     .donut-centro {
         position: absolute;
-        top: 20px; left: 20px; right: 20px; bottom: 20px;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        bottom: 20px;
         background-color: #e9e9ee;
         border-radius: 50%;
         display: flex;
@@ -358,14 +517,45 @@ extract($datos);
         justify-content: center;
     }
 
-    .donut-centro span { font-size: 12px; color: #888; }
-    .donut-centro strong { font-size: 20px; }
+    .donut-centro span {
+        font-size: 12px;
+        color: #888;
+    }
 
-    .leyenda-donut { list-style: none; margin: 0; padding: 0; font-size: 13px; }
-    .leyenda-donut li { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-    .punto-leyenda { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .donut-centro strong {
+        font-size: 20px;
+    }
 
-    .nota-donut { font-size: 12px; color: #777; margin-top: 14px; margin-bottom: 0; }
+    .leyenda-donut {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-size: 13px;
+    }
 
-    .nota-inferior { font-size: 13px; color: #555; }
+    .leyenda-donut li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .punto-leyenda {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .nota-donut {
+        font-size: 12px;
+        color: #777;
+        margin-top: 14px;
+        margin-bottom: 0;
+    }
+
+    .nota-inferior {
+        font-size: 13px;
+        color: #555;
+    }
 </style>
