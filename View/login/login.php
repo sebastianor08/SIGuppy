@@ -1,4 +1,4 @@
-<?php include '../partials/header.php'; ?>
+<?php include '../partials/header_login.php'; ?>
 
 <section>
     <h2 class="form-title">Iniciar sesión</h2>
@@ -32,4 +32,4 @@
     </form>
 </section>
 
-<?php include '../partials/footer.php'; ?>
+<?php include '../partials/footer_login.php'; ?>

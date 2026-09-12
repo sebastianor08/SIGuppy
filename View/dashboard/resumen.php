@@ -1,22 +1,9 @@
 <?php
-/**
- * Vista: Resumen / Dashboard principal (SIGuppy)
- * -------------------------------------------------
- * Por ahora esta vista trabaja con datos de EJEMPLO porque la base de
- * datos aún no está implementada. Cuando el Model esté listo, basta con
- * reemplazar los arreglos $zoocriaderos y $depositos por el resultado
- * real de las consultas, por ejemplo:
- *
- *   $zoocriaderos = (new ZoocriaderoModel())->listarActivosConCoordenadas();
- *   $depositos    = (new DepositoModel())->listarRegistradosConCoordenadas();
- *
- * Cada elemento debe conservar las mismas llaves (codigo, lat, lng,
- * direccion) para que el JS del mapa no requiera cambios.
- */
+
 
 $tituloPagina = 'Resumen';
 
-// ------- DATOS DE EJEMPLO (reemplazar por consulta al Model) -------
+
 $zoocriaderos = [
     ['codigo' => 'ZIG0-0012', 'lat' => 3.4372, 'lng' => -76.5478, 'direccion' => 'Cra 1 # 2-34, Comuna 20'],
     ['codigo' => 'ZIG0-0090', 'lat' => 3.4368, 'lng' => -76.5455, 'direccion' => 'Cra 3 # 4-12, Comuna 20'],
@@ -75,18 +62,7 @@ include '../partials/header_app.php';
         </div>
         <p id="direccion-resultado" class="direccion-resultado"></p>
 
-        <!--
-            NOTA IMPORTANTE sobre por qué el mapa a veces "no aparece":
-            Leaflet dibuja el mapa DENTRO de este div, pero si el div no
-            tiene una altura definida (por CSS), su altura es 0px y el mapa
-            queda invisible aunque el JS sí se haya ejecutado bien.
-            La altura normal viene de Web/css/dashboard.css (#mapa-resumen),
-            pero aquí además se deja un "style" en línea como respaldo, por
-            si esa hoja de estilos no se copió o no está enlazada bien en tu
-            proyecto local. Si el mapa sigue sin verse, revisa en las
-            herramientas de desarrollador del navegador (pestaña Network)
-            si dashboard.css está dando error 404.
-        -->
+
         <div id="mapa-resumen" style="height:480px; border-radius:12px;"></div>
     </div>
 
@@ -124,30 +100,11 @@ include '../partials/header_app.php';
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    /* ================================================================
-     * DATOS DEL MAPA
-     * ----------------------------------------------------------------
-     * $zoocriaderos y $depositos vienen de PHP (arreglos de ejemplo por
-     * ahora). PHP los convierte a JSON con json_encode() y quedan como
-     * arreglos normales de JavaScript, listos para recorrer con forEach.
-     * ================================================================ */
+ 
     const zoocriaderos = <?php echo json_encode($zoocriaderos, JSON_UNESCAPED_UNICODE); ?>;
     const depositos = <?php echo json_encode($depositos, JSON_UNESCAPED_UNICODE); ?>;
 
-    /* ================================================================
-     * CREAR EL MAPA BASE
-     * ----------------------------------------------------------------
-     * L.map('mapa-resumen', {...}) busca el <div id="mapa-resumen">
-     * en el HTML y convierte ESE div en el mapa. Por eso el div necesita
-     * tener una altura (ver el comentario junto al div más arriba); si
-     * la altura es 0, aquí no habrá ningún error en la consola, pero
-     * visualmente no se ve nada.
-     *
-     * center: [lat, lng] con el que arranca el mapa (Cali, por ahora fijo).
-     * zoom: qué tan acercado empieza (13 muestra casi toda la ciudad).
-     * dragging: true permite arrastrar el mapa con el mouse (que sea
-     *           "movible", como pediste).
-     * ================================================================ */
+ 
 
     const mapa = L.map('mapa-resumen', {
         center: [3.4372, -76.5320],
@@ -157,25 +114,13 @@ include '../partials/header_app.php';
         zoomControl: true
     });
 
-    /* ----------------------------------------------------------------
-     * CAPA DE TILES (las imágenes del mapa en sí)
-     * L.tileLayer descarga las "baldosas" (imágenes cuadradas) del mapa
-     * desde los servidores públicos de OpenStreetMap y las va pegando
-     * según el zoom/posición. .addTo(mapa) es lo que realmente las
-     * dibuja sobre el div del mapa.
-     * ---------------------------------------------------------------- */
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(mapa);
 
-    /* ----------------------------------------------------------------
-     * ÍCONOS PERSONALIZADOS (pines de colores)
-     * L.divIcon crea un ícono a partir de un pedacito de HTML/CSS en vez
-     * de una imagen. El color real lo pone dashboard.css a través de la
-     * variable --pin-color (así reutilizamos la misma forma de pin para
-     * zoocriadero, depósito y para el resultado de la búsqueda).
-     * ---------------------------------------------------------------- */
+ 
 
     function crearIconoPin(colorVar) {
         return L.divIcon({
@@ -190,13 +135,7 @@ include '../partials/header_app.php';
     const iconoZoocriadero = crearIconoPin('--zoocriadero-color'); // azul
     const iconoDeposito = crearIconoPin('--deposito-color');       // naranja
 
-    /* ----------------------------------------------------------------
-     * DIBUJAR LOS MARCADORES FIJOS (zoocriaderos y depósitos)
-     * Por cada punto del arreglo: se crea un marcador en [lat, lng], se
-     * le pone una etiqueta visible todo el tiempo (bindTooltip permanent)
-     * con el código, y un popup (bindPopup) que aparece al hacer clic,
-     * con el detalle completo.
-     * ---------------------------------------------------------------- */
+ 
     function agregarMarcadores(lista, icono, tipoLabel) {
         lista.forEach(function (punto) {
             const marcador = L.marker([punto.lat, punto.lng], { icon: icono }).addTo(mapa);
@@ -217,40 +156,8 @@ include '../partials/header_app.php';
     agregarMarcadores(zoocriaderos, iconoZoocriadero, 'Zoocriadero');
     agregarMarcadores(depositos, iconoDeposito, 'Depósito');
 
-    /* ================================================================
-     * BUSCADOR DE DIRECCIONES (geocodificación)
-     * ----------------------------------------------------------------
-     *  escribas una dirección con
-     * nomenclatura colombiana (Cra, Cll, Av, Dg, Tv, etc.) y el mapa
-     * la ubique solo, sin que tú tengas que buscar las coordenadas a
-     * mano. Cuando exista el formulario real de Zoocriadero/Depósito,
-     * este mismo bloque puede reutilizarse para autocompletar lat/lng
-     * antes de guardar en la BD.
-     *
-     * ¿Cómo se hace la búsqueda?
-     *  Tomamos el texto que escribiste en el input.
-     * Si no mencionas "Cali", se lo agregamos, para que Nominatim
-     *    no busque en cualquier otra ciudad/país.
-     * Le hacemos fetch() a Nominatim (el geocodificador gratuito de
-     *    OpenStreetMap: https://nominatim.org), que nos responde una
-     *    lista de posibles lugares en JSON; tomamos el primero (limit=1).
-     * Con lat/lng de la respuesta, ponemos un pin verde en el mapa,
-     *    centramos la vista ahí y hacemos zoom.
-     *
-     * ¿Por qué a veces las coordenadas que devuelve no son exactas?
-     * Nominatim es un buscador de propósito general: funciona muy bien
-     * con direcciones "formales" que ya están bien mapeadas en
-     * OpenStreetMap, pero con la nomenclatura de Cali (carrera/calle +
-     * número + "-" + complemento) a veces NO encuentra el predio exacto
-     * y en su lugar devuelve el centro de una zona más amplia (un barrio,
-     * una comuna, etc.) — por eso el resultado puede decir algo genérico
-     * como "Cali, Sur, Valle del Cauca..." en vez de la dirección puntual.
-     * Además, texto extra que no es parte de la nomenclatura (por
-     * ejemplo "p6" de "piso 6") puede confundir al buscador.
-     * Por esto se agregó el punto (7): poder arrastrar el pin para
-     * corregir la ubicación a mano cuando el buscador no da con el
-     * punto exacto.
-     * ================================================================ */
+ 
+    
     const inputDireccion = document.getElementById('input-direccion');
     const btnBuscarDireccion = document.getElementById('btn-buscar-direccion');
     const direccionResultado = document.getElementById('direccion-resultado');
@@ -266,7 +173,6 @@ include '../partials/header_app.php';
 
     // Tipos de resultado que Nominatim considera "área amplia" y no una
     // dirección puntual (barrio, comuna, ciudad, etc.). Si el resultado
-    // es de uno de estos tipos, avisamos que puede no ser exacto.
     const TIPOS_IMPRECISOS = ['suburb', 'city_district', 'neighbourhood', 'quarter', 'city', 'town', 'village', 'state_district'];
 
     async function buscarDireccion() {
@@ -283,10 +189,7 @@ include '../partials/header_app.php';
 
         try {
             //  petición a Nominatim.
-            // - format=json           -> queremos la respuesta en JSON
-            // - limit=1                -> solo el resultado más relevante
-            // - countrycodes=co        -> restringe la búsqueda a Colombia
-            // - addressdetails=1       -> pide el tipo de lugar encontrado
+         
             const url = 'https://nominatim.openstreetmap.org/search'
                 + '?format=json&limit=1&countrycodes=co&addressdetails=1'
                 + '&q=' + encodeURIComponent(consulta);
@@ -316,8 +219,8 @@ include '../partials/header_app.php';
             marcadorBusqueda.bindPopup('<b>Dirección buscada</b><br>' + lugar.display_name).openPopup();
             mapa.setView([lat, lng], 17);
 
-            // Aviso de precisión: si Nominatim solo encontró una zona
-            // amplia (no la dirección puntual), lo dejamos claro.
+          
+        
             const esImpreciso = TIPOS_IMPRECISOS.includes(lugar.addresstype) || TIPOS_IMPRECISOS.includes(lugar.type);
             const aviso = esImpreciso
                 ? ' ⚠️ Este resultado es una zona aproximada, no el predio exacto. Arrastra el pin verde hasta el punto correcto.'

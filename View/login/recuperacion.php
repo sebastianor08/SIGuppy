@@ -1,4 +1,4 @@
-<?php include '../partials/header.php'; ?>
+<?php include '../partials/header_login.php'; ?>
 
 <section>
     <h2 class="form-title">¿Has olvidado tu contraseña?</h2>
@@ -22,4 +22,4 @@
 
 ?>
 
-<?php include '../partials/footer.php'; ?>
+<?php include '../partials/footer_login.php'; ?>
