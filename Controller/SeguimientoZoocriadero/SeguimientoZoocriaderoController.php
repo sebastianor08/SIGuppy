@@ -106,7 +106,7 @@ class SeguimientoZoocriaderoController{
         $numeroMuertos   = filter_var($body['numero_muertos'] ?? 0, FILTER_VALIDATE_INT);
         $numeroSembrados = filter_var($body['numero_sembrados'] ?? 0, FILTER_VALIDATE_INT);
         $fecha           = trim((string)($body['fecha'] ?? ''));
-        $observaciones   = trim((string)($body['observaciones'] ?? ''));
+        $observaciones   = limpiar($body['observaciones'] ?? '');
         $ph              = $body['ph'] ?? null;
         $temperatura     = $body['temperatura'] ?? null;
 
@@ -129,8 +129,9 @@ class SeguimientoZoocriaderoController{
         if(!$fechaObj || $fechaObj->format('Y-m-d') !== $fecha){
             jsonResponse(['ok' => false, 'message' => 'La fecha no tiene un formato válido (YYYY-MM-DD).'], 422);
         }
-        if(strlen($observaciones) > 300){
-            jsonResponse(['ok' => false, 'message' => 'Las observaciones no pueden superar 300 caracteres.'], 422);
+        $errorObs = validarTextoOpcional($observaciones, 'Observaciones', 300);
+        if($errorObs !== null){
+            jsonResponse(['ok' => false, 'message' => $errorObs], 422);
         }
 
         // ph NUMERIC(4,2) y temperatura NUMERIC(4,2): opcionales, pero si vienen deben ser números

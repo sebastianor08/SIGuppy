@@ -10,6 +10,7 @@ class ZoocriaderoModel extends MasterModel{
 
     // Listado para la tabla: trae el nombre de la persona a cargo
     // y cuántos tanques activos tiene cada zoocriadero.
+    // Listado para la tabla: cuántos tanques activos tiene cada zoocriadero.
     public function listar(){
         return $this->selectAll(
             "SELECT z.id_zoocriadero,
@@ -17,8 +18,6 @@ class ZoocriaderoModel extends MasterModel{
                     z.direccion,
                     z.comuna,
                     z.barrio,
-                    z.id_persona_cargo,
-                    COALESCE(u.nombre || ' ' || u.apellido, 'Sin asignar') AS persona_cargo,
                     z.latitud,
                     z.longitud,
                     z.estado,
@@ -26,7 +25,6 @@ class ZoocriaderoModel extends MasterModel{
                     (SELECT COUNT(*) FROM tanque t
                       WHERE t.id_zoocriadero = z.id_zoocriadero AND t.estado = 1) AS total_tanques
              FROM zoocriadero z
-             LEFT JOIN usuario u ON u.id_usuario = z.id_persona_cargo
              ORDER BY z.nombre"
         );
     }
@@ -38,17 +36,33 @@ class ZoocriaderoModel extends MasterModel{
         );
     }
 
-    // Usuarios activos para el select "Persona a cargo"
-    public function usuariosActivos(){
+    // Comunas para el primer select
+    public function comunas(){
         return $this->selectAll(
-            "SELECT u.id_usuario,
-                    u.nombre || ' ' || u.apellido AS nombre_completo,
-                    r.nombre_rol
-             FROM usuario u
-             INNER JOIN rol r ON r.id_rol = u.id_rol
-             WHERE u.estado = 1
-             ORDER BY u.nombre, u.apellido"
+            "SELECT id_comuna, nombre FROM comuna ORDER BY id_comuna"
         );
+    }
+
+    // Barrios de una comuna (el segundo select depende del primero)
+    public function barriosDe($idComuna){
+        return $this->selectAll(
+            "SELECT id_barrio, nombre
+             FROM barrio
+             WHERE id_comuna = $1
+             ORDER BY nombre",
+            [$idComuna]
+        );
+    }
+
+    // Valida que el barrio realmente pertenezca a esa comuna
+    public function barrioPerteneceAComuna($nombreBarrio, $nombreComuna){
+        return $this->selectValue(
+            "SELECT 1
+             FROM barrio b
+             INNER JOIN comuna c ON c.id_comuna = b.id_comuna
+             WHERE b.nombre = $1 AND c.nombre = $2",
+            [$nombreBarrio, $nombreComuna]
+        ) !== null;
     }
 
     public function tiposTanque(){
@@ -77,15 +91,14 @@ class ZoocriaderoModel extends MasterModel{
     public function crear($datos){
         return $this->selectValue(
             "INSERT INTO zoocriadero
-             (nombre, direccion, comuna, barrio, id_persona_cargo, latitud, longitud, estado)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, 1)
+             (nombre, direccion, comuna, barrio, latitud, longitud, estado)
+             VALUES ($1, $2, $3, $4, $5, $6, 1)
              RETURNING id_zoocriadero",
             [
                 $datos['nombre'],
                 $datos['direccion'],
                 $datos['comuna'],
                 $datos['barrio'],
-                $datos['id_persona_cargo'],
                 $datos['latitud'],
                 $datos['longitud'],
             ]
@@ -97,14 +110,13 @@ class ZoocriaderoModel extends MasterModel{
         return $this->update(
             "UPDATE zoocriadero
              SET nombre = $1, direccion = $2, comuna = $3, barrio = $4,
-                 id_persona_cargo = $5, latitud = $6, longitud = $7
-             WHERE id_zoocriadero = $8",
+                 latitud = $5, longitud = $6
+             WHERE id_zoocriadero = $7",
             [
                 $datos['nombre'],
                 $datos['direccion'],
                 $datos['comuna'],
                 $datos['barrio'],
-                $datos['id_persona_cargo'],
                 $datos['latitud'],
                 $datos['longitud'],
                 $idZoocriadero,
@@ -134,13 +146,6 @@ class ZoocriaderoModel extends MasterModel{
              RETURNING id_tanque",
             [$idZoocriadero, $idTipoTanque, $numero]
         );
-    }
-
-    public function usuarioExiste($idUsuario){
-        return $this->selectValue(
-            "SELECT 1 FROM usuario WHERE id_usuario = $1 AND estado = 1",
-            [$idUsuario]
-        ) !== null;
     }
 
     public function tipoTanqueExiste($idTipoTanque){
