@@ -245,15 +245,7 @@
               
 
               <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                <li class="nav-item d-flex align-items-center">
-                  <div class="sig-role-switcher" title="Selector de rol para esta demostración. Cuando exista inicio de sesión, el rol vendrá de la sesión del usuario.">
-                    <label for="sigRoleSelect"><i class="fas fa-user-shield me-1"></i>Vista</label>
-                    <select id="sigRoleSelect">
-                      <option value="auxiliar">Auxiliar de campo</option>
-                      <option value="coordinador">Coordinador</option>
-                    </select>
-                  </div>
-                </li>
+              
               </ul>
             </div>
           </nav>
