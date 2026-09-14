@@ -18,6 +18,9 @@ class ZoocriaderoController{
 
     public function comunas(){
         $obj = new ZoocriaderoModel();
+        jsonResponse(['ok' => true, 'data' => $obj->usuariosActivos()]);
+    public function comunas(){
+        $obj = new ZoocriaderoModel();
         jsonResponse(['ok' => true, 'data' => $obj->comunas()]);
     }
 
@@ -141,6 +144,27 @@ class ZoocriaderoController{
 
     // ---------- Validación compartida por create y update ----------
     private function validarZoocriadero($body, $obj){
+        // limpiar() recorta y colapsa espacios: así un campo escrito solo
+        // con la barra espaciadora queda como cadena vacía y no pasa.
+        $nombre    = limpiar($body['nombre'] ?? '');
+        $direccion = limpiar($body['direccion'] ?? '');
+        $comuna    = limpiar($body['comuna'] ?? '');
+        $barrio    = limpiar($body['barrio'] ?? '');
+        $latitud   = $body['latitud'] ?? null;
+        $longitud  = $body['longitud'] ?? null;
+
+        foreach([
+            validarTexto($nombre, 'Nombre', 3, 100),
+            validarTexto($direccion, 'Dirección', 5, 200),
+            validarTextoOpcional($comuna, 'Comuna', 60),
+            validarTextoOpcional($barrio, 'Barrio', 60),
+        ] as $error){
+            if($error !== null){
+                jsonResponse(['ok' => false, 'message' => $error], 422);
+            }
+        }
+        if($idUsuario && !$obj->usuarioExiste($idUsuario)){
+            jsonResponse(['ok' => false, 'message' => 'La persona a cargo seleccionada no es válida.'], 422);
         // limpiar() recorta y colapsa espacios: así un campo escrito solo
         // con la barra espaciadora queda como cadena vacía y no pasa.
         $nombre    = limpiar($body['nombre'] ?? '');

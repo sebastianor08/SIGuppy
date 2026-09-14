@@ -43,6 +43,13 @@ class ZoocriaderoModel extends MasterModel{
         );
     }
 
+    // Comunas para el primer select
+    public function comunas(){
+        return $this->selectAll(
+            "SELECT id_comuna, nombre FROM comuna ORDER BY id_comuna"
+        );
+    }
+
     // Barrios de una comuna (el segundo select depende del primero)
     public function barriosDe($idComuna){
         return $this->selectAll(
@@ -91,6 +98,8 @@ class ZoocriaderoModel extends MasterModel{
     public function crear($datos){
         return $this->selectValue(
             "INSERT INTO zoocriadero
+             (nombre, direccion, comuna, barrio, id_persona_cargo, latitud, longitud, estado)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, 1)
              (nombre, direccion, comuna, barrio, latitud, longitud, estado)
              VALUES ($1, $2, $3, $4, $5, $6, 1)
              RETURNING id_zoocriadero",
@@ -110,6 +119,8 @@ class ZoocriaderoModel extends MasterModel{
         return $this->update(
             "UPDATE zoocriadero
              SET nombre = $1, direccion = $2, comuna = $3, barrio = $4,
+                 id_persona_cargo = $5, latitud = $6, longitud = $7
+             WHERE id_zoocriadero = $8",
                  latitud = $5, longitud = $6
              WHERE id_zoocriadero = $7",
             [
