@@ -96,6 +96,29 @@
     } catch (e) {}
   }
 
+  var DALTONISMO_TIPOS = [
+    "ninguno",
+    "protanopia",
+    "deuteranopia",
+    "tritanopia",
+    "acromatopsia",
+  ];
+
+  function getDaltonismoTipo() {
+    var tipo = null;
+    try {
+      tipo = localStorage.getItem("siguppys_daltonismo_tipo");
+    } catch (e) {}
+    return DALTONISMO_TIPOS.indexOf(tipo) !== -1 ? tipo : "ninguno";
+  }
+
+  function setDaltonismoTipo(tipo) {
+    if (DALTONISMO_TIPOS.indexOf(tipo) === -1) return;
+    try {
+      localStorage.setItem("siguppys_daltonismo_tipo", tipo);
+    } catch (e) {}
+  }
+
   // Reutiliza el propio "skin" oscuro que ya trae kaiadmin.css:
   // se activa con el atributo data-background-color="dark" en el
   // body, el sidebar, los logo-header y la barra superior.
@@ -120,17 +143,22 @@
     }
   }
 
-  // Modo daltonismo: cambia los pares rojo/verde (estado activo /
-  // inhabilitado, iconos de éxito o peligro) por azul/naranja, la
-  // combinación recomendada para daltonismo rojo-verde (deuteranopia
-  // y protanopia, las formas más comunes).
-  function applyDaltonismo(enabled) {
-    document.body.classList.toggle("daltonismo-mode", enabled);
+  // Modo daltonismo: según el tipo elegido, cambia los pares
+  // rojo/verde (estado activo/inhabilitado, iconos de éxito o
+  // peligro) por una paleta adecuada a ese tipo. Las reglas de
+  // color viven en siguppys.css, sobre body[data-daltonismo="tipo"].
+  function applyDaltonismo(tipo) {
+    if (DALTONISMO_TIPOS.indexOf(tipo) === -1) tipo = "ninguno";
+    if (tipo === "ninguno") {
+      document.body.removeAttribute("data-daltonismo");
+    } else {
+      document.body.setAttribute("data-daltonismo", tipo);
+    }
   }
 
   function initPreferences() {
     applyDarkMode(getBoolPref("siguppys_dark_mode"));
-    applyDaltonismo(getBoolPref("siguppys_daltonismo"));
+    applyDaltonismo(getDaltonismoTipo());
   }
 
   document.addEventListener("DOMContentLoaded", function () {
@@ -147,4 +175,7 @@
   window.SIGuppys.setBoolPref = setBoolPref;
   window.SIGuppys.applyDarkMode = applyDarkMode;
   window.SIGuppys.applyDaltonismo = applyDaltonismo;
+  window.SIGuppys.DALTONISMO_TIPOS = DALTONISMO_TIPOS;
+  window.SIGuppys.getDaltonismoTipo = getDaltonismoTipo;
+  window.SIGuppys.setDaltonismoTipo = setDaltonismoTipo;
 })();

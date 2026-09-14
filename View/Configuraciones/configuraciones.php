@@ -286,10 +286,16 @@
                 <div class="settings-option">
                   <div>
                     <strong><i class="fas fa-eye me-2"></i>Modo daltonismo</strong>
-                    <p>Reemplaza el rojo/verde de los estados (Activo / Inhabilitado) por una paleta azul/naranja, más fácil de distinguir para personas con daltonismo rojo-verde.</p>
+                    <p>Ajusta la paleta de los estados (Activo / Inhabilitado) según el tipo de daltonismo.</p>
                   </div>
-                  <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="switchDaltonismo" />
+                  <div class="sig-daltonismo-select">
+                    <select class="form-select form-select-sm" id="selectDaltonismo">
+                      <option value="ninguno">Ninguno</option>
+                      <option value="protanopia">Protanopia (dificultad con el rojo)</option>
+                      <option value="deuteranopia">Deuteranopia (dificultad con el verde)</option>
+                      <option value="tritanopia">Tritanopia (dificultad con el azul/amarillo)</option>
+                      <option value="acromatopsia">Acromatopsia (visión sin color)</option>
+                    </select>
                   </div>
                 </div>
               </div>
