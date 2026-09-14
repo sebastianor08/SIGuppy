@@ -88,11 +88,12 @@
 
     <div class="container"><div class="page-inner">
       <div class="d-flex align-items-center flex-column flex-md-row pt-2 pb-4">
-        <div><h3 class="fw-bold mb-2">Registrar Seguimiento de Zoocriadero</h3><h6 class="op-7 mb-0">Registre la actividad realizada sobre un tanque existente.</h6></div>
+        <div><h3 class="fw-bold mb-2" id="seguimientoTitulo">Registrar Seguimiento de Zoocriadero</h3><h6 class="op-7 mb-0">Registre la actividad realizada sobre un tanque existente.</h6></div>
       </div>
 
       <div class="card sig-followup-card"><div class="card-body">
         <form id="seguimientoZoocriaderoForm" novalidate>
+          <input type="hidden" id="id_seguimiento" name="id_seguimiento" value="" />
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label" for="id_zoocriadero">Zoocriadero</label>
@@ -113,11 +114,23 @@
               <input type="date" class="form-control" id="fecha" name="fecha" required />
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
+              <label class="form-label" for="ph">pH <span class="text-muted small">(opcional)</span></label>
+              <input type="number" min="0" max="14" step="0.01" class="form-control" id="ph" name="ph" placeholder="7.20" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label" for="temperatura">Temperatura °C <span class="text-muted small">(opcional)</span></label>
+              <input type="number" step="0.01" class="form-control" id="temperatura" name="temperatura" placeholder="26.50" />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="numero_sembrados">Peces sembrados</label>
+              <input type="number" min="0" step="1" value="0" class="form-control" id="numero_sembrados" name="numero_sembrados" required />
+            </div>
+            <div class="col-md-2">
               <label class="form-label" for="numero_nacidos">Peces nacidos</label>
               <input type="number" min="0" step="1" value="0" class="form-control" id="numero_nacidos" name="numero_nacidos" required />
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2">
               <label class="form-label" for="numero_muertos">Peces muertos</label>
               <input type="number" min="0" step="1" value="0" class="form-control" id="numero_muertos" name="numero_muertos" required />
             </div>
@@ -135,11 +148,44 @@
 
           <div id="seguimientoMessage" class="alert d-none mt-4 mb-0" role="alert"></div>
           <div class="d-flex justify-content-end mt-4 gap-2">
-            <a href="../../View/Zoocriadero/zoocriaderos.php" class="btn btn-label-secondary">Cancelar</a>
+            <button type="button" id="btnCancelarEdicion" class="btn btn-label-secondary d-none">Cancelar edición</button>
+            <a href="../../View/Zoocriadero/zoocriaderos.php" class="btn btn-label-secondary">Volver</a>
             <button type="submit" class="btn btn-primary" id="btnGuardarSeguimiento"><i class="fas fa-save me-1"></i>Guardar</button>
           </div>
         </form>
       </div></div>
+
+      <div class="card mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="card-title mb-0">Seguimientos registrados</h4>
+          <button type="button" class="btn btn-sm btn-label-primary" id="btnRecargarHistorial">
+            <i class="fas fa-sync-alt me-1"></i>Actualizar
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Fecha</th>
+                  <th>Zoocriadero</th>
+                  <th class="text-center">Tanque</th>
+                  <th>Acción</th>
+                  <th class="text-center">Sembrados</th>
+                  <th class="text-center">Nacidos</th>
+                  <th class="text-center">Muertos</th>
+                  <th class="text-center">pH</th>
+                  <th class="text-center">T °C</th>
+                  <th class="text-center">Editar</th>
+                </tr>
+              </thead>
+              <tbody id="historialBody">
+                <tr><td colspan="10" class="text-center text-muted py-4">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div></div>
   </div>
 </div>
