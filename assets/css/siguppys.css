@@ -1,0 +1,624 @@
+/* =========================================================
+   SIGuppys — estilos propios
+   Se agregan sobre kaiadmin.min.css, sin tocar el archivo base.
+   ========================================================= */
+
+:root {
+  --sig-blue: #1d7af3;
+  --sig-blue-dark: #135fc4;
+  --sig-blue-soft: rgba(29, 122, 243, 0.08);
+  --sig-blue-soft-2: rgba(29, 122, 243, 0.1);
+  --sig-ink: #2a2f5b;
+  --sig-muted: #8a8d93;
+  --sig-red: #f3545d;
+  --sig-green: #1dc9b7;
+}
+
+/* ---- Marca / logo ---- */
+.siguppys-logo-header {
+  padding-left: 20px;
+  padding-right: 15px;
+  height: 78px;
+  border-bottom: 1px solid #f1f1f1;
+}
+.siguppys-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  overflow: hidden;
+}
+.siguppys-logo:hover {
+  color: inherit;
+  text-decoration: none;
+}
+.siguppys-pin {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.siguppys-pin img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.siguppys-brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.siguppys-brand strong {
+  font-size: 15px;
+  color: var(--sig-ink);
+  font-weight: 700;
+}
+.siguppys-brand small {
+  font-size: 10.5px;
+  color: var(--sig-muted);
+  font-weight: 500;
+  white-space: normal;
+}
+
+/* ---- Sidebar en columna: menú scrollable + pie fijo con Cerrar Sesión ---- */
+.siguppys-sidebar {
+  display: flex;
+  flex-direction: column;
+}
+.siguppys-sidebar .sidebar-logo {
+  flex: none;
+}
+.siguppys-sidebar .sidebar-wrapper {
+  flex: 1 1 auto;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+}
+.siguppys-sidebar .sidebar-content {
+  flex: 1 1 auto;
+}
+.siguppys-sidebar .nav-section .text-section {
+  font-size: 11px;
+}
+
+/* ---- Estado activo estilo "pastilla" ----
+   Kaiadmin trae, para .sidebar-style-2 + .nav-secondary, un relleno sólido
+   de color con más especificidad; aquí lo reemplazamos por un tono suave.
+   IMPORTANTE: la clase "active" ya NO se escribe a mano en el HTML — la
+   agrega assets/js/siguppys-nav.js según la página actual (data-page),
+   así que un módulo o submódulo solo se ve azul cuando realmente estás
+   dentro de él. */
+.siguppys-sidebar.sidebar.sidebar-style-2 .nav.nav-secondary > .nav-item.active > a,
+.siguppys-sidebar .nav > .nav-item > a[aria-expanded="true"] {
+  background: var(--sig-blue-soft) !important;
+  box-shadow: none !important;
+  border-radius: 10px;
+}
+.siguppys-sidebar.sidebar.sidebar-style-2 .nav.nav-secondary > .nav-item.active > a:before {
+  background: transparent !important;
+}
+.siguppys-sidebar.sidebar.sidebar-style-2 .nav.nav-secondary > .nav-item.active > a p,
+.siguppys-sidebar.sidebar.sidebar-style-2 .nav.nav-secondary > .nav-item.active > a i,
+.siguppys-sidebar.sidebar.sidebar-style-2 .nav.nav-secondary > .nav-item.active > a .caret,
+.siguppys-sidebar.sidebar.sidebar-style-2 .nav.nav-secondary > .nav-item.active > a span {
+  color: var(--sig-blue) !important;
+}
+.siguppys-sidebar .nav-collapse li.active > a {
+  background: var(--sig-blue-soft-2) !important;
+  border-radius: 8px;
+}
+.siguppys-sidebar .nav-collapse li.active > a .sub-item {
+  color: var(--sig-blue) !important;
+  font-weight: 600;
+  opacity: 1;
+}
+.siguppys-sidebar .nav-collapse li.active > a .sub-item:before {
+  background: var(--sig-blue);
+}
+
+/* ---- Reportes: menú desplegable vacío ---- */
+.siguppys-empty-submenu {
+  padding: 8px 20px 10px 54px;
+  font-size: 12px;
+  color: var(--sig-muted);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* ---- Pie del sidebar: botón Cerrar Sesión ---- */
+.sidebar-footer {
+  flex: none;
+  padding: 16px 20px 22px;
+  border-top: 1px solid #f1f1f1;
+}
+.btn-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--sig-red);
+  border-radius: 8px;
+  color: var(--sig-red);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-logout:hover {
+  background: var(--sig-red);
+  color: #fff;
+  text-decoration: none;
+}
+
+/* ---- Selector de rol (barra superior, solo demo) ---- */
+.sig-role-switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px dashed #d8dbe3;
+  border-radius: 20px;
+  margin-right: 10px;
+  background: #fbfbfd;
+}
+.sig-role-switcher label {
+  font-size: 11px;
+  text-transform: none;
+  color: var(--sig-muted);
+  margin: 0;
+  white-space: nowrap;
+}
+.sig-role-switcher select {
+  border: none;
+  background: transparent;
+  color: var(--sig-ink);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 0 20px 0 0;
+}
+.sig-role-switcher select:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* ---- Badges de estado ---- */
+.badge-estado {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 20px;
+}
+.badge-estado.activo {
+  background: rgba(29, 201, 183, 0.12);
+  color: #0f9c8c;
+}
+.badge-estado.inactivo {
+  background: rgba(243, 84, 93, 0.12);
+  color: var(--sig-red);
+}
+
+/* ---- Botón bloqueado (sin permiso) ---- */
+.btn-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #eef0f4;
+  color: #9aa0ab;
+  border: 1px solid #e2e5ec;
+  cursor: not-allowed;
+}
+.btn-locked:hover,
+.btn-locked:focus {
+  background: #eef0f4;
+  color: #9aa0ab;
+}
+
+/* ---- Botones de acción en tablas ---- */
+.table-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+.table-actions .btn-icon {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid #e5e7ee;
+  background: #fff;
+  color: #6a6f78;
+  transition: all 0.15s;
+}
+.table-actions .btn-icon:hover {
+  border-color: var(--sig-blue);
+  color: var(--sig-blue);
+}
+.table-actions .btn-icon.text-danger:hover {
+  border-color: var(--sig-red);
+  color: var(--sig-red);
+}
+.table-actions .btn-icon.text-success:hover {
+  border-color: #0f9c8c;
+  color: #0f9c8c;
+}
+
+/* ---- Utilidades por rol (JS agrega data-role al <body>) ---- */
+[data-role] .only-auxiliar,
+[data-role] .only-coordinador {
+  display: none !important;
+}
+body[data-role="auxiliar"] .only-auxiliar {
+  display: revert !important;
+}
+body[data-role="coordinador"] .only-coordinador {
+  display: revert !important;
+}
+.table-actions.only-auxiliar,
+.table-actions.only-coordinador {
+  display: none !important;
+}
+body[data-role="auxiliar"] .table-actions.only-auxiliar {
+  display: flex !important;
+}
+body[data-role="coordinador"] .table-actions.only-coordinador {
+  display: flex !important;
+}
+
+/* ---- Placeholders de módulos aún no construidos ---- */
+.content-placeholder {
+  border: 1px dashed #e3e3e3;
+  border-radius: 12px;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--sig-muted);
+}
+.content-placeholder i {
+  font-size: 28px;
+  display: block;
+  margin-bottom: 10px;
+  color: #c8cbd3;
+}
+
+/* ---- Toolbar de tabla (buscar + filtro estado) ---- */
+.sig-table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.sig-table-toolbar .sig-search {
+  position: relative;
+  flex: 1 1 260px;
+  max-width: 320px;
+}
+.sig-table-toolbar .sig-search i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #b7bac2;
+  font-size: 13px;
+}
+.sig-table-toolbar .sig-search input {
+  padding-left: 32px;
+}
+.sig-empty-row td {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--sig-muted);
+}
+
+/* =========================================================
+   Modo oscuro — ajustes para los elementos propios de SIGuppys
+   =========================================================
+   El esqueleto del modo oscuro (fondos, texto, tarjetas) ya lo
+   trae kaiadmin.css activando data-background-color="dark" en el
+   body / sidebar / logo-header / navbar; assets/js/siguppys-nav.js
+   se encarga de poner y quitar ese atributo. Aquí solo adaptamos
+   las piezas que agregamos nosotros (marca, selector de rol,
+   placeholders, tabla de acciones). */
+body[data-background-color="dark"] .siguppys-logo-header {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+body[data-background-color="dark"] .siguppys-brand strong {
+  color: #fff;
+}
+body[data-background-color="dark"] .siguppys-brand small {
+  color: #b9babf;
+}
+body[data-background-color="dark"] .sidebar-footer {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+body[data-background-color="dark"] .sig-role-switcher {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+body[data-background-color="dark"] .sig-role-switcher label {
+  color: #b9babf;
+}
+body[data-background-color="dark"] .sig-role-switcher select {
+  color: #fff;
+}
+body[data-background-color="dark"] .sig-role-switcher select option {
+  color: #1a2035;
+}
+body[data-background-color="dark"] .siguppys-sidebar.sidebar.sidebar-style-2 .nav.nav-secondary > .nav-item.active > a,
+body[data-background-color="dark"] .siguppys-sidebar .nav > .nav-item > a[aria-expanded="true"] {
+  background: rgba(29, 122, 243, 0.22) !important;
+}
+body[data-background-color="dark"] .siguppys-empty-submenu {
+  color: #8d9498;
+}
+body[data-background-color="dark"] .content-placeholder {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #8d9498;
+}
+body[data-background-color="dark"] .content-placeholder i {
+  color: #4a5170;
+}
+body[data-background-color="dark"] .sig-empty-row td {
+  color: #8d9498;
+}
+body[data-background-color="dark"] .table-actions .btn-icon {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #b9babf;
+}
+body[data-background-color="dark"] .btn-locked {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #6d7385;
+}
+body[data-background-color="dark"] .settings-option {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+body[data-background-color="dark"] .settings-option strong {
+  color: #fff;
+}
+
+/* =========================================================
+   Modo daltonismo — paleta segura azul / naranja
+   =========================================================
+   Sustituye el par rojo/verde (que muchas personas con daltonismo
+   rojo-verde no distinguen bien) por azul/naranja, manteniendo
+   además el texto ("Activo" / "Inhabilitado") como apoyo, no solo
+   el color. */
+body.daltonismo-mode {
+  --sig-green: #0072b2;
+  --sig-red: #e69f00;
+}
+body.daltonismo-mode .badge-estado.activo {
+  background: rgba(0, 114, 178, 0.14);
+  color: #0072b2;
+}
+body.daltonismo-mode .badge-estado.inactivo {
+  background: rgba(230, 159, 0, 0.18);
+  color: #966400;
+}
+body.daltonismo-mode .card-stats .icon-big.icon-success {
+  background: #0072b2 !important;
+}
+body.daltonismo-mode .card-stats .icon-big.icon-danger {
+  background: #e69f00 !important;
+}
+body.daltonismo-mode .table-actions .btn-icon.text-danger {
+  color: #966400;
+  border-color: #e69f00;
+}
+body.daltonismo-mode .table-actions .btn-icon.text-danger:hover {
+  color: #966400;
+  border-color: #e69f00;
+}
+body.daltonismo-mode .table-actions .btn-icon.text-success {
+  color: #0072b2;
+}
+body.daltonismo-mode .table-actions .btn-icon.text-success:hover {
+  color: #0072b2;
+  border-color: #0072b2;
+}
+body.daltonismo-mode .btn-logout {
+  border-color: #e69f00;
+  color: #966400;
+}
+body.daltonismo-mode .btn-logout:hover {
+  background: #e69f00;
+  color: #fff;
+}
+
+/* ---- Página Configuraciones: tarjetas de preferencia ---- */
+.settings-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 20px;
+  border: 1px solid #eef0f4;
+  border-radius: 12px;
+}
+.settings-option + .settings-option {
+  margin-top: 12px;
+}
+.settings-option strong {
+  display: block;
+  color: var(--sig-ink);
+  margin-bottom: 2px;
+}
+.settings-option p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--sig-muted);
+  max-width: 480px;
+}
+.settings-option .form-check-input {
+  width: 42px;
+  height: 24px;
+  cursor: pointer;
+  flex: none;
+}
+
+
+
+/* =========================================================
+   Formulario de Seguimiento de Zoocriadero
+   ========================================================= */
+.sig-followup-card {
+  border-radius: 14px;
+}
+.sig-followup-card .form-label {
+  font-weight: 600;
+}
+.sig-followup-card input[readonly] {
+  background: #f7f9fc;
+  color: #6b7280;
+}
+
+/* =========================================================
+   Modo oscuro — Modales, formularios y componentes flotantes
+   ========================================================= */
+body[data-background-color="dark"] .modal-content,
+body[data-background-color="dark2"] .modal-content {
+  background-color: #202940;
+  color: #e8eaf0;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+}
+
+body[data-background-color="dark"] .modal-header,
+body[data-background-color="dark"] .modal-footer,
+body[data-background-color="dark2"] .modal-header,
+body[data-background-color="dark2"] .modal-footer {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+body[data-background-color="dark"] .modal-title,
+body[data-background-color="dark2"] .modal-title {
+  color: #ffffff !important;
+}
+
+body[data-background-color="dark"] .modal-body,
+body[data-background-color="dark2"] .modal-body {
+  color: #d5d8e0;
+}
+
+body[data-background-color="dark"] .modal .form-label,
+body[data-background-color="dark2"] .modal .form-label {
+  color: #e8eaf0;
+}
+
+body[data-background-color="dark"] .modal .form-text,
+body[data-background-color="dark2"] .modal .form-text {
+  color: #9ea5b5 !important;
+}
+
+body[data-background-color="dark"] .modal .form-control,
+body[data-background-color="dark"] .modal .form-select,
+body[data-background-color="dark"] .modal textarea,
+body[data-background-color="dark2"] .modal .form-control,
+body[data-background-color="dark2"] .modal .form-select,
+body[data-background-color="dark2"] .modal textarea {
+  background-color: #1a2035 !important;
+  color: #ffffff !important;
+  border-color: #36405a !important;
+}
+
+body[data-background-color="dark"] .modal .form-control::placeholder,
+body[data-background-color="dark"] .modal textarea::placeholder,
+body[data-background-color="dark2"] .modal .form-control::placeholder,
+body[data-background-color="dark2"] .modal textarea::placeholder {
+  color: #7f8799 !important;
+  opacity: 1;
+}
+
+body[data-background-color="dark"] .modal .form-control:focus,
+body[data-background-color="dark"] .modal .form-select:focus,
+body[data-background-color="dark"] .modal textarea:focus,
+body[data-background-color="dark2"] .modal .form-control:focus,
+body[data-background-color="dark2"] .modal .form-select:focus,
+body[data-background-color="dark2"] .modal textarea:focus {
+  background-color: #1a2035 !important;
+  color: #ffffff !important;
+  border-color: #1572e8 !important;
+  box-shadow: 0 0 0 0.2rem rgba(21, 114, 232, 0.18) !important;
+}
+
+body[data-background-color="dark"] .modal .form-control[readonly],
+body[data-background-color="dark"] .modal .form-control:disabled,
+body[data-background-color="dark"] .modal .form-select:disabled,
+body[data-background-color="dark2"] .modal .form-control[readonly],
+body[data-background-color="dark2"] .modal .form-control:disabled,
+body[data-background-color="dark2"] .modal .form-select:disabled {
+  background-color: #151b2e !important;
+  color: #9ea5b5 !important;
+}
+
+body[data-background-color="dark"] .modal select option,
+body[data-background-color="dark2"] .modal select option {
+  background-color: #1a2035 !important;
+  color: #ffffff !important;
+}
+
+/* Selector de fecha: conserva legibilidad del control nativo. */
+body[data-background-color="dark"] .modal input[type="date"],
+body[data-background-color="dark2"] .modal input[type="date"] {
+  color-scheme: dark;
+}
+
+body[data-background-color="dark"] .modal .btn-close,
+body[data-background-color="dark2"] .modal .btn-close {
+  filter: invert(1) grayscale(1);
+  opacity: 0.8;
+}
+
+body[data-background-color="dark"] .modal .btn-close:hover,
+body[data-background-color="dark2"] .modal .btn-close:hover {
+  opacity: 1;
+}
+
+body[data-background-color="dark"] .modal .btn-label-secondary,
+body[data-background-color="dark2"] .modal .btn-label-secondary {
+  background: rgba(255, 255, 255, 0.07) !important;
+  color: #d7dbe5 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body[data-background-color="dark"] .modal .btn-label-secondary:hover,
+body[data-background-color="dark2"] .modal .btn-label-secondary:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+/* Textos generados dinámicamente dentro del modal de detalle. */
+body[data-background-color="dark"] .modal .text-muted,
+body[data-background-color="dark2"] .modal .text-muted {
+  color: #9ea5b5 !important;
+}
+
+body[data-background-color="dark"] .modal hr,
+body[data-background-color="dark2"] .modal hr {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  opacity: 1;
+}
+
+body[data-background-color="dark"] .modal .alert,
+body[data-background-color="dark2"] .modal .alert {
+  color: #e8eaf0;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Evita que el campo readonly propio del seguimiento vuelva a blanco. */
+body[data-background-color="dark"] .sig-followup-card input[readonly],
+body[data-background-color="dark2"] .sig-followup-card input[readonly] {
+  background: #151b2e !important;
+  color: #9ea5b5 !important;
+  border-color: #36405a !important;
+}

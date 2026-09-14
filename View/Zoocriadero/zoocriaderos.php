@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Resumen · SIGuppys</title>
+    <title>Zoocriaderos · SIGuppys</title>
     <meta
       content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
       name="viewport"
     />
-    <link rel="icon" href="../assets/img/siguppys/favicon-32.png" type="image/png" />
-    <link rel="apple-touch-icon" href="../assets/img/siguppys/favicon-180.png" />
+    <link rel="icon" href="../../assets/img/siguppys/favicon-32.png" type="image/png" />
+    <link rel="apple-touch-icon" href="../../assets/img/siguppys/favicon-180.png" />
 
     <!-- Fonts and icons -->
-    <script src="../assets/js/plugin/webfont/webfont.min.js"></script>
+    <script src="../../assets/js/plugin/webfont/webfont.min.js"></script>
     <script>
       WebFont.load({
         google: { families: ["Public Sans:300,400,500,600,700"] },
@@ -23,7 +23,7 @@
             "Font Awesome 5 Brands",
             "simple-line-icons",
           ],
-          urls: ["../assets/css/fonts.min.css"],
+          urls: ["../../assets/css/fonts.min.css"],
         },
         active: function () {
           sessionStorage.fonts = true;
@@ -32,23 +32,23 @@
     </script>
 
     <!-- CSS Files (mismos del template, sin modificar) -->
-    <link rel="stylesheet" href="../assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="../assets/css/plugins.min.css" />
-    <link rel="stylesheet" href="../assets/css/kaiadmin.min.css" />
+    <link rel="stylesheet" href="../../assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../../assets/css/plugins.min.css" />
+    <link rel="stylesheet" href="../../assets/css/kaiadmin.min.css" />
 
     <!-- Estilos propios de SIGuppys: solo AGREGAN reglas encima del kaiadmin.css original -->
-    <link rel="stylesheet" href="../assets/css/siguppys.css" />
+    <link rel="stylesheet" href="../../assets/css/siguppys.css" />
   </head>
-  <body data-page="resumen">
+  <body data-page="zoocriaderos">
     <div class="wrapper">
       <!-- Sidebar -->
       <div class="sidebar sidebar-style-2 siguppys-sidebar" data-background-color="white">
         <div class="sidebar-logo">
           <!-- Logo Header -->
           <div class="logo-header siguppys-logo-header">
-            <a href="../Web/index.php" class="logo siguppys-logo">
+            <a href="../../Web/index.php" class="logo siguppys-logo">
               <span class="siguppys-pin">
-                <img src="../assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
+                <img src="../../assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
               </span>
               <span class="siguppys-brand">
                 <strong>SIGuppys</strong>
@@ -78,7 +78,7 @@
               </li>
 
               <li class="nav-item">
-                <a href="../Web/index.php" data-page="resumen">
+                <a href="../../Web/index.php" data-page="resumen">
                   <i class="fas fa-home"></i>
                   <p>Resumen</p>
                 </a>
@@ -127,7 +127,7 @@
               </li>
 
               <li class="nav-item">
-                <a href="../View/Zoocriadero/zoocriaderos.php" data-page="zoocriaderos">
+                <a href="../../View/Zoocriadero/zoocriaderos.php" data-page="zoocriaderos">
                   <i class="fas fa-warehouse"></i>
                   <p>Zoocriaderos</p>
                 </a>
@@ -179,12 +179,12 @@
                       </a>
                     </li>
                     <li>
-                      <a href="../View/Roles/registro-roles.php" data-page="roles-registrar">
+                      <a href="../../View/Roles/registro-roles.php" data-page="roles-registrar">
                         <span class="sub-item">Roles y Permisos</span>
                       </a>
                     </li>
                     <li>
-                      <a href="../View/Roles/consultar-roles.php" data-page="roles-consultar">
+                      <a href="../../View/Roles/consultar-roles.php" data-page="roles-consultar">
                         <span class="sub-item">Consultar Roles</span>
                       </a>
                     </li>
@@ -200,7 +200,7 @@
               </li>
 
               <li class="nav-item">
-                <a href="../View/Configuraciones/configuraciones.php" data-page="configuraciones">
+                <a href="../../View/Configuraciones/configuraciones.php" data-page="configuraciones">
                   <i class="fas fa-cogs"></i>
                   <p>Configuraciones</p>
                 </a>
@@ -221,9 +221,9 @@
         <div class="main-header">
           <div class="main-header-logo">
             <div class="logo-header siguppys-logo-header" data-background-color="white">
-              <a href="../Web/index.php" class="logo siguppys-logo">
+              <a href="../../Web/index.php" class="logo siguppys-logo">
                 <span class="siguppys-pin">
-                  <img src="../assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
+                  <img src="../../assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
                 </span>
                 <span class="siguppys-brand">
                   <strong>SIGuppys</strong>
@@ -264,139 +264,142 @@
           <div class="page-inner">
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
               <div>
-                <h3 class="fw-bold mb-3">Resumen</h3>
-                <h6 class="op-7 mb-2">Inicio / Resumen</h6>
+                <h3 class="fw-bold mb-3">Zoocriaderos</h3>
+                <h6 class="op-7 mb-2">Zoocriaderos</h6>
+              </div>
+              <div class="ms-md-auto py-2 py-md-0 d-flex gap-2 align-items-center">
+                <a href="../../View/Seguimiento_Zoocriadero/seguimiento-zoocriadero.php" class="btn btn-outline-primary btn-round">
+                  <i class="fas fa-clipboard-check me-1"></i> Registrar Seguimiento
+                </a>
+                <div id="registrarZoocriaderoWrap">
+                  <!-- el botón Registrar Zoocriadero lo arma assets/js/siguppys-zoocriaderos.js según el rol -->
+                </div>
+                <div id="registrarTanqueWrap">
+                  <!-- el botón Registrar Tanque lo arma assets/js/siguppys-zoocriaderos.js según el rol -->
+                </div>
               </div>
             </div>
-            <div class="row">
-              <div class="col-sm-6 col-md-3">
-                <div class="card card-stats card-round">
-                  <div class="card-body">
-                    <div class="row align-items-center">
-                      <div class="col-icon">
-                        <div class="icon-big text-center icon-primary bubble-shadow-small">
-                          <i class="fas fa-warehouse"></i>
-                        </div>
-                      </div>
-                      <div class="col col-stats ms-3 ms-sm-0">
-                        <div class="numbers">
-                          <p class="card-category">Zoocriaderos activos</p>
-                          <h4 class="card-title">4</h4>
-                        </div>
-                      </div>
-                    </div>
+            <div class="card">
+              <div class="card-body">
+                <div class="sig-table-toolbar">
+                  <div class="sig-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="zoocriaderosSearch" class="form-control" placeholder="Buscar por nombre, dirección, barrio o encargado..." />
+                  </div>
+                  <div class="d-flex align-items-center gap-2">
+                    <select id="zoocriaderosEstadoFiltro" class="form-select form-select-sm" style="width:auto;">
+                      <option value="todos">Todos los estados</option>
+                      <option value="activo">Activos</option>
+                      <option value="inactivo">Inhabilitados</option>
+                    </select>
+                    <span class="small text-muted" id="zoocriaderosCount"></span>
                   </div>
                 </div>
-              </div>
-              <div class="col-sm-6 col-md-3">
-                <div class="card card-stats card-round">
-                  <div class="card-body">
-                    <div class="row align-items-center">
-                      <div class="col-icon">
-                        <div class="icon-big text-center icon-info bubble-shadow-small">
-                          <i class="fas fa-flask"></i>
-                        </div>
-                      </div>
-                      <div class="col col-stats ms-3 ms-sm-0">
-                        <div class="numbers">
-                          <p class="card-category">Seguimientos este mes</p>
-                          <h4 class="card-title">27</h4>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-sm-6 col-md-3">
-                <div class="card card-stats card-round">
-                  <div class="card-body">
-                    <div class="row align-items-center">
-                      <div class="col-icon">
-                        <div class="icon-big text-center icon-success bubble-shadow-small">
-                          <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                      </div>
-                      <div class="col col-stats ms-3 ms-sm-0">
-                        <div class="numbers">
-                          <p class="card-category">Depósitos inspeccionados</p>
-                          <h4 class="card-title">138</h4>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-sm-6 col-md-3">
-                <div class="card card-stats card-round">
-                  <div class="card-body">
-                    <div class="row align-items-center">
-                      <div class="col-icon">
-                        <div class="icon-big text-center icon-danger bubble-shadow-small">
-                          <i class="fas fa-triangle-exclamation"></i>
-                        </div>
-                      </div>
-                      <div class="col col-stats ms-3 ms-sm-0">
-                        <div class="numbers">
-                          <p class="card-category">Alertas pendientes</p>
-                          <h4 class="card-title">3</h4>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+
+                <div class="table-responsive">
+                  <table class="table align-items-center mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Zoocriadero</th>
+                        <th>Dirección</th>
+                        <th>Persona a cargo</th>
+                        <th class="text-center">Tanques</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody id="zoocriaderosTableBody"></tbody>
+                  </table>
                 </div>
               </div>
             </div>
 
-            <div class="row">
-              <div class="col-md-7">
-                <div class="card">
-                  <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                      <h4 class="card-title">Zoocriaderos con seguimiento reciente</h4>
-                      <a href="../View/Zoocriadero/zoocriaderos.php" class="btn btn-sm btn-label-primary">Ver todos</a>
+            <!-- Modal Registrar / Editar -->
+            <div class="modal fade" id="zoocriaderoModal" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form id="zoocriaderoForm">
+                    <input type="hidden" name="id" />
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="zoocriaderoModalLabel">Registrar Zoocriadero</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
-                  </div>
-                  <div class="card-body">
-                    <div class="table-responsive">
-                      <table class="table align-items-center mb-0">
-                        <thead class="table-light">
-                          <tr>
-                            <th>Zoocriadero</th>
-                            <th>Comuna / Barrio</th>
-                            <th class="text-center">Estado</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td>Zoocriadero Central</td>
-                            <td>Comuna 10 · Guabal</td>
-                            <td class="text-center"><span class="badge-estado activo">Activo</span></td>
-                          </tr>
-                          <tr>
-                            <td>Zoocriadero Norte</td>
-                            <td>Comuna 2 · Granada</td>
-                            <td class="text-center"><span class="badge-estado activo">Activo</span></td>
-                          </tr>
-                          <tr>
-                            <td>Zoocriadero Aguablanca</td>
-                            <td>Comuna 15 · Mojica</td>
-                            <td class="text-center"><span class="badge-estado activo">Activo</span></td>
-                          </tr>
-                          <tr>
-                            <td>Zoocriadero Ladera</td>
-                            <td>Comuna 18 · Meléndez</td>
-                            <td class="text-center"><span class="badge-estado inactivo">Inhabilitado</span></td>
-                          </tr>
-                        </tbody>
-                      </table>
+                    <div class="modal-body">
+                      <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" name="nombre" class="form-control" required />
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Dirección</label>
+                        <input type="text" name="direccion" class="form-control" required />
+                      </div>
+                      <div class="row">
+                        <div class="col-6 mb-3">
+                          <label class="form-label">Comuna</label>
+                          <input type="text" name="comuna" class="form-control" />
+                        </div>
+                        <div class="col-6 mb-3">
+                          <label class="form-label">Barrio</label>
+                          <input type="text" name="barrio" class="form-control" />
+                        </div>
+                      </div>
+                      <div class="mb-1">
+                        <label class="form-label">Persona a cargo</label>
+                        <select name="persona_cargo" class="form-select"></select>
+                      </div>
                     </div>
-                  </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancelar</button>
+                      <button type="submit" class="btn btn-primary" id="zoocriaderoSubmitBtn">Guardar Registro</button>
+                    </div>
+                  </form>
                 </div>
               </div>
-              <div class="col-md-5">
-                <div class="card">
-                  <div class="card-body">
-                    <!-- Espacio reservado: aquí irá contenido nuevo (ya no son los accesos rápidos) -->
+            </div>
+
+            <!-- Modal Registrar Tanque -->
+            <div class="modal fade" id="tanqueModal" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form id="tanqueForm">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Registrar Tanque</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="mb-3">
+                        <label class="form-label">Zoocriadero</label>
+                        <select name="id_zoocriadero" class="form-select" required></select>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" name="nombre" class="form-control" placeholder="Ej. Tanque 1" required />
+                      </div>
+                      <div class="mb-1">
+                        <label class="form-label">Descripción <span class="text-muted small">(opcional)</span></label>
+                        <textarea name="descripcion" class="form-control" rows="2"></textarea>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancelar</button>
+                      <button type="submit" class="btn btn-primary">Guardar Tanque</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- Modal Ver Detalle -->
+            <div class="modal fade" id="zoocriaderoDetailModal" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Detalle del zoocriadero</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                  </div>
+                  <div class="modal-body" id="zoocriaderoDetailBody"></div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cerrar</button>
                   </div>
                 </div>
               </div>
@@ -407,13 +410,14 @@
     </div>
 
     <!-- Core JS Files -->
-    <script src="../assets/js/core/jquery-3.7.1.min.js"></script>
-    <script src="../assets/js/core/popper.min.js"></script>
-    <script src="../assets/js/core/bootstrap.min.js"></script>
-    <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
-    <script src="../assets/js/kaiadmin.min.js"></script>
+    <script src="../../assets/js/core/jquery-3.7.1.min.js"></script>
+    <script src="../../assets/js/core/popper.min.js"></script>
+    <script src="../../assets/js/core/bootstrap.min.js"></script>
+    <script src="../../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+    <script src="../../assets/js/kaiadmin.min.js"></script>
 
     <!-- SIGuppys -->
-    <script src="../assets/js/siguppys-nav.js"></script>
+    <script src="../../assets/js/siguppys-nav.js"></script>
+    <script src="../../assets/js/siguppys-zoocriaderos.js"></script>
   </body>
 </html>
