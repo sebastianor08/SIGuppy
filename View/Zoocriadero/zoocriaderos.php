@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Zoocriaderos · SIGuppys</title>
+    <title>Zoocriaderos · SIGuppy</title>
     <meta
       content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
       name="viewport"
@@ -51,7 +51,7 @@
                 <img src="../../assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
               </span>
               <span class="siguppys-brand">
-                <strong>SIGuppys</strong>
+                <strong>SIGuppy</strong>
                 <small>Control Biológico contra el Dengue</small>
               </span>
             </a>
@@ -245,15 +245,7 @@
               
 
               <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                <li class="nav-item d-flex align-items-center">
-                  <div class="sig-role-switcher" title="Selector de rol para esta demostración. Cuando exista inicio de sesión, el rol vendrá de la sesión del usuario.">
-                    <label for="sigRoleSelect"><i class="fas fa-user-shield me-1"></i>Vista</label>
-                    <select id="sigRoleSelect">
-                      <option value="auxiliar">Auxiliar de campo</option>
-                      <option value="coordinador">Coordinador</option>
-                    </select>
-                  </div>
-                </li>
+              
               </ul>
             </div>
           </nav>
@@ -430,5 +422,26 @@
     <!-- SIGuppys -->
     <script src="../../assets/js/siguppys-nav.js"></script>
     <script src="../../assets/js/siguppys-zoocriaderos.js"></script>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        // Busca el input por su ID o por su atributo name="fecha"
+        const inputFecha = document.getElementById('fecha') || document.querySelector('input[name="fecha"]');
+        
+        if (inputFecha) {
+          // Obtener fecha actual en formato YYYY-MM-DD
+          const hoy = new Date();
+          const year = hoy.getFullYear();
+          const month = String(hoy.getMonth() + 1).padStart(2, '0');
+          const day = String(hoy.getDate()).padStart(2, '0');
+          const fechaActual = `${year}-${month}-${day}`;
+
+          // Asignar fecha de hoy y restringir min/max a solo hoy
+          inputFecha.value = fechaActual;
+          inputFecha.min = fechaActual;
+          inputFecha.max = fechaActual;
+        }
+      });
+    </script>
   </body>
 </html>
