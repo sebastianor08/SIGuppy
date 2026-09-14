@@ -83,12 +83,30 @@
       <div class="main-header-logo"><div class="logo-header siguppys-logo-header" data-background-color="white"><a href="../../Web/index.php" class="logo siguppys-logo"><span class="siguppys-pin"><img src="../../assets/img/siguppys/logo-pin.png" alt="SIGuppys" /></span><span class="siguppys-brand"><strong>SIGuppys</strong><small>Control Biológico contra el Dengue</small></span></a><div class="nav-toggle"><button class="btn btn-toggle toggle-sidebar"><i class="gg-menu-right"></i></button><button class="btn btn-toggle sidenav-toggler"><i class="gg-menu-left"></i></button></div></div></div>
       <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
         <div class="container-fluid"><ul class="navbar-nav topbar-nav ms-md-auto align-items-center"><li class="nav-item d-flex align-items-center"><div class="sig-role-switcher"><label for="sigRoleSelect"><i class="fas fa-user-shield me-1"></i>Vista</label><select id="sigRoleSelect"><option value="auxiliar">Auxiliar de campo</option><option value="coordinador">Coordinador</option></select></div></li></ul></div>
+      <div class="main-header-logo"><div class="logo-header siguppys-logo-header" data-background-color="white">
+        <a href="../../Web/index.php" class="logo siguppys-logo"><span class="siguppys-pin">
+          <img src="../../assets/img/siguppys/logo-pin.png" alt="SIGuppys" /></span>
+          <span class="siguppys-brand"><strong>SIGuppys</strong>
+          <small>Control Biológico contra el Dengue</small>
+        </span></a><div class="nav-toggle"><button class="btn btn-toggle toggle-sidebar">
+          <i class="gg-menu-right"></i></button><button class="btn btn-toggle sidenav-toggler">
+            <i class="gg-menu-left"></i></button></div></div></div>
+
+      <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+        <div class="container-fluid"><ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+          <li class="nav-item d-flex align-items-center"><div class="sig-role-switcher"><label for="sigRoleSelect">
+            <i class="fas fa-user-shield me-1"></i>Vista</label><select id="sigRoleSelect">
+              <option value="auxiliar">Auxiliar de campo</option><option value="coordinador">Coordinador</option>
+            </select></div></li></ul></div>
       </nav>
     </div>
 
     <div class="container"><div class="page-inner">
       <div class="d-flex align-items-center flex-column flex-md-row pt-2 pb-4">
         <div><h3 class="fw-bold mb-2" id="seguimientoTitulo">Registrar Seguimiento de Zoocriadero</h3><h6 class="op-7 mb-0">Registre la actividad realizada sobre un tanque existente.</h6></div>
+        <div>
+          <h3 class="fw-bold mb-2" id="seguimientoTitulo">Registrar Seguimiento de Zoocriadero</h3>
+          <h6 class="op-7 mb-0">Registre la actividad realizada sobre un tanque existente.</h6></div>
       </div>
 
       <div class="card sig-followup-card"><div class="card-body">
@@ -120,6 +138,11 @@
             </div>
             <div class="col-md-3">
               <label class="form-label" for="temperatura">Temperatura °C <span class="text-muted small">(opcional)</span></label>
+              <label class="form-label" for="ph">pH <span class="text-muted small"></span></label>
+              <input type="number" min="0" max="14" step="0.01" class="form-control" id="ph" name="ph" placeholder="7.20" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label" for="temperatura">Temperatura °C <span class="text-muted small"></span></label>
               <input type="number" step="0.01" class="form-control" id="temperatura" name="temperatura" placeholder="26.50" />
             </div>
             <div class="col-md-2">
@@ -197,5 +220,87 @@
 <script src="../../assets/js/kaiadmin.min.js"></script>
 <script src="../../assets/js/siguppys-nav.js"></script>
 <script src="../../assets/js/siguppys-seguimiento-zoocriadero.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Apuntar exactamente al select por su ID en tu HTML
+  const selectAccion = document.getElementById('id_actividad');
+  const inputPh = document.getElementById('ph');
+  const inputTemp = document.getElementById('temperatura');
+  const labelPh = document.querySelector('label[for="ph"]');
+  const labelTemp = document.querySelector('label[for="temperatura"]');
+
+  // Acciones que exigen medir pH
+  const accionesPH = [
+    'Aplicar tratamiento',
+    'Cambiar agua',
+    'Cosechar peces',
+    'Equilibrar pH',
+    'Limpiar filtro',
+    'Limpiar tanque',
+    'Retirar peces muertos'
+  ];
+
+  // Acciones que exigen medir Temperatura
+  const accionesTemperatura = [
+    'Cambiar agua',
+    'Medir temperatura'
+  ];
+
+  function gestionarReglasNegocio() {
+    if (!selectAccion) return;
+
+    // Obtener el texto visible de la opción seleccionada
+    const accionSeleccionada = selectAccion.options[selectAccion.selectedIndex]?.text.trim();
+
+    // 1. Evaluar campo pH
+    const requierePh = accionesPH.includes(accionSeleccionada);
+    aplicarEstadoCampo(inputPh, labelPh, requierePh);
+
+    // 2. Evaluar campo Temperatura
+    const requiereTemp = accionesTemperatura.includes(accionSeleccionada);
+    aplicarEstadoCampo(inputTemp, labelTemp, requiereTemp);
+  }
+
+  function aplicarEstadoCampo(input, label, esObligatorio) {
+    if (!input) return;
+
+    if (esObligatorio) {
+      input.disabled = false;
+      input.required = true;
+      actualizarAsterisco(label, true);
+    } else {
+      input.value = '';        // Limpia cualquier valor previo
+      input.disabled = true;   // Bloquea el campo si la acción no lo requiere
+      input.required = false;
+      actualizarAsterisco(label, false);
+    }
+  }
+
+  function actualizarAsterisco(label, mostrar) {
+    if (!label) return;
+    let span = label.querySelector('.asterisco-req');
+    
+    if (mostrar) {
+      if (!span) {
+        span = document.createElement('span');
+        span.className = 'asterisco-req text-danger ms-1';
+        span.textContent = '*';
+        label.appendChild(span);
+      }
+    } else {
+      if (span) span.remove();
+    }
+  }
+
+  // Escuchar evento de cambio en la lista de acciones
+  if (selectAccion) {
+    selectAccion.addEventListener('change', gestionarReglasNegocio);
+  }
+
+  // Ejecutar al cargar la página por si hay alguna opción seleccionada
+  gestionarReglasNegocio();
+});
+</script>
 </body>
 </html>

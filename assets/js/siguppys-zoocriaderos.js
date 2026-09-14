@@ -19,6 +19,7 @@
    El diseño de la tabla, los filtros y los permisos por rol
    quedaron igual que antes.
    ========================================================= */
+
 (function () {
   "use strict";
 
@@ -34,6 +35,7 @@
 
   var data = [];      // zoocriaderos traídos de la base
   var usuarios = [];  // usuarios activos
+  var comunas = [];   // comunas de Cali
   var tiposTanque = [];
   var state = { q: "", estado: "todos" };
 
@@ -128,8 +130,41 @@
         .map(function (u) {
           var sel = String(u.id_usuario) === String(selectedId) ? " selected" : "";
           return '<option value="' + u.id_usuario + '"' + sel + ">" + escapeHtml(u.nombre_completo) + "</option>";
+  function fillComunasSelect(selectEl, seleccionada) {
+    selectEl.innerHTML =
+      '<option value="">Seleccione la comuna</option>' +
+      comunas
+        .map(function (c) {
+          var sel = c.nombre === seleccionada ? " selected" : "";
+          return '<option value="' + c.id_comuna + '"' + sel + ">" + escapeHtml(c.nombre) + "</option>";
         })
         .join("");
+  }
+
+  // El select de barrios depende de la comuna: se pide al backend
+  // solo los barrios de esa comuna.
+  async function cargarBarrios(idComuna, seleccionado) {
+    var barrioSelect = document.getElementById("barrioSelect");
+    barrioSelect.disabled = true;
+
+    if (!idComuna) {
+      barrioSelect.innerHTML = '<option value="">Seleccione primero la comuna</option>';
+      return;
+    }
+
+    barrioSelect.innerHTML = '<option value="">Cargando barrios...</option>';
+    var barrios = await getJson("barrios", "&id_comuna=" + encodeURIComponent(idComuna));
+
+    barrioSelect.innerHTML = barrios.length
+      ? '<option value="">Seleccione el barrio</option>' +
+        barrios
+          .map(function (b) {
+            var sel = b.nombre === seleccionado ? " selected" : "";
+            return '<option value="' + escapeHtml(b.nombre) + '"' + sel + ">" + escapeHtml(b.nombre) + "</option>";
+          })
+          .join("")
+      : '<option value="">Esa comuna no tiene barrios registrados</option>';
+    barrioSelect.disabled = barrios.length === 0;
   }
 
   function fillTiposTanqueSelect(selectEl) {
@@ -202,6 +237,7 @@
     var q = state.q.trim().toLowerCase();
     return data.filter(function (z) {
       var texto = (z.nombre + " " + z.direccion + " " + z.barrio + " " + z.comuna + " " + z.persona_cargo).toLowerCase();
+      var texto = (z.nombre + " " + z.direccion + " " + z.barrio + " " + z.comuna).toLowerCase();
       var matchesQ = !q || texto.indexOf(q) !== -1;
       var matchesEstado =
         state.estado === "todos" ||
@@ -217,6 +253,7 @@
     if (!rows.length) {
       tbody.innerHTML =
         '<tr class="sig-empty-row"><td colspan="6"><i class="fas fa-folder-open mb-2 d-block" style="font-size:22px;color:#ccc;"></i>No hay zoocriaderos que coincidan con el filtro.</td></tr>';
+        '<tr class="sig-empty-row"><td colspan="5"><i class="fas fa-folder-open mb-2 d-block" style="font-size:22px;color:#ccc;"></i>No hay zoocriaderos que coincidan con el filtro.</td></tr>';
     } else {
       tbody.innerHTML = rows.map(renderRow).join("");
     }
@@ -266,6 +303,8 @@
     document.getElementById("zoocriaderoModalLabel").textContent = "Registrar Zoocriadero";
     document.getElementById("zoocriaderoSubmitBtn").textContent = "Guardar Registro";
     fillUsuariosSelect(form.elements["id_persona_cargo"], null);
+    fillComunasSelect(document.getElementById("comunaSelect"), null);
+    cargarBarrios(null, null);
   }
 
   function openEditModal(id) {
@@ -281,6 +320,13 @@
     form.elements["latitud"].value = z.latitud || "";
     form.elements["longitud"].value = z.longitud || "";
     fillUsuariosSelect(form.elements["id_persona_cargo"], z.id_persona_cargo);
+    form.elements["latitud"].value = z.latitud || "";
+    form.elements["longitud"].value = z.longitud || "";
+
+    var comunaSelect = document.getElementById("comunaSelect");
+    fillComunasSelect(comunaSelect, z.comuna);
+    cargarBarrios(comunaSelect.value, z.barrio);
+
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
   }
 
@@ -355,6 +401,13 @@
       numero_tanque: Number(tanqueForm.elements["numero_tanque"].value),
     };
     if (!payload.id_zoocriadero || !payload.id_tipo_tanque || !payload.numero_tanque) return;
+    // Validación en el navegador (el servidor la vuelve a hacer)
+    if (!payload.id_zoocriadero) { alert("Debe seleccionar un zoocriadero."); return; }
+    if (!payload.numero_tanque || payload.numero_tanque < 1) {
+      alert("El número de tanque debe ser un entero mayor que cero.");
+      return;
+    }
+    if (!payload.id_tipo_tanque) { alert("Debe seleccionar el tipo de tanque."); return; }
 
     try {
       var res = await postJson("postTanque", payload); // INSERT en tanque
@@ -381,6 +434,24 @@
       longitud: form.elements["longitud"].value,
     };
     if (!payload.nombre || !payload.direccion) return;
+      comuna: document.getElementById("comunaSelect").selectedOptions[0]
+        ? document.getElementById("comunaSelect").selectedOptions[0].textContent.trim()
+        : "",
+      barrio: document.getElementById("barrioSelect").value,
+      latitud: form.elements["latitud"].value,
+      longitud: form.elements["longitud"].value,
+    };
+    // Un campo escrito solo con espacios queda vacío tras el .trim() de arriba
+    if (payload.nombre.length < 3) {
+      alert("El nombre es obligatorio y debe tener al menos 3 caracteres (no solo espacios).");
+      form.elements["nombre"].focus();
+      return;
+    }
+    if (payload.direccion.length < 5) {
+      alert("La dirección es obligatoria y debe tener al menos 5 caracteres (no solo espacios).");
+      form.elements["direccion"].focus();
+      return;
+    }
 
     try {
       var res;
@@ -441,6 +512,12 @@
     if (e.target.closest("#btnAbrirRegistrarTanque")) openCreateTanqueModal();
   });
 
+  document.getElementById("comunaSelect").addEventListener("change", function () {
+    cargarBarrios(this.value, null).catch(function (error) {
+      showMessage(error.message, "danger");
+    });
+  });
+
   form.addEventListener("submit", handleSubmit);
   tanqueForm.addEventListener("submit", handleTanqueSubmit);
 
@@ -475,12 +552,22 @@
       ]);
       data = resultados[0].map(normalizar);
       usuarios = resultados[1];
+      '<tr class="sig-empty-row"><td colspan="5">Cargando zoocriaderos...</td></tr>';
+    try {
+      var resultados = await Promise.all([
+        getJson("lista"),
+        getJson("comunas"),
+        getJson("tiposTanque"),
+      ]);
+      data = resultados[0].map(normalizar);
+      comunas = resultados[1];
       tiposTanque = resultados[2];
       clearMessage();
       render();
     } catch (error) {
       document.getElementById("zoocriaderosTableBody").innerHTML =
         '<tr class="sig-empty-row"><td colspan="6">No se pudieron cargar los datos.</td></tr>';
+        '<tr class="sig-empty-row"><td colspan="5">No se pudieron cargar los datos.</td></tr>';
       showMessage(error.message + " Verifica que PHP pueda conectarse a PostgreSQL.", "danger");
     }
   })();

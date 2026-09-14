@@ -10,6 +10,7 @@ class ZoocriaderoModel extends MasterModel{
 
     // Listado para la tabla: trae el nombre de la persona a cargo
     // y cuántos tanques activos tiene cada zoocriadero.
+    // Listado para la tabla: cuántos tanques activos tiene cada zoocriadero.
     public function listar(){
         return $this->selectAll(
             "SELECT z.id_zoocriadero,
@@ -51,6 +52,35 @@ class ZoocriaderoModel extends MasterModel{
         );
     }
 
+    // Comunas para el primer select
+    public function comunas(){
+        return $this->selectAll(
+            "SELECT id_comuna, nombre FROM comuna ORDER BY id_comuna"
+        );
+    }
+
+    // Barrios de una comuna (el segundo select depende del primero)
+    public function barriosDe($idComuna){
+        return $this->selectAll(
+            "SELECT id_barrio, nombre
+             FROM barrio
+             WHERE id_comuna = $1
+             ORDER BY nombre",
+            [$idComuna]
+        );
+    }
+
+    // Valida que el barrio realmente pertenezca a esa comuna
+    public function barrioPerteneceAComuna($nombreBarrio, $nombreComuna){
+        return $this->selectValue(
+            "SELECT 1
+             FROM barrio b
+             INNER JOIN comuna c ON c.id_comuna = b.id_comuna
+             WHERE b.nombre = $1 AND c.nombre = $2",
+            [$nombreBarrio, $nombreComuna]
+        ) !== null;
+    }
+
     public function tiposTanque(){
         return $this->selectAll(
             "SELECT id_tipo_tanque, nombre
@@ -79,6 +109,8 @@ class ZoocriaderoModel extends MasterModel{
             "INSERT INTO zoocriadero
              (nombre, direccion, comuna, barrio, id_persona_cargo, latitud, longitud, estado)
              VALUES ($1, $2, $3, $4, $5, $6, $7, 1)
+             (nombre, direccion, comuna, barrio, latitud, longitud, estado)
+             VALUES ($1, $2, $3, $4, $5, $6, 1)
              RETURNING id_zoocriadero",
             [
                 $datos['nombre'],
@@ -99,6 +131,8 @@ class ZoocriaderoModel extends MasterModel{
              SET nombre = $1, direccion = $2, comuna = $3, barrio = $4,
                  id_persona_cargo = $5, latitud = $6, longitud = $7
              WHERE id_zoocriadero = $8",
+                 latitud = $5, longitud = $6
+             WHERE id_zoocriadero = $7",
             [
                 $datos['nombre'],
                 $datos['direccion'],

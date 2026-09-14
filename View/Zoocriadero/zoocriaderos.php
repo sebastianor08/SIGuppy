@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Zoocriaderos · SIGuppys</title>
+    <title>Zoocriaderos · SIGuppy</title>
     <meta
       content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
       name="viewport"
@@ -52,6 +53,7 @@
               </span>
               <span class="siguppys-brand">
                 <strong>SIGuppys</strong>
+                <strong>SIGuppy</strong>
                 <small>Control Biológico contra el Dengue</small>
               </span>
             </a>
@@ -143,6 +145,7 @@
                   <ul class="nav nav-collapse">
                     <li>
                       <a href="../../View/Deposito/DepositoView.php" data-page="terreno-depositos">
+                      <a href="#" data-page="terreno-depositos">
                         <span class="sub-item">Depósitos</span>
                       </a>
                     </li>
@@ -254,6 +257,7 @@
                     </select>
                   </div>
                 </li>
+              
               </ul>
             </div>
           </nav>
@@ -349,6 +353,17 @@
                         <label class="form-label">Persona a cargo</label>
                         <select name="id_persona_cargo" class="form-select"></select>
                       </div>
+                          <select name="comuna" id="comunaSelect" class="form-select" required>
+                            <option value="">Seleccione la comuna</option>
+                          </select>
+                        </div>
+                        <div class="col-6 mb-3">
+                          <label class="form-label">Barrio</label>
+                          <select name="barrio" id="barrioSelect" class="form-select" disabled required>
+                            <option value="">Seleccione primero la comuna</option>
+                          </select>
+                        </div>
+                      </div>
                       <div class="row">
                         <div class="col-6 mb-1">
                           <label class="form-label">Latitud <span class="text-muted small">(opcional)</span></label>
@@ -431,5 +446,26 @@
     <!-- SIGuppys -->
     <script src="../../assets/js/siguppys-nav.js"></script>
     <script src="../../assets/js/siguppys-zoocriaderos.js"></script>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        // Busca el input por su ID o por su atributo name="fecha"
+        const inputFecha = document.getElementById('fecha') || document.querySelector('input[name="fecha"]');
+        
+        if (inputFecha) {
+          // Obtener fecha actual en formato YYYY-MM-DD
+          const hoy = new Date();
+          const year = hoy.getFullYear();
+          const month = String(hoy.getMonth() + 1).padStart(2, '0');
+          const day = String(hoy.getDate()).padStart(2, '0');
+          const fechaActual = `${year}-${month}-${day}`;
+
+          // Asignar fecha de hoy y restringir min/max a solo hoy
+          inputFecha.value = fechaActual;
+          inputFecha.min = fechaActual;
+          inputFecha.max = fechaActual;
+        }
+      });
+    </script>
   </body>
 </html>

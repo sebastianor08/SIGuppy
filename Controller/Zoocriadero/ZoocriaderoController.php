@@ -19,6 +19,19 @@ class ZoocriaderoController{
     public function usuarios(){
         $obj = new ZoocriaderoModel();
         jsonResponse(['ok' => true, 'data' => $obj->usuariosActivos()]);
+    public function comunas(){
+        $obj = new ZoocriaderoModel();
+        jsonResponse(['ok' => true, 'data' => $obj->comunas()]);
+    }
+
+    public function barrios(){
+        $obj = new ZoocriaderoModel();
+        $idComuna = filter_var($_GET['id_comuna'] ?? null, FILTER_VALIDATE_INT);
+
+        if(!$idComuna){
+            jsonResponse(['ok' => false, 'message' => 'Debe indicar la comuna.'], 422);
+        }
+        jsonResponse(['ok' => true, 'data' => $obj->barriosDe($idComuna)]);
     }
 
     public function tiposTanque(){
@@ -147,6 +160,29 @@ class ZoocriaderoController{
         }
         if($idUsuario && !$obj->usuarioExiste($idUsuario)){
             jsonResponse(['ok' => false, 'message' => 'La persona a cargo seleccionada no es válida.'], 422);
+        // limpiar() recorta y colapsa espacios: así un campo escrito solo
+        // con la barra espaciadora queda como cadena vacía y no pasa.
+        $nombre    = limpiar($body['nombre'] ?? '');
+        $direccion = limpiar($body['direccion'] ?? '');
+        $comuna    = limpiar($body['comuna'] ?? '');
+        $barrio    = limpiar($body['barrio'] ?? '');
+        $latitud   = $body['latitud'] ?? null;
+        $longitud  = $body['longitud'] ?? null;
+
+        foreach([
+            validarTexto($nombre, 'Nombre', 3, 100),
+            validarTexto($direccion, 'Dirección', 5, 200),
+            validarTextoOpcional($comuna, 'Comuna', 60),
+            validarTextoOpcional($barrio, 'Barrio', 60),
+        ] as $error){
+            if($error !== null){
+                jsonResponse(['ok' => false, 'message' => $error], 422);
+            }
+        }
+        // Comuna y barrio ahora salen de un select: se comprueba que el
+        // barrio elegido realmente pertenezca a la comuna elegida.
+        if($comuna !== '' && $barrio !== '' && !$obj->barrioPerteneceAComuna($barrio, $comuna)){
+            jsonResponse(['ok' => false, 'message' => 'El barrio seleccionado no pertenece a esa comuna.'], 422);
         }
 
         // latitud/longitud son NOT NULL en la tabla: si el formulario
