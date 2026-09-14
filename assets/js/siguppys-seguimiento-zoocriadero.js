@@ -240,6 +240,9 @@
       form.reportValidity();
       return;
     }
+    if (!zooSelect.value) { showMessage("Debe seleccionar un zoocriadero.", "danger"); return; }
+    if (!tanqueSelect.value) { showMessage("Debe seleccionar un tanque.", "danger"); return; }
+    if (!accionSelect.value) { showMessage("Debe seleccionar una acción.", "danger"); return; }
 
     var editando = idSeguimientoInput.value !== "";
     saveButton.disabled = true;

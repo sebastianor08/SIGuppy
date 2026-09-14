@@ -4,27 +4,32 @@
     // Lista los roles registrados y el detalle de sus permisos
     // (qué puede visualizar y hacer cada uno en cada módulo).
     // =========================================================
+    include_once '../../lib/validaciones.php';
     include_once '../../Model/Roles/RolesModel.php';
 
     $modelo  = new RolesModel();
     $mensaje = null;
 
-    // Eliminar rol: ?eliminar=ID
-    if(isset($_GET['eliminar'])){
-        $idRol = filter_var($_GET['eliminar'], FILTER_VALIDATE_INT);
+    // Inhabilitar / habilitar rol: ?estado=ID&valor=0|1
+    // En este módulo no hay "Eliminar": igual que en zoocriaderos y tanques,
+    // el registro se conserva y solo se cambia su estado.
+    if(isset($_GET['estado'])){
+        $idRol = filter_var($_GET['estado'], FILTER_VALIDATE_INT);
+        $valor = filter_var($_GET['valor'] ?? null, FILTER_VALIDATE_INT);
 
-        if(!$idRol){
-            $mensaje = ['tipo' => 'danger', 'texto' => 'Rol no válido.'];
+        if(!$idRol || ($valor !== 0 && $valor !== 1)){
+            $mensaje = ['tipo' => 'danger', 'texto' => 'Solicitud no válida.'];
 
-        }elseif($modelo->usuariosConRol($idRol) > 0){
+        }elseif($valor === 0 && $modelo->usuariosConRol($idRol) > 0){
             $mensaje = ['tipo' => 'warning',
-                        'texto' => 'No se puede eliminar: hay usuarios asignados a este rol.'];
+                        'texto' => 'No se puede inhabilitar: hay usuarios activos con este rol.'];
 
-        }elseif($modelo->eliminarRol($idRol)){
-            $mensaje = ['tipo' => 'success', 'texto' => 'Rol eliminado correctamente.'];
+        }elseif($modelo->cambiarEstado($idRol, $valor) !== false){
+            $mensaje = ['tipo' => 'success',
+                        'texto' => $valor === 1 ? 'Rol habilitado.' : 'Rol inhabilitado.'];
 
         }else{
-            $mensaje = ['tipo' => 'danger', 'texto' => 'No se pudo eliminar el rol.'];
+            $mensaje = ['tipo' => 'danger', 'texto' => 'No se pudo cambiar el estado del rol.'];
         }
     }
 
@@ -246,13 +251,15 @@
                         <th>Rol</th>
                         <th>Descripcion</th>
                         <th>Puede visualizar / hacer</th>
+                        <th class="text-center">Usuarios</th>
+                        <th class="text-center">Estado</th>
                         <th class="text-center">Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       <?php if(empty($roles)): ?>
                         <tr>
-                          <td colspan="5" class="text-center text-muted py-4">
+                          <td colspan="7" class="text-center text-muted py-4">
                             Aún no hay roles registrados.
                           </td>
                         </tr>
@@ -277,12 +284,32 @@
                                 <?php endforeach; ?>
                               <?php endif; ?>
                             </td>
+                            <td class="text-center"><?php echo h($r['total_usuarios']); ?></td>
                             <td class="text-center">
-                              <a href="consultar-roles.php?eliminar=<?php echo h($r['id_rol']); ?>"
-                                 class="btn btn-link btn-danger p-1" title="Eliminar"
-                                 onclick="return confirm('¿Eliminar el rol <?php echo h($r['nombre_rol']); ?>?');">
-                                <i class="fa fa-times"></i>
+                              <?php if((int) $r['estado'] === 1): ?>
+                                <span class="badge-estado activo">Activo</span>
+                              <?php else: ?>
+                                <span class="badge-estado inactivo">Inhabilitado</span>
+                              <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                              <a href="registro-roles.php?id_rol=<?php echo h($r['id_rol']); ?>"
+                                 class="btn-icon" title="Editar rol y permisos">
+                                <i class="fas fa-pen"></i>
                               </a>
+                              <?php if((int) $r['estado'] === 1): ?>
+                                <a href="consultar-roles.php?estado=<?php echo h($r['id_rol']); ?>&valor=0"
+                                   class="btn-icon text-danger" title="Inhabilitar"
+                                   onclick="return confirm('¿Inhabilitar el rol <?php echo h($r['nombre_rol']); ?>?');">
+                                  <i class="fas fa-ban"></i>
+                                </a>
+                              <?php else: ?>
+                                <a href="consultar-roles.php?estado=<?php echo h($r['id_rol']); ?>&valor=1"
+                                   class="btn-icon text-success" title="Habilitar"
+                                   onclick="return confirm('¿Habilitar el rol <?php echo h($r['nombre_rol']); ?>?');">
+                                  <i class="fas fa-check-circle"></i>
+                                </a>
+                              <?php endif; ?>
                             </td>
                           </tr>
                         <?php endforeach; ?>
@@ -303,5 +330,7 @@
     <script src="../../assets/js/core/bootstrap.min.js"></script>
     <script src="../../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
     <script src="../../assets/js/kaiadmin.min.js"></script>
+    <!-- Aplica el modo oscuro / daltonismo guardado en Configuraciones -->
+    <script src="../../assets/js/siguppys-nav.js"></script>
   </body>
 </html>
