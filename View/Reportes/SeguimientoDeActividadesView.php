@@ -106,7 +106,7 @@ extract($datos);
                     <td><?= $actividad['fin'] ?></td>
                     <td><?= $actividad['responsable'] ?></td>
                     <td>
-                        <span class="badge <?= $actividad['estado'] === 'Completado' ? 'badge-verde' : ($actividad['estado'] === 'En proceso' ? 'badge-naranja' : 'badge-rojo') ?>">
+                        <span class="badge <?= $actividad['estado'] === 'Completado' ? 'badge-verde' : ($actividad['estado'] === 'En progreso' ? 'badge-naranja' : 'badge-rojo') ?>">
                             <?= $actividad['estado'] ?>
                         </span>
                     </td>
@@ -203,10 +203,25 @@ extract($datos);
         flex-shrink: 0;
     }
 
-    .icono-azul    { background-color: #e5f0ff; color: #2f7dfa; }
-    .icono-verde   { background-color: #e3f9ec; color: #21a666; }
-    .icono-naranja { background-color: #fff3df; color: #e0952d; }
-    .icono-rojo    { background-color: #fde6e6; color: #e64545; }
+    .icono-azul {
+        background-color: #e5f0ff;
+        color: #2f7dfa;
+    }
+
+    .icono-verde {
+        background-color: #e3f9ec;
+        color: #21a666;
+    }
+
+    .icono-naranja {
+        background-color: #fff3df;
+        color: #e0952d;
+    }
+
+    .icono-rojo {
+        background-color: #fde6e6;
+        color: #e64545;
+    }
 
     .tarjeta p {
         margin: 0 0 4px 0;
@@ -214,13 +229,31 @@ extract($datos);
         font-size: 14px;
     }
 
-    .numero { font-size: 26px; font-weight: bold; }
-    .azul    { color: #2f7dfa; }
-    .verde   { color: #21a666; }
-    .naranja { color: #e0952d; }
-    .rojo    { color: #e64545; }
+    .numero {
+        font-size: 26px;
+        font-weight: bold;
+    }
 
-    table { width: 100%; border-collapse: collapse; }
+    .azul {
+        color: #2f7dfa;
+    }
+
+    .verde {
+        color: #21a666;
+    }
+
+    .naranja {
+        color: #e0952d;
+    }
+
+    .rojo {
+        color: #e64545;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
     th {
         text-align: left;
@@ -242,7 +275,15 @@ extract($datos);
         font-weight: bold;
     }
 
-    .badge-verde   { background-color: #2ecc71; }
-    .badge-naranja { background-color: #f5a623; }
-    .badge-rojo    { background-color: #e74c3c; }
+    .badge-verde {
+        background-color: #2ecc71;
+    }
+
+    .badge-naranja {
+        background-color: #f5a623;
+    }
+
+    .badge-rojo {
+        background-color: #e74c3c;
+    }
 </style>

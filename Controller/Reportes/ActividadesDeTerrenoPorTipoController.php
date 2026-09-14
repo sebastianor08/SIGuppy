@@ -3,7 +3,13 @@
 function generarPuntosLinea($valores, $valorMaximo, $anchoGrafico, $altoGrafico, $margenIzquierdo)
 {
     $cantidadPuntos = count($valores);
-    $espacioEntrePuntos = $anchoGrafico / ($cantidadPuntos - 1);
+
+    // Si hay 1 punto o ninguno no se puede dividir, ponemos 0 para no romper la página
+    if ($cantidadPuntos > 1) {
+        $espacioEntrePuntos = $anchoGrafico / ($cantidadPuntos - 1);
+    } else {
+        $espacioEntrePuntos = 0;
+    }
 
     $puntos = [];
     foreach ($valores as $indice => $valor) {
@@ -16,45 +22,70 @@ function generarPuntosLinea($valores, $valorMaximo, $anchoGrafico, $altoGrafico,
 
 function obtenerDatosActividadesDeTerrenoPorTipo()
 {
-    $actividades = [
-        ['tipo' => 'Inspección', 'zoocriadero' => 'Selva Viva', 'fecha' => '02/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Inspección', 'zoocriadero' => 'Acuarama',   'fecha' => '04/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Inspección', 'zoocriadero' => 'Selva Viva', 'fecha' => '09/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Inspección', 'zoocriadero' => 'Acuarama',   'fecha' => '11/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Inspección', 'zoocriadero' => 'Selva Viva', 'fecha' => '16/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Inspección', 'zoocriadero' => 'Acuarama',   'fecha' => '20/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Inspección', 'zoocriadero' => 'Selva Viva', 'fecha' => '23/05/2024', 'estado' => 'En progreso'],
-        ['tipo' => 'Inspección', 'zoocriadero' => 'Acuarama',   'fecha' => '27/05/2024', 'estado' => 'Retrasada'],
+    // ---------------------------------------------------------
+    // 1. NOS CONECTAMOS A LA BASE DE DATOS
+    // ---------------------------------------------------------
+    require __DIR__ . '/../../lib/conf/conf.php';
 
-        ['tipo' => 'Siembra', 'zoocriadero' => 'Selva Viva', 'fecha' => '03/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Siembra', 'zoocriadero' => 'Acuarama',   'fecha' => '07/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Siembra', 'zoocriadero' => 'Selva Viva', 'fecha' => '14/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Siembra', 'zoocriadero' => 'Acuarama',   'fecha' => '21/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Siembra', 'zoocriadero' => 'Selva Viva', 'fecha' => '24/05/2024', 'estado' => 'En progreso'],
-        ['tipo' => 'Siembra', 'zoocriadero' => 'Acuarama',   'fecha' => '29/05/2024', 'estado' => 'Retrasada'],
+    $conexion = pg_connect("host=$host port=$port dbname=$database user=$user password=$password");
 
-        ['tipo' => 'Seguimiento', 'zoocriadero' => 'Selva Viva', 'fecha' => '05/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Seguimiento', 'zoocriadero' => 'Acuarama',   'fecha' => '08/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Seguimiento', 'zoocriadero' => 'Selva Viva', 'fecha' => '13/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Seguimiento', 'zoocriadero' => 'Acuarama',   'fecha' => '17/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Seguimiento', 'zoocriadero' => 'Selva Viva', 'fecha' => '22/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Seguimiento', 'zoocriadero' => 'Acuarama',   'fecha' => '25/05/2024', 'estado' => 'En progreso'],
-        ['tipo' => 'Seguimiento', 'zoocriadero' => 'Selva Viva', 'fecha' => '28/05/2024', 'estado' => 'Retrasada'],
+    if (!$conexion) {
+        die("No se pudo conectar a la base de datos");
+    }
 
-        ['tipo' => 'Resiembra', 'zoocriadero' => 'Selva Viva', 'fecha' => '06/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Resiembra', 'zoocriadero' => 'Acuarama',   'fecha' => '15/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Resiembra', 'zoocriadero' => 'Selva Viva', 'fecha' => '26/05/2024', 'estado' => 'Completada'],
-        ['tipo' => 'Resiembra', 'zoocriadero' => 'Acuarama',   'fecha' => '30/05/2024', 'estado' => 'En progreso'],
-    ];
+    // ---------------------------------------------------------
+    // 2. TRAEMOS LAS ACTIVIDADES DE TERRENO
+    // ---------------------------------------------------------
+    // OJO: las actividades de terreno NO pertenecen a un zoocriadero,
+    // se hacen en sitios que están en una comuna. Por eso la variable
+    // $listaZoocriaderos aquí trae COMUNAS (el nombre se dejó igual
+    // para no tener que cambiar toda la vista).
+    $sql = "SELECT a.nombre AS tipo,
+                   c.nombre AS zoocriadero,
+                   TO_CHAR(st.fecha, 'DD/MM/YYYY') AS fecha,
+                   st.estado AS estado
+            FROM seguimiento_terreno st
+            INNER JOIN actividad_terreno act ON act.id_seguimiento_terreno = st.id_seguimiento_terreno
+            INNER JOIN actividad a ON a.id_actividad = act.id_actividad
+            INNER JOIN sitio s ON s.id_sitio = st.id_sitio
+            INNER JOIN direccion d ON d.id_direccion = s.id_direccion
+            INNER JOIN comuna c ON c.id_comuna = d.id_comuna
+            WHERE a.ambito = 'terreno'
+            ORDER BY st.fecha";
 
-    $listaTipos = ['Inspección', 'Siembra', 'Seguimiento', 'Resiembra'];
+    $resultado = pg_query($conexion, $sql);
 
-    $coloresPorTipo = [
-        'Inspección'  => '#2f5fdc',
-        'Siembra'     => '#5bc9e8',
-        'Seguimiento' => '#6c5ce7',
-        'Resiembra'   => '#b8a8f5',
-    ];
+    if (!$resultado) {
+        die("Error en la consulta: " . pg_last_error($conexion));
+    }
+
+    // ---------------------------------------------------------
+    // 3. GUARDAMOS CADA FILA DENTRO DEL ARREGLO $actividades
+    // ---------------------------------------------------------
+    $actividades = [];
+    while ($fila = pg_fetch_assoc($resultado)) {
+        $actividades[] = $fila;
+    }
+
+    pg_close($conexion);
+
+    // --- SACAMOS LOS TIPOS QUE DE VERDAD EXISTEN EN LA BASE DE DATOS ---
+    $listaTipos = [];
+    foreach ($actividades as $actividad) {
+        if (!in_array($actividad['tipo'], $listaTipos)) {
+            $listaTipos[] = $actividad['tipo'];
+        }
+    }
+
+    // --- LE ASIGNAMOS UN COLOR A CADA TIPO, EN ORDEN ---
+    $paletaColores = ['#2f5fdc', '#5bc9e8', '#6c5ce7', '#b8a8f5', '#21a666', '#e0952d'];
+
+    $coloresPorTipo = [];
+    $indiceColor = 0;
+    foreach ($listaTipos as $tipo) {
+        $coloresPorTipo[$tipo] = $paletaColores[$indiceColor % count($paletaColores)];
+        $indiceColor++;
+    }
 
     $filtroTipo         = $_GET['tipo']         ?? '';
     $filtroZoocriadero  = $_GET['zoocriadero']  ?? '';
@@ -138,16 +169,41 @@ function obtenerDatosActividadesDeTerrenoPorTipo()
             : 0;
     }
 
-    $fechasEvolucion = ['1 May', '8 May', '15 May', '22 May', '29 May'];
+    // --- ARMAMOS LA LISTA DE FECHAS QUE SÍ TIENEN ACTIVIDADES ---
+    // Como la consulta ya viene ordenada por fecha, quedan en orden.
+    $fechasEvolucion = [];
+    foreach ($actividadesFiltradas as $actividad) {
+        if (!in_array($actividad['fecha'], $fechasEvolucion)) {
+            $fechasEvolucion[] = $actividad['fecha'];
+        }
+    }
 
-    $valoresEvolucionPorTipo = [
-        'Inspección'  => [18, 22, 19, 25, 23],
-        'Siembra'     => [10, 13, 11, 15, 14],
-        'Seguimiento' => [28, 24, 30, 27, 33],
-        'Resiembra'   => [5, 7, 6, 9, 8],
-    ];
+    // --- CONTAMOS CUÁNTAS ACTIVIDADES HAY DE CADA TIPO EN CADA FECHA ---
+    $valoresEvolucionPorTipo = [];
+    $valorMaximoEvolucion = 1; // empieza en 1 para no dividir entre 0
 
-    $valorMaximoEvolucion = 40;
+    foreach ($listaTipos as $tipo) {
+        $valores = [];
+
+        foreach ($fechasEvolucion as $fecha) {
+            $contador = 0;
+
+            foreach ($actividadesFiltradas as $actividad) {
+                if ($actividad['tipo'] === $tipo && $actividad['fecha'] === $fecha) {
+                    $contador++;
+                }
+            }
+
+            $valores[] = $contador;
+
+            if ($contador > $valorMaximoEvolucion) {
+                $valorMaximoEvolucion = $contador;
+            }
+        }
+
+        $valoresEvolucionPorTipo[$tipo] = $valores;
+    }
+
     $anchoGraficoEvolucion = 500;
     $altoGraficoEvolucion  = 160;
     $margenIzquierdoEvolucion = 40;

@@ -2,62 +2,50 @@
 
 function obtenerDatosActividadesPorAuxiliar()
 {
-    $registros = [
-        ['auxiliar' => 'Juan R.', 'fecha' => '02/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Juan R.', 'fecha' => '03/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Juan R.', 'fecha' => '05/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Juan R.', 'fecha' => '08/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Juan R.', 'fecha' => '10/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Juan R.', 'fecha' => '12/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Juan R.', 'fecha' => '14/05/2024', 'estado' => 'En progreso'],
-        ['auxiliar' => 'Juan R.', 'fecha' => '20/05/2024', 'estado' => 'Retrasada'],
+    require __DIR__ . '/../../lib/conf/conf.php';
 
-        ['auxiliar' => 'Ana S.', 'fecha' => '02/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Ana S.', 'fecha' => '04/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Ana S.', 'fecha' => '06/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Ana S.', 'fecha' => '09/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Ana S.', 'fecha' => '11/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Ana S.', 'fecha' => '15/05/2024', 'estado' => 'En progreso'],
-        ['auxiliar' => 'Ana S.', 'fecha' => '22/05/2024', 'estado' => 'Retrasada'],
+    $conexion = pg_connect("host=localhost dbname=DB_Dengue_SIGuppy user=postgres password=Liliannys2008");
 
-        ['auxiliar' => 'Carlos P.', 'fecha' => '03/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Carlos P.', 'fecha' => '05/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Carlos P.', 'fecha' => '07/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Carlos P.', 'fecha' => '10/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Carlos P.', 'fecha' => '16/05/2024', 'estado' => 'En progreso'],
-        ['auxiliar' => 'Carlos P.', 'fecha' => '23/05/2024', 'estado' => 'Retrasada'],
+    if (!$conexion) {
+        die("No se pudo conectar a la base de datos");
+    }
 
-        ['auxiliar' => 'Luis G.', 'fecha' => '04/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Luis G.', 'fecha' => '06/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Luis G.', 'fecha' => '08/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Luis G.', 'fecha' => '17/05/2024', 'estado' => 'En progreso'],
-        ['auxiliar' => 'Luis G.', 'fecha' => '24/05/2024', 'estado' => 'Retrasada'],
+    // Un auxiliar registra trabajo en dos tablas distintas:
+    // seguimiento_zoocriadero y seguimiento_terreno.
+    // UNION ALL simplemente pega los resultados de las dos consultas,
+    // una debajo de la otra.
+    $sql = "SELECT u.nombre || ' ' || u.apellido AS auxiliar,
+                TO_CHAR(sz.fecha, 'DD/MM/YYYY') AS fecha,
+                sz.estado AS estado
+            FROM seguimiento_zoocriadero sz
+            INNER JOIN usuario u ON u.id_usuario = sz.id_usuario
+            INNER JOIN rol r ON r.id_rol = u.id_rol
+            WHERE r.nombre_rol = 'Auxiliar'
 
-        ['auxiliar' => 'Sofía M.', 'fecha' => '02/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Sofía M.', 'fecha' => '04/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Sofía M.', 'fecha' => '07/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Sofía M.', 'fecha' => '09/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Sofía M.', 'fecha' => '13/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Sofía M.', 'fecha' => '18/05/2024', 'estado' => 'En progreso'],
-        ['auxiliar' => 'Sofía M.', 'fecha' => '21/05/2024', 'estado' => 'Retrasada'],
+            UNION ALL
 
-        ['auxiliar' => 'Pedro L.', 'fecha' => '03/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Pedro L.', 'fecha' => '06/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Pedro L.', 'fecha' => '09/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Pedro L.', 'fecha' => '12/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Pedro L.', 'fecha' => '15/05/2024', 'estado' => 'En progreso'],
-        ['auxiliar' => 'Pedro L.', 'fecha' => '19/05/2024', 'estado' => 'En progreso'],
-        ['auxiliar' => 'Pedro L.', 'fecha' => '25/05/2024', 'estado' => 'Retrasada'],
+            SELECT u.nombre || ' ' || u.apellido AS auxiliar,
+                TO_CHAR(st.fecha, 'DD/MM/YYYY') AS fecha,
+                st.estado AS estado
+            FROM seguimiento_terreno st
+            INNER JOIN usuario u ON u.id_usuario = st.id_usuario
+            INNER JOIN rol r ON r.id_rol = u.id_rol
+            WHERE r.nombre_rol = 'Auxiliar'
 
-        ['auxiliar' => 'Diana R.', 'fecha' => '01/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Diana R.', 'fecha' => '03/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Diana R.', 'fecha' => '05/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Diana R.', 'fecha' => '08/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Diana R.', 'fecha' => '11/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Diana R.', 'fecha' => '14/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Diana R.', 'fecha' => '17/05/2024', 'estado' => 'Completada'],
-        ['auxiliar' => 'Diana R.', 'fecha' => '20/05/2024', 'estado' => 'En progreso'],
-    ];
+            ORDER BY auxiliar";
+
+    $resultado = pg_query($conexion, $sql);
+
+    if (!$resultado) {
+        die("Error en la consulta: " . pg_last_error($conexion));
+    }
+
+    $registros = [];
+    while ($fila = pg_fetch_assoc($resultado)) {
+        $registros[] = $fila;
+    }
+
+    pg_close($conexion);
 
     $filtroAuxiliar = $_GET['auxiliar'] ?? '';
     $filtroFechaInicio = $_GET['fecha_inicio'] ?? '';

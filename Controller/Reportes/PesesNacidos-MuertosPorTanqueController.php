@@ -2,37 +2,47 @@
 
 function obtenerDatosPecesNacidosMuertosPorTanque()
 {
-    // Esto luego se va a reemplazar por datos que vengan de la base de datos.
-    $registros = [
-        // Tanque T1 - Selva Viva
-        ['zoocriadero' => 'Selva Viva', 'tanque' => 'T1', 'sexo' => 'Hembra', 'tipo' => 'Nacido', 'fecha' => '02/05/2024'],
-        ['zoocriadero' => 'Selva Viva', 'tanque' => 'T1', 'sexo' => 'Macho',  'tipo' => 'Nacido', 'fecha' => '03/05/2024'],
-        ['zoocriadero' => 'Selva Viva', 'tanque' => 'T1', 'sexo' => 'Hembra', 'tipo' => 'Nacido', 'fecha' => '10/05/2024'],
-        ['zoocriadero' => 'Selva Viva', 'tanque' => 'T1', 'sexo' => 'Macho',  'tipo' => 'Muerto', 'fecha' => '12/05/2024'],
-        ['zoocriadero' => 'Selva Viva', 'tanque' => 'T1', 'sexo' => 'Hembra', 'tipo' => 'Muerto', 'fecha' => '15/05/2024'],
+    require __DIR__ . '/../../lib/conf/conf.php';
 
-        // Tanque T2 - Selva Viva
-        ['zoocriadero' => 'Selva Viva', 'tanque' => 'T2', 'sexo' => 'Macho',  'tipo' => 'Nacido', 'fecha' => '04/05/2024'],
-        ['zoocriadero' => 'Selva Viva', 'tanque' => 'T2', 'sexo' => 'Hembra', 'tipo' => 'Nacido', 'fecha' => '06/05/2024'],
-        ['zoocriadero' => 'Selva Viva', 'tanque' => 'T2', 'sexo' => 'Macho',  'tipo' => 'Nacido', 'fecha' => '18/05/2024'],
-        ['zoocriadero' => 'Selva Viva', 'tanque' => 'T2', 'sexo' => 'Hembra', 'tipo' => 'Muerto', 'fecha' => '20/05/2024'],
+    $conexion = pg_connect("host=$host port=$port dbname=$database user=$user password=$password");
 
-        // Tanque T3 - Acuarama
-        ['zoocriadero' => 'Acuarama', 'tanque' => 'T3', 'sexo' => 'Hembra', 'tipo' => 'Nacido', 'fecha' => '05/05/2024'],
-        ['zoocriadero' => 'Acuarama', 'tanque' => 'T3', 'sexo' => 'Macho',  'tipo' => 'Nacido', 'fecha' => '09/05/2024'],
-        ['zoocriadero' => 'Acuarama', 'tanque' => 'T3', 'sexo' => 'Hembra', 'tipo' => 'Nacido', 'fecha' => '22/05/2024'],
-        ['zoocriadero' => 'Acuarama', 'tanque' => 'T3', 'sexo' => 'Macho',  'tipo' => 'Muerto', 'fecha' => '25/05/2024'],
+    if (!$conexion) {
+        die("No se pudo conectar a la base de datos");
+    }
 
-        // Tanque T4 - Acuarama
-        ['zoocriadero' => 'Acuarama', 'tanque' => 'T4', 'sexo' => 'Macho',  'tipo' => 'Nacido', 'fecha' => '07/05/2024'],
-        ['zoocriadero' => 'Acuarama', 'tanque' => 'T4', 'sexo' => 'Hembra', 'tipo' => 'Nacido', 'fecha' => '11/05/2024'],
-        ['zoocriadero' => 'Acuarama', 'tanque' => 'T4', 'sexo' => 'Macho',  'tipo' => 'Muerto', 'fecha' => '28/05/2024'],
-    ];
+    // La tabla seguimiento_zoocriadero ya guarda cuántos nacieron y
+    // cuántos murieron en cada visita, así que no hay que contar filas.
+    $sql = "SELECT z.nombre AS zoocriadero,
+                'Tanque ' || t.numero_tanque AS tanque,
+                TO_CHAR(sz.fecha, 'DD/MM/YYYY') AS fecha,
+                sz.numero_nacidos AS nacidos,
+                sz.numero_muertos AS muertos
+            FROM seguimiento_zoocriadero sz
+            INNER JOIN tanque t ON t.id_tanque = sz.id_tanque
+            INNER JOIN zoocriadero z ON z.id_zoocriadero = sz.id_zoocriadero
+            ORDER BY z.nombre, t.numero_tanque, sz.fecha";
+
+    $resultado = pg_query($conexion, $sql);
+
+    if (!$resultado) {
+        die("Error en la consulta: " . pg_last_error($conexion));
+    }
+
+    // ---------------------------------------------------------
+    // 3. GUARDAMOS CADA FILA DENTRO DEL ARREGLO $registros
+    // ---------------------------------------------------------
+    $registros = [];
+    while ($fila = pg_fetch_assoc($resultado)) {
+        $fila['nacidos'] = (int) $fila['nacidos'];
+        $fila['muertos'] = (int) $fila['muertos'];
+        $registros[] = $fila;
+    }
+
+    pg_close($conexion);
 
     // --- LEEMOS LOS FILTROS ---
     $filtroZoocriadero = $_GET['zoocriadero']  ?? '';
     $filtroTanque      = $_GET['tanque']       ?? '';
-    $filtroSexo        = $_GET['sexo']         ?? '';
     $filtroFechaInicio = $_GET['fecha_inicio'] ?? '';
     $filtroFechaFin    = $_GET['fecha_fin']    ?? '';
 
@@ -48,7 +58,6 @@ function obtenerDatosPecesNacidosMuertosPorTanque()
 
         $cumpleZoocriadero = ($filtroZoocriadero === '' || $registro['zoocriadero'] === $filtroZoocriadero);
         $cumpleTanque      = ($filtroTanque === '' || $registro['tanque'] === $filtroTanque);
-        $cumpleSexo        = ($filtroSexo === '' || $registro['sexo'] === $filtroSexo);
 
         $cumpleFechaInicio = true;
         if ($filtroFechaInicio !== '') {
@@ -62,34 +71,32 @@ function obtenerDatosPecesNacidosMuertosPorTanque()
             $cumpleFechaFin = ($fechaRegistro <= $fechaHasta);
         }
 
-        if ($cumpleZoocriadero && $cumpleTanque && $cumpleSexo && $cumpleFechaInicio && $cumpleFechaFin) {
+        if ($cumpleZoocriadero && $cumpleTanque && $cumpleFechaInicio && $cumpleFechaFin) {
             $registrosFiltrados[] = $registro;
         }
     }
 
-    // --- AGRUPAMOS LOS REGISTROS FILTRADOS POR TANQUE ---
+    // --- SUMAMOS LOS REGISTROS FILTRADOS POR TANQUE ---
+    // La clave incluye el zoocriadero porque el "Tanque 1" existe en varios.
     $resumenPorTanque = [];
 
     foreach ($registrosFiltrados as $registro) {
-        $tanque = $registro['tanque'];
+        $clave = $registro['zoocriadero'] . ' - ' . $registro['tanque'];
 
-        if (!isset($resumenPorTanque[$tanque])) {
-            $resumenPorTanque[$tanque] = [
-                'tanque'      => $tanque,
+        if (!isset($resumenPorTanque[$clave])) {
+            $resumenPorTanque[$clave] = [
+                'tanque'      => $registro['tanque'],
                 'zoocriadero' => $registro['zoocriadero'],
                 'nacidos'     => 0,
                 'muertos'     => 0,
             ];
         }
 
-        if ($registro['tipo'] === 'Nacido') {
-            $resumenPorTanque[$tanque]['nacidos']++;
-        } else {
-            $resumenPorTanque[$tanque]['muertos']++;
-        }
+        $resumenPorTanque[$clave]['nacidos'] += $registro['nacidos'];
+        $resumenPorTanque[$clave]['muertos'] += $registro['muertos'];
     }
 
-    ksort($resumenPorTanque); // para que siempre salgan en orden T1, T2, T3...
+    ksort($resumenPorTanque); // para que siempre salgan en el mismo orden
 
     // --- TOTALES GENERALES ---
     $totalNacidos = 0;
@@ -115,7 +122,6 @@ function obtenerDatosPecesNacidosMuertosPorTanque()
         'listaTanques'           => $listaTanques,
         'filtroZoocriadero'      => $filtroZoocriadero,
         'filtroTanque'           => $filtroTanque,
-        'filtroSexo'             => $filtroSexo,
         'filtroFechaInicio'      => $filtroFechaInicio,
         'filtroFechaFin'         => $filtroFechaFin,
         'resumenPorTanque'       => $resumenPorTanque,

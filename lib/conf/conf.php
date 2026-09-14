@@ -1,9 +1,7 @@
 <?php
 
-    $host = "localhost";
-    $user = "root";
-    $password = "";
-    $database = "adso88";
-    $port = "3306";
-
-?>
+$host = "localhost";
+$user = "root";
+$password = "Liliannys2008";
+$database = "DB_Dengue_SIGuppy";
+$port = "5432";

@@ -2,28 +2,64 @@
 
 function obtenerDatosTanquesPorZoocriadero()
 {
-    // Esto luego se va a reemplazar por el resultado de una consulta a la BD
-    $registros = [
-        ['zoocriadero' => 'Selva Viva', 'cantidad' => 10, 'tipo' => 'Fibra de vidrio',      'capacidad' => 3000, 'encargado' => 'Juan R.',  'estado' => 'Activo'],
-        ['zoocriadero' => 'Acuarama',   'cantidad' => 8,  'tipo' => 'Circular plástico',    'capacidad' => 2800, 'encargado' => 'Ana S.',   'estado' => 'Activo'],
-        ['zoocriadero' => 'El Paraíso', 'cantidad' => 5,  'tipo' => 'Rectangular plástico', 'capacidad' => 1800, 'encargado' => 'Dr. Ruiz', 'estado' => 'Activo'],
-        ['zoocriadero' => 'Rio Claro',  'cantidad' => 3,  'tipo' => 'Fibra de vidrio',      'capacidad' => 1050, 'encargado' => 'Dr. Ruiz', 'estado' => 'Activo'],
-        ['zoocriadero' => 'Agua Viva',  'cantidad' => 2,  'tipo' => 'Circular plástico',    'capacidad' => 800,  'encargado' => 'C. Pérez', 'estado' => 'Inactivo'],
-    ];
+    require __DIR__ . '/../../lib/conf/conf.php';
+
+    $conexion = pg_connect("host=localhost dbname=DB_Dengue_SIGuppy user=postgres password=Liliannys2008");
+
+    if (!$conexion) {
+        die("No se pudo conectar a la base de datos");
+    }
+
+    // ---------------------------------------------------------
+    // 2. CONTAMOS LOS TANQUES AGRUPADOS POR ZOOCRIADERO Y POR TIPO
+    // ---------------------------------------------------------
+    // El encargado sale de zoocriadero.id_persona_cargo.
+    // Se usa LEFT JOIN porque ese campo puede venir vacío.
+    $sql = "SELECT z.nombre AS zoocriadero,
+                tt.nombre AS tipo,
+                COUNT(t.id_tanque) AS cantidad,
+                SUM(t.capacidad_litros) AS capacidad,
+                COALESCE(u.nombre || ' ' || u.apellido, 'Sin asignar') AS encargado,
+                CASE WHEN z.estado = 1 THEN 'Activo' ELSE 'Inactivo' END AS estado
+            FROM tanque t
+            INNER JOIN zoocriadero z ON z.id_zoocriadero = t.id_zoocriadero
+            INNER JOIN tipo_tanque tt ON tt.id_tipo_tanque = t.id_tipo_tanque
+            LEFT JOIN usuario u ON u.id_usuario = z.id_persona_cargo
+            GROUP BY z.nombre, tt.nombre, u.nombre, u.apellido, z.estado
+            ORDER BY z.nombre, tt.nombre";
+
+    $resultado = pg_query($conexion, $sql);
+
+    if (!$resultado) {
+        die("Error en la consulta: " . pg_last_error($conexion));
+    }
+
+    // ---------------------------------------------------------
+    // 3. GUARDAMOS CADA FILA DENTRO DEL ARREGLO $registros
+    // ---------------------------------------------------------
+    $registros = [];
+    while ($fila = pg_fetch_assoc($resultado)) {
+        // PostgreSQL devuelve los números como texto, los pasamos a número
+        $fila['cantidad']  = (int) $fila['cantidad'];
+        $fila['capacidad'] = (int) $fila['capacidad'];
+        $registros[] = $fila;
+    }
+
+    pg_close($conexion);
 
     // --- LEEMOS LOS FILTROS ---
     $filtroZoocriadero = $_GET['zoocriadero'] ?? '';
-    $filtroTipo         = $_GET['tanque']      ?? ''; // el select "Tanque" filtra por tipo de tanque
+    $filtroTipo        = $_GET['tanque']      ?? ''; // el select "Tanque" filtra por tipo de tanque
 
     // --- VALORES ÚNICOS PARA LOS SELECT ---
     $listaZoocriaderos = array_unique(array_column($registros, 'zoocriadero'));
-    $listaTipos         = array_unique(array_column($registros, 'tipo'));
+    $listaTipos        = array_unique(array_column($registros, 'tipo'));
 
     // --- FILTRAMOS ---
     $registrosFiltrados = [];
     foreach ($registros as $registro) {
         $cumpleZoocriadero = ($filtroZoocriadero === '' || $registro['zoocriadero'] === $filtroZoocriadero);
-        $cumpleTipo         = ($filtroTipo === '' || $registro['tipo'] === $filtroTipo);
+        $cumpleTipo        = ($filtroTipo === '' || $registro['tipo'] === $filtroTipo);
 
         if ($cumpleZoocriadero && $cumpleTipo) {
             $registrosFiltrados[] = $registro;

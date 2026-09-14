@@ -2,14 +2,50 @@
 
 function obtenerDatosSeguimientoDeActividades()
 {
-    // Esto luego se va a reemplazar por el resultado de una consulta a la BD
-    $actividades = [
-        ['actividad' => 'Limpieza de tanques',   'zoocriadero' => 'Selva Viva', 'inicio' => '01/05/2024', 'fin' => '03/05/2024', 'responsable' => 'Juan R.',  'estado' => 'Completado'],
-        ['actividad' => 'Alimentación peces',    'zoocriadero' => 'Selva Viva', 'inicio' => '02/05/2024', 'fin' => '02/05/2024', 'responsable' => 'Ana S.',   'estado' => 'Completado'],
-        ['actividad' => 'Chequeo parámetros',    'zoocriadero' => 'Acuarama',   'inicio' => '05/05/2024', 'fin' => '06/05/2024', 'responsable' => 'Dr. Ruiz', 'estado' => 'En proceso'],
-        ['actividad' => 'Mantenimiento filtros', 'zoocriadero' => 'Selva Viva', 'inicio' => '06/05/2024', 'fin' => '07/05/2024', 'responsable' => 'Dr. Ruiz', 'estado' => 'Retrasada'],
-        ['actividad' => 'Limpieza de tanques',   'zoocriadero' => 'Acuarama',   'inicio' => '06/05/2024', 'fin' => '09/05/2024', 'responsable' => 'C. Pérez', 'estado' => 'Retrasada'],
-    ];
+    // ---------------------------------------------------------
+    // 1. NOS CONECTAMOS A LA BASE DE DATOS
+    // ---------------------------------------------------------
+    require __DIR__ . '/../../lib/conf/conf.php';
+
+    $conexion = pg_connect("host=localhost dbname=DB_Dengue_SIGuppy user=postgres password=Liliannys2008");
+
+    if (!$conexion) {
+        die("No se pudo conectar a la base de datos");
+    }
+
+    // ---------------------------------------------------------
+    // 2. TRAEMOS LAS ACTIVIDADES HECHAS EN LOS ZOOCRIADEROS
+    // ---------------------------------------------------------
+    // Una fila de seguimiento_zoocriadero puede tener varias actividades,
+    // por eso se une con actividad_zoocriadero y con actividad.
+    $sql = "SELECT a.nombre AS actividad,
+                z.nombre AS zoocriadero,
+                TO_CHAR(sz.fecha, 'DD/MM/YYYY') AS inicio,
+                TO_CHAR(sz.fecha, 'DD/MM/YYYY') AS fin,
+                u.nombre || ' ' || u.apellido AS responsable,
+                sz.estado AS estado
+            FROM seguimiento_zoocriadero sz
+            INNER JOIN actividad_zoocriadero az ON az.id_seguimiento = sz.id_seguimiento
+            INNER JOIN actividad a ON a.id_actividad = az.id_actividad
+            INNER JOIN zoocriadero z ON z.id_zoocriadero = sz.id_zoocriadero
+            INNER JOIN usuario u ON u.id_usuario = sz.id_usuario
+            ORDER BY sz.fecha";
+
+    $resultado = pg_query($conexion, $sql);
+
+    if (!$resultado) {
+        die("Error en la consulta: " . pg_last_error($conexion));
+    }
+
+    // ---------------------------------------------------------
+    // 3. GUARDAMOS CADA FILA DENTRO DEL ARREGLO $actividades
+    // ---------------------------------------------------------
+    $actividades = [];
+    while ($fila = pg_fetch_assoc($resultado)) {
+        $actividades[] = $fila;
+    }
+
+    pg_close($conexion);
 
     // --- LEEMOS LO QUE EL USUARIO ENVIÓ EN LOS FILTROS ---
     $filtroZoocriadero = $_GET['zoocriadero']  ?? '';
@@ -55,9 +91,9 @@ function obtenerDatosSeguimientoDeActividades()
     $totalRetrasadas = 0;
 
     foreach ($actividadesFiltradas as $actividad) {
-        if ($actividad['estado'] === 'Completado') {
+        if ($actividad['estado'] === 'Completada') {
             $totalCompletas++;
-        } elseif ($actividad['estado'] === 'En proceso') {
+        } elseif ($actividad['estado'] === 'En progreso') {
             $totalEnProgreso++;
         } elseif ($actividad['estado'] === 'Retrasada') {
             $totalRetrasadas++;

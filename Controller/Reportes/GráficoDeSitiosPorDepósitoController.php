@@ -2,20 +2,54 @@
 
 function obtenerDatosSitiosPorDeposito()
 {
-    $sitios = [
-        ['id' => 'ST-001', 'nombre' => 'La Primavera', 'zoocriadero' => 'Selva Viva', 'tipo' => 'Tanque de concreto', 'tanques' => 4, 'estado' => 'Activo', 'fecha' => '05/01/2024'],
-        ['id' => 'ST-002', 'nombre' => 'El Paraíso', 'zoocriadero' => 'Acuarama', 'tipo' => 'Tanque de plástico', 'tanques' => 3, 'estado' => 'Activo', 'fecha' => '10/01/2024'],
-        ['id' => 'ST-003', 'nombre' => 'Rio Claro', 'zoocriadero' => 'Rio Claro', 'tipo' => 'Estanque natural', 'tanques' => 2, 'estado' => 'Activo', 'fecha' => '15/01/2024'],
-        ['id' => 'ST-004', 'nombre' => 'Los Mangos', 'zoocriadero' => 'El Bosque', 'tipo' => 'Otro', 'tanques' => 1, 'estado' => 'Inactivo', 'fecha' => '20/01/2024'],
-        ['id' => 'ST-005', 'nombre' => 'La Esperanza', 'zoocriadero' => 'Selva Viva', 'tipo' => 'Tanque de concreto', 'tanques' => 5, 'estado' => 'Activo', 'fecha' => '22/01/2024'],
-        ['id' => 'ST-006', 'nombre' => 'Las Palmas', 'zoocriadero' => 'Acuarama', 'tipo' => 'Tanque de plástico', 'tanques' => 2, 'estado' => 'Activo', 'fecha' => '25/01/2024'],
-        ['id' => 'ST-007', 'nombre' => 'El Mirador', 'zoocriadero' => 'Agua Viva', 'tipo' => '', 'tanques' => 0, 'estado' => 'Inactivo', 'fecha' => '28/01/2024'],
-        ['id' => 'ST-008', 'nombre' => 'Vista Hermosa', 'zoocriadero' => 'El Paraíso', 'tipo' => 'Estanque natural', 'tanques' => 3, 'estado' => 'Activo', 'fecha' => '02/02/2024'],
-        ['id' => 'ST-009', 'nombre' => 'Puerto Nuevo', 'zoocriadero' => 'Rio Claro', 'tipo' => 'Tanque de concreto', 'tanques' => 3, 'estado' => 'Activo', 'fecha' => '05/02/2024'],
-        ['id' => 'ST-010', 'nombre' => 'Buena Vista', 'zoocriadero' => 'El Bosque', 'tipo' => '', 'tanques' => 0, 'estado' => 'Inactivo', 'fecha' => '08/02/2024'],
-        ['id' => 'ST-011', 'nombre' => 'San Isidro', 'zoocriadero' => 'Selva Viva', 'tipo' => 'Tanque de plástico', 'tanques' => 4, 'estado' => 'Activo', 'fecha' => '10/02/2024'],
-        ['id' => 'ST-012', 'nombre' => 'Los Robles', 'zoocriadero' => 'Rio Claro', 'tipo' => 'Tanque de concreto', 'tanques' => 3, 'estado' => 'Activo', 'fecha' => '15/02/2024'],
-    ];
+    // ---------------------------------------------------------
+    // 1. NOS CONECTAMOS A LA BASE DE DATOS
+    // ---------------------------------------------------------
+    require __DIR__ . '/../../lib/conf/conf.php';
+
+    $conexion = pg_connect("host=localhost dbname=DB_Dengue_SIGuppy user=postgres password=Liliannys2008");
+
+    if (!$conexion) {
+        die("No se pudo conectar a la base de datos");
+    }
+
+    // ---------------------------------------------------------
+    // 2. TRAEMOS LOS SITIOS CON SU TIPO DE DEPÓSITO
+    // ---------------------------------------------------------
+    // OJO con dos nombres que se dejaron igual para no cambiar la vista:
+    //   'zoocriadero' -> en realidad guarda el BARRIO del sitio
+    //   'tanques'     -> en realidad guarda cuántas VISITAS tiene el sitio
+    $sql = "SELECT 'ST-' || LPAD(s.id_sitio::text, 3, '0') AS id,
+                d.direccion AS nombre,
+                b.nombre AS zoocriadero,
+                td.nombre AS tipo,
+                COUNT(st.id_seguimiento_terreno) AS tanques,
+                CASE WHEN s.estado = 1 THEN 'Activo' ELSE 'Inactivo' END AS estado,
+                TO_CHAR(s.creado_en, 'DD/MM/YYYY') AS fecha
+            FROM sitio s
+            INNER JOIN tipo_deposito td ON td.id_tipo_deposito = s.id_tipo_deposito
+            INNER JOIN direccion d ON d.id_direccion = s.id_direccion
+            INNER JOIN barrio b ON b.id_barrio = d.id_barrio
+            LEFT JOIN seguimiento_terreno st ON st.id_sitio = s.id_sitio
+            GROUP BY s.id_sitio, d.direccion, b.nombre, td.nombre, s.estado, s.creado_en
+            ORDER BY s.id_sitio";
+
+    $resultado = pg_query($conexion, $sql);
+
+    if (!$resultado) {
+        die("Error en la consulta: " . pg_last_error($conexion));
+    }
+
+    // ---------------------------------------------------------
+    // 3. GUARDAMOS CADA FILA DENTRO DEL ARREGLO $sitios
+    // ---------------------------------------------------------
+    $sitios = [];
+    while ($fila = pg_fetch_assoc($resultado)) {
+        $fila['tanques'] = (int) $fila['tanques'];
+        $sitios[] = $fila;
+    }
+
+    pg_close($conexion);
 
     $filtroZoocriadero = $_GET['zoocriadero'] ?? '';
     $filtroEstado = $_GET['estado'] ?? '';
@@ -24,7 +58,13 @@ function obtenerDatosSitiosPorDeposito()
     $filtroFechaFin = $_GET['fecha_fin'] ?? '';
 
     $listaZoocriaderos = array_unique(array_column($sitios, 'zoocriadero'));
-    $listaEstados = ['Activo', 'Inactivo'];
+
+    $listaEstados = [];
+    foreach ($sitios as $sitio) {
+        if (!in_array($sitio['estado'], $listaEstados)) {
+            $listaEstados[] = $sitio['estado'];
+        }
+    }
 
     $listaTipos = [];
     foreach ($sitios as $sitio) {
@@ -135,17 +175,3 @@ function obtenerDatosSitiosPorDeposito()
         'hasta' => $hasta,
     ];
 }
-$registros = [
-    ['deposito' => 'Depósito A', 'sitio' => 'Sitio 1'],
-    ['deposito' => 'Depósito A', 'sitio' => 'Sitio 2'],
-    ['deposito' => 'Depósito A', 'sitio' => 'Sitio 3'],
-    ['deposito' => 'Depósito B', 'sitio' => 'Sitio 4'],
-    ['deposito' => 'Depósito B', 'sitio' => 'Sitio 5'],
-    ['deposito' => 'Depósito C', 'sitio' => 'Sitio 6'],
-    ['deposito' => 'Depósito C', 'sitio' => 'Sitio 7'],
-    ['deposito' => 'Depósito C', 'sitio' => 'Sitio 8'],
-    ['deposito' => 'Depósito D', 'sitio' => 'Sitio 9'],
-    ['deposito' => 'Depósito D', 'sitio' => 'Sitio 10'],
-];
-
-return $registros;
