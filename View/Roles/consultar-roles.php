@@ -10,6 +10,22 @@
     $modelo  = new RolesModel();
     $mensaje = null;
 
+    // Eliminar rol: ?eliminar=ID
+    if(isset($_GET['eliminar'])){
+        $idRol = filter_var($_GET['eliminar'], FILTER_VALIDATE_INT);
+
+        if(!$idRol){
+            $mensaje = ['tipo' => 'danger', 'texto' => 'Rol no válido.'];
+
+        }elseif($modelo->usuariosConRol($idRol) > 0){
+            $mensaje = ['tipo' => 'warning',
+                        'texto' => 'No se puede eliminar: hay usuarios asignados a este rol.'];
+
+        }elseif($modelo->eliminarRol($idRol)){
+            $mensaje = ['tipo' => 'success', 'texto' => 'Rol eliminado correctamente.'];
+
+        }else{
+            $mensaje = ['tipo' => 'danger', 'texto' => 'No se pudo eliminar el rol.'];
     // Inhabilitar / habilitar rol: ?estado=ID&valor=0|1
     // En este módulo no hay "Eliminar": igual que en zoocriaderos y tanques,
     // el registro se conserva y solo se cambia su estado.
@@ -259,6 +275,7 @@
                     <tbody>
                       <?php if(empty($roles)): ?>
                         <tr>
+                          <td colspan="5" class="text-center text-muted py-4">
                           <td colspan="7" class="text-center text-muted py-4">
                             Aún no hay roles registrados.
                           </td>
@@ -284,6 +301,12 @@
                                 <?php endforeach; ?>
                               <?php endif; ?>
                             </td>
+                            <td class="text-center">
+                              <a href="consultar-roles.php?eliminar=<?php echo h($r['id_rol']); ?>"
+                                 class="btn btn-link btn-danger p-1" title="Eliminar"
+                                 onclick="return confirm('¿Eliminar el rol <?php echo h($r['nombre_rol']); ?>?');">
+                                <i class="fa fa-times"></i>
+                              </a>
                             <td class="text-center"><?php echo h($r['total_usuarios']); ?></td>
                             <td class="text-center">
                               <?php if((int) $r['estado'] === 1): ?>

@@ -1,5 +1,32 @@
 <?php
     // =========================================================
+    // Registro Roles
+    // Formulario con la matriz Acción / Módulo (igual al diseño):
+    // las FILAS son las acciones y las COLUMNAS son los módulos.
+    // Al enviar, hace INSERT en "rol" y un INSERT en "rol_permiso"
+    // por cada casilla marcada.
+    // =========================================================
+    include_once '../../Model/Roles/RolesModel.php';
+
+    $modelo   = new RolesModel();
+    $mensaje  = null;   // ['tipo' => 'success|danger', 'texto' => '...']
+    $nombre      = '';
+    $descripcion = '';
+    $marcados    = [];  // para no perder lo marcado si hay error
+
+    if($_SERVER['REQUEST_METHOD'] === 'POST'){
+
+        $nombre      = trim($_POST['nombre_rol'] ?? '');
+        $descripcion = trim($_POST['descripcion'] ?? '');
+        $marcados    = $_POST['permisos'] ?? [];
+
+        if($nombre === ''){
+            $mensaje = ['tipo' => 'danger', 'texto' => 'El nombre del rol es obligatorio.'];
+
+        }elseif(mb_strlen($nombre) > 50){
+            $mensaje = ['tipo' => 'danger', 'texto' => 'El nombre del rol no puede superar 50 caracteres.'];
+
+        }elseif($modelo->existeNombreRol($nombre)){
     // Registro / Edición de Roles
     // Formulario con la matriz Acción / Módulo: las FILAS son las
     // acciones y las COLUMNAS son los módulos.
@@ -47,6 +74,10 @@
         }elseif(empty($marcados)){
             $mensaje = ['tipo' => 'danger', 'texto' => 'Debe marcar al menos un permiso para el rol.'];
 
+        }else{
+            $idRol = $modelo->registrarRolConPermisos($nombre, $descripcion, $marcados);
+
+            if($idRol){
         }elseif($editando){
             // ---------- UPDATE ----------
             if($modelo->actualizarRolConPermisos($idRol, $nombre, $descripcion, $marcados)){
@@ -97,6 +128,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Registro Roles · SIGuppys</title>
     <title><?php echo $editando ? "Editar Rol" : "Registro Roles"; ?> · SIGuppys</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="../../assets/img/siguppys/favicon-32.png" type="image/png" />
@@ -267,6 +299,8 @@
 
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
               <div>
+                <h3 class="fw-bold mb-3">Registro Roles</h3>
+                <h6 class="op-7 mb-2">Usuarios / Roles y Permisos</h6>
                 <h3 class="fw-bold mb-3"><?php echo $editando ? 'Editar Rol' : 'Registro Roles'; ?></h3>
                 <h6 class="op-7 mb-2">Usuarios / Roles y Permisos<?php echo $editando ? ' / Editar' : ''; ?></h6>
               </div>
@@ -295,6 +329,7 @@
                       <div class="form-group">
                         <label for="nombre_rol">Nombre:</label>
                         <input type="text" class="form-control" id="nombre_rol" name="nombre_rol"
+                               maxlength="50" required placeholder="Ej: Auxiliar"
                                maxlength="50" minlength="3" required placeholder="Ej: Auxiliar"
                                value="<?php echo h($nombre); ?>">
                       </div>
@@ -349,6 +384,7 @@
 
                 </div>
                 <div class="card-action">
+                  <button type="submit" class="btn btn-success">Registrar</button>
                   <button type="submit" class="btn btn-success">
                     <?php echo $editando ? 'Guardar cambios' : 'Registrar'; ?>
                   </button>

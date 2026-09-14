@@ -80,6 +80,9 @@
 
   <div class="main-panel">
     <div class="main-header">
+      <div class="main-header-logo"><div class="logo-header siguppys-logo-header" data-background-color="white"><a href="../../Web/index.php" class="logo siguppys-logo"><span class="siguppys-pin"><img src="../../assets/img/siguppys/logo-pin.png" alt="SIGuppys" /></span><span class="siguppys-brand"><strong>SIGuppys</strong><small>Control Biológico contra el Dengue</small></span></a><div class="nav-toggle"><button class="btn btn-toggle toggle-sidebar"><i class="gg-menu-right"></i></button><button class="btn btn-toggle sidenav-toggler"><i class="gg-menu-left"></i></button></div></div></div>
+      <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+        <div class="container-fluid"><ul class="navbar-nav topbar-nav ms-md-auto align-items-center"><li class="nav-item d-flex align-items-center"><div class="sig-role-switcher"><label for="sigRoleSelect"><i class="fas fa-user-shield me-1"></i>Vista</label><select id="sigRoleSelect"><option value="auxiliar">Auxiliar de campo</option><option value="coordinador">Coordinador</option></select></div></li></ul></div>
       <div class="main-header-logo"><div class="logo-header siguppys-logo-header" data-background-color="white">
         <a href="../../Web/index.php" class="logo siguppys-logo"><span class="siguppys-pin">
           <img src="../../assets/img/siguppys/logo-pin.png" alt="SIGuppys" /></span>
@@ -100,6 +103,7 @@
 
     <div class="container"><div class="page-inner">
       <div class="d-flex align-items-center flex-column flex-md-row pt-2 pb-4">
+        <div><h3 class="fw-bold mb-2" id="seguimientoTitulo">Registrar Seguimiento de Zoocriadero</h3><h6 class="op-7 mb-0">Registre la actividad realizada sobre un tanque existente.</h6></div>
         <div>
           <h3 class="fw-bold mb-2" id="seguimientoTitulo">Registrar Seguimiento de Zoocriadero</h3>
           <h6 class="op-7 mb-0">Registre la actividad realizada sobre un tanque existente.</h6></div>
@@ -129,6 +133,11 @@
             </div>
 
             <div class="col-md-3">
+              <label class="form-label" for="ph">pH <span class="text-muted small">(opcional)</span></label>
+              <input type="number" min="0" max="14" step="0.01" class="form-control" id="ph" name="ph" placeholder="7.20" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label" for="temperatura">Temperatura °C <span class="text-muted small">(opcional)</span></label>
               <label class="form-label" for="ph">pH <span class="text-muted small"></span></label>
               <input type="number" min="0" max="14" step="0.01" class="form-control" id="ph" name="ph" placeholder="7.20" />
             </div>

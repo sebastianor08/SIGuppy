@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Zoocriaderos · SIGuppys</title>
     <title>Zoocriaderos · SIGuppy</title>
     <meta
       content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
@@ -51,6 +52,7 @@
                 <img src="../../assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
               </span>
               <span class="siguppys-brand">
+                <strong>SIGuppys</strong>
                 <strong>SIGuppy</strong>
                 <small>Control Biológico contra el Dengue</small>
               </span>
@@ -142,6 +144,7 @@
                 <div class="collapse" id="navTerreno">
                   <ul class="nav nav-collapse">
                     <li>
+                      <a href="../../View/Deposito/DepositoView.php" data-page="terreno-depositos">
                       <a href="#" data-page="terreno-depositos">
                         <span class="sub-item">Depósitos</span>
                       </a>
@@ -245,6 +248,15 @@
               
 
               <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+                <li class="nav-item d-flex align-items-center">
+                  <div class="sig-role-switcher" title="Selector de rol para esta demostración. Cuando exista inicio de sesión, el rol vendrá de la sesión del usuario.">
+                    <label for="sigRoleSelect"><i class="fas fa-user-shield me-1"></i>Vista</label>
+                    <select id="sigRoleSelect">
+                      <option value="auxiliar">Auxiliar de campo</option>
+                      <option value="coordinador">Coordinador</option>
+                    </select>
+                  </div>
+                </li>
               
               </ul>
             </div>
@@ -296,6 +308,7 @@
                       <tr>
                         <th>Zoocriadero</th>
                         <th>Dirección</th>
+                        <th>Persona a cargo</th>
                         <th class="text-center">Tanques</th>
                         <th class="text-center">Estado</th>
                         <th class="text-center">Acciones</th>
@@ -329,6 +342,17 @@
                       <div class="row">
                         <div class="col-6 mb-3">
                           <label class="form-label">Comuna</label>
+                          <input type="text" name="comuna" class="form-control" />
+                        </div>
+                        <div class="col-6 mb-3">
+                          <label class="form-label">Barrio</label>
+                          <input type="text" name="barrio" class="form-control" />
+                        </div>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Persona a cargo</label>
+                        <select name="id_persona_cargo" class="form-select"></select>
+                      </div>
                           <select name="comuna" id="comunaSelect" class="form-select" required>
                             <option value="">Seleccione la comuna</option>
                           </select>

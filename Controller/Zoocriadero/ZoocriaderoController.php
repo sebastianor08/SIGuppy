@@ -16,6 +16,9 @@ class ZoocriaderoController{
         jsonResponse(['ok' => true, 'data' => $obj->listar()]);
     }
 
+    public function usuarios(){
+        $obj = new ZoocriaderoModel();
+        jsonResponse(['ok' => true, 'data' => $obj->usuariosActivos()]);
     public function comunas(){
         $obj = new ZoocriaderoModel();
         jsonResponse(['ok' => true, 'data' => $obj->comunas()]);
@@ -141,6 +144,22 @@ class ZoocriaderoController{
 
     // ---------- Validación compartida por create y update ----------
     private function validarZoocriadero($body, $obj){
+        $nombre    = trim((string) ($body['nombre'] ?? ''));
+        $direccion = trim((string) ($body['direccion'] ?? ''));
+        $comuna    = trim((string) ($body['comuna'] ?? ''));
+        $barrio    = trim((string) ($body['barrio'] ?? ''));
+        $idUsuario = filter_var($body['id_persona_cargo'] ?? null, FILTER_VALIDATE_INT);
+        $latitud   = $body['latitud'] ?? null;
+        $longitud  = $body['longitud'] ?? null;
+
+        if($nombre === ''){
+            jsonResponse(['ok' => false, 'message' => 'El nombre es obligatorio.'], 422);
+        }
+        if($direccion === ''){
+            jsonResponse(['ok' => false, 'message' => 'La dirección es obligatoria.'], 422);
+        }
+        if($idUsuario && !$obj->usuarioExiste($idUsuario)){
+            jsonResponse(['ok' => false, 'message' => 'La persona a cargo seleccionada no es válida.'], 422);
         // limpiar() recorta y colapsa espacios: así un campo escrito solo
         // con la barra espaciadora queda como cadena vacía y no pasa.
         $nombre    = limpiar($body['nombre'] ?? '');
@@ -176,6 +195,7 @@ class ZoocriaderoController{
             'direccion'        => $direccion,
             'comuna'           => ($comuna !== '' ? $comuna : null),
             'barrio'           => ($barrio !== '' ? $barrio : null),
+            'id_persona_cargo' => ($idUsuario ? $idUsuario : null),
             'latitud'          => $latitud,
             'longitud'         => $longitud,
         ];

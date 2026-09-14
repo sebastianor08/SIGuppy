@@ -1,3 +1,24 @@
+/* =========================================================
+   SIGuppys — Módulo Zoocriaderos
+   =========================================================
+   Los datos YA NO están quemados en este archivo: se leen de
+   PostgreSQL a través del router MVC:
+
+     Web/ajax.php?modulo=Zoocriadero&controlador=Zoocriadero&funcion=...
+
+   Endpoints usados:
+     lista        -> GET   zoocriaderos + persona a cargo + nº de tanques
+     usuarios     -> GET   para el select "Persona a cargo"
+     tiposTanque  -> GET   para el select "Tipo de tanque"
+     tanques      -> GET   tanques de un zoocriadero (modal detalle)
+     postCreate   -> POST  INSERT en zoocriadero
+     postUpdate   -> POST  UPDATE en zoocriadero
+     postEstado   -> POST  UPDATE del campo estado (habilitar/inhabilitar)
+     postTanque   -> POST  INSERT en tanque
+
+   El diseño de la tabla, los filtros y los permisos por rol
+   quedaron igual que antes.
+   ========================================================= */
 
 (function () {
   "use strict";
@@ -13,6 +34,7 @@
   };
 
   var data = [];      // zoocriaderos traídos de la base
+  var usuarios = [];  // usuarios activos
   var comunas = [];   // comunas de Cali
   var tiposTanque = [];
   var state = { q: "", estado: "todos" };
@@ -90,6 +112,8 @@
       direccion: z.direccion || "",
       comuna: z.comuna || "",
       barrio: z.barrio || "",
+      id_persona_cargo: z.id_persona_cargo ? Number(z.id_persona_cargo) : null,
+      persona_cargo: z.persona_cargo || "Sin asignar",
       latitud: z.latitud,
       longitud: z.longitud,
       estado: Number(z.estado),
@@ -99,6 +123,13 @@
   }
 
   // ---------- Selects ----------
+  function fillUsuariosSelect(selectEl, selectedId) {
+    selectEl.innerHTML =
+      '<option value="">Sin asignar</option>' +
+      usuarios
+        .map(function (u) {
+          var sel = String(u.id_usuario) === String(selectedId) ? " selected" : "";
+          return '<option value="' + u.id_usuario + '"' + sel + ">" + escapeHtml(u.nombre_completo) + "</option>";
   function fillComunasSelect(selectEl, seleccionada) {
     selectEl.innerHTML =
       '<option value="">Seleccione la comuna</option>' +
@@ -194,6 +225,7 @@
       '<div class="small text-muted">Registrado ' + fmtFecha(z.creado_en) + "</div></td>" +
       "<td>" + escapeHtml(z.direccion) +
       '<div class="small text-muted">' + escapeHtml(z.barrio) + " · " + escapeHtml(z.comuna) + "</div></td>" +
+      "<td>" + escapeHtml(z.persona_cargo) + "</td>" +
       '<td class="text-center">' + z.total_tanques + "</td>" +
       '<td class="text-center">' + estadoBadge + "</td>" +
       '<td class="text-center">' + renderAcciones(z) + "</td>" +
@@ -204,6 +236,7 @@
   function filteredData() {
     var q = state.q.trim().toLowerCase();
     return data.filter(function (z) {
+      var texto = (z.nombre + " " + z.direccion + " " + z.barrio + " " + z.comuna + " " + z.persona_cargo).toLowerCase();
       var texto = (z.nombre + " " + z.direccion + " " + z.barrio + " " + z.comuna).toLowerCase();
       var matchesQ = !q || texto.indexOf(q) !== -1;
       var matchesEstado =
@@ -219,6 +252,7 @@
     var rows = filteredData();
     if (!rows.length) {
       tbody.innerHTML =
+        '<tr class="sig-empty-row"><td colspan="6"><i class="fas fa-folder-open mb-2 d-block" style="font-size:22px;color:#ccc;"></i>No hay zoocriaderos que coincidan con el filtro.</td></tr>';
         '<tr class="sig-empty-row"><td colspan="5"><i class="fas fa-folder-open mb-2 d-block" style="font-size:22px;color:#ccc;"></i>No hay zoocriaderos que coincidan con el filtro.</td></tr>';
     } else {
       tbody.innerHTML = rows.map(renderRow).join("");
@@ -268,6 +302,7 @@
     form.elements["id"].value = "";
     document.getElementById("zoocriaderoModalLabel").textContent = "Registrar Zoocriadero";
     document.getElementById("zoocriaderoSubmitBtn").textContent = "Guardar Registro";
+    fillUsuariosSelect(form.elements["id_persona_cargo"], null);
     fillComunasSelect(document.getElementById("comunaSelect"), null);
     cargarBarrios(null, null);
   }
@@ -280,6 +315,11 @@
     form.elements["id"].value = z.id;
     form.elements["nombre"].value = z.nombre;
     form.elements["direccion"].value = z.direccion;
+    form.elements["comuna"].value = z.comuna;
+    form.elements["barrio"].value = z.barrio;
+    form.elements["latitud"].value = z.latitud || "";
+    form.elements["longitud"].value = z.longitud || "";
+    fillUsuariosSelect(form.elements["id_persona_cargo"], z.id_persona_cargo);
     form.elements["latitud"].value = z.latitud || "";
     form.elements["longitud"].value = z.longitud || "";
 
@@ -311,6 +351,7 @@
       '<dt class="col-5">Dirección</dt><dd class="col-7">' + escapeHtml(z.direccion) + "</dd>" +
       '<dt class="col-5">Comuna</dt><dd class="col-7">' + escapeHtml(z.comuna) + "</dd>" +
       '<dt class="col-5">Barrio</dt><dd class="col-7">' + escapeHtml(z.barrio) + "</dd>" +
+      '<dt class="col-5">Persona a cargo</dt><dd class="col-7">' + escapeHtml(z.persona_cargo) + "</dd>" +
       '<dt class="col-5">Tanques activos</dt><dd class="col-7">' + z.total_tanques + "</dd>" +
       '<dt class="col-5">Estado</dt><dd class="col-7">' +
       (z.estado === 1
@@ -359,6 +400,7 @@
       id_tipo_tanque: Number(tanqueForm.elements["id_tipo_tanque"].value),
       numero_tanque: Number(tanqueForm.elements["numero_tanque"].value),
     };
+    if (!payload.id_zoocriadero || !payload.id_tipo_tanque || !payload.numero_tanque) return;
     // Validación en el navegador (el servidor la vuelve a hacer)
     if (!payload.id_zoocriadero) { alert("Debe seleccionar un zoocriadero."); return; }
     if (!payload.numero_tanque || payload.numero_tanque < 1) {
@@ -385,6 +427,13 @@
     var payload = {
       nombre: form.elements["nombre"].value.trim(),
       direccion: form.elements["direccion"].value.trim(),
+      comuna: form.elements["comuna"].value.trim(),
+      barrio: form.elements["barrio"].value.trim(),
+      id_persona_cargo: form.elements["id_persona_cargo"].value || null,
+      latitud: form.elements["latitud"].value,
+      longitud: form.elements["longitud"].value,
+    };
+    if (!payload.nombre || !payload.direccion) return;
       comuna: document.getElementById("comunaSelect").selectedOptions[0]
         ? document.getElementById("comunaSelect").selectedOptions[0].textContent.trim()
         : "",
@@ -494,6 +543,15 @@
   // ---------- Arranque ----------
   (async function init() {
     document.getElementById("zoocriaderosTableBody").innerHTML =
+      '<tr class="sig-empty-row"><td colspan="6">Cargando zoocriaderos...</td></tr>';
+    try {
+      var resultados = await Promise.all([
+        getJson("lista"),
+        getJson("usuarios"),
+        getJson("tiposTanque"),
+      ]);
+      data = resultados[0].map(normalizar);
+      usuarios = resultados[1];
       '<tr class="sig-empty-row"><td colspan="5">Cargando zoocriaderos...</td></tr>';
     try {
       var resultados = await Promise.all([
@@ -508,6 +566,7 @@
       render();
     } catch (error) {
       document.getElementById("zoocriaderosTableBody").innerHTML =
+        '<tr class="sig-empty-row"><td colspan="6">No se pudieron cargar los datos.</td></tr>';
         '<tr class="sig-empty-row"><td colspan="5">No se pudieron cargar los datos.</td></tr>';
       showMessage(error.message + " Verifica que PHP pueda conectarse a PostgreSQL.", "danger");
     }
