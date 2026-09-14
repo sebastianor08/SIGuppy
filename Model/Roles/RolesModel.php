@@ -34,12 +34,6 @@ class RolesModel extends MasterModel{
                     (SELECT COUNT(*) FROM usuario u WHERE u.id_rol = r.id_rol) AS total_usuarios
              FROM rol r
              LEFT JOIN rol_permiso rp ON rp.id_rol = r.id_rol
-             GROUP BY r.id_rol, r.nombre_rol, r.descripcion
-            "SELECT r.id_rol, r.nombre_rol, r.descripcion, r.estado,
-                    COUNT(rp.id_accion_permiso) AS total_permisos,
-                    (SELECT COUNT(*) FROM usuario u WHERE u.id_rol = r.id_rol) AS total_usuarios
-             FROM rol r
-             LEFT JOIN rol_permiso rp ON rp.id_rol = r.id_rol
              GROUP BY r.id_rol, r.nombre_rol, r.descripcion, r.estado
              ORDER BY r.id_rol"
         );
@@ -47,56 +41,11 @@ class RolesModel extends MasterModel{
 
     public function buscarRol($idRol){
         return $this->selectOne(
-            "SELECT id_rol, nombre_rol, descripcion FROM rol WHERE id_rol = $1",
             "SELECT id_rol, nombre_rol, descripcion, estado FROM rol WHERE id_rol = $1",
             [$idRol]
         );
     }
 
-    // Al editar se excluye el propio rol, si no siempre chocaría consigo mismo.
-    public function existeNombreRol($nombre, $idExcluir = null){
-        if($idExcluir){
-            $valor = $this->selectValue(
-                "SELECT 1 FROM rol WHERE LOWER(nombre_rol) = LOWER($1) AND id_rol <> $2",
-                [$nombre, $idExcluir]
-            );
-        }else{
-            $valor = $this->selectValue(
-                "SELECT 1 FROM rol WHERE LOWER(nombre_rol) = LOWER($1)",
-                [$nombre]
-            );
-        }
-        return $valor !== null;
-    }
-
-    // Matriz de permisos ya marcados del rol, para precargar los checkbox:
-    //   ['idModulo-idAccion' => true, ...]
-    public function matrizDelRol($idRol){
-        $filas = $this->selectAll(
-            "SELECT id_modulo, id_accion_permiso FROM rol_permiso WHERE id_rol = $1",
-            [$idRol]
-        );
-
-        $marcados = [];
-        foreach($filas as $f){
-            $marcados[] = $f['id_modulo'] . '-' . $f['id_accion_permiso'];
-        }
-        return $marcados;
-    }
-
-    // UPDATE de los datos del rol
-    public function actualizarRol($idRol, $nombre, $descripcion){
-        return $this->update(
-            "UPDATE rol SET nombre_rol = $1, descripcion = $2 WHERE id_rol = $3",
-            [$nombre, ($descripcion !== '' ? $descripcion : null), $idRol]
-        );
-    }
-
-    // INSERT en la tabla rol. Devuelve el id generado.
-    public function crearRol($nombre, $descripcion){
-        return $this->selectValue(
-            "INSERT INTO rol (nombre_rol, descripcion)
-             VALUES ($1, $2)
     // Al editar se excluye el propio rol, si no siempre chocaría consigo mismo.
     public function existeNombreRol($nombre, $idExcluir = null){
         if($idExcluir){
@@ -179,12 +128,9 @@ class RolesModel extends MasterModel{
         );
     }
 
-    public function eliminarRol($idRol){
-        // Primero los permisos (por la llave foránea), luego el rol
-        $this->borrarPermisosDelRol($idRol);
-        return $this->delete("DELETE FROM rol WHERE id_rol = $1", [$idRol]);
-    // No se borra el rol: se inhabilita (estado = 0) o se habilita (estado = 1),
-    // igual que en zoocriadero, tanque y las demás tablas del sistema.
+    // No se borra el rol físicamente: se inhabilita (estado = 0) o se
+    // habilita (estado = 1), igual que zoocriadero, tanque y las demás
+    // tablas del sistema. Así se conserva el histórico de usuarios/permisos.
     public function cambiarEstado($idRol, $estado){
         return $this->update(
             "UPDATE rol SET estado = $1 WHERE id_rol = $2",
@@ -260,5 +206,3 @@ class RolesModel extends MasterModel{
         return true;
     }
 }
-
-?>
