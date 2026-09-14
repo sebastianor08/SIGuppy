@@ -1,21 +1,19 @@
 <?php
-    // ============================================================
-    // Partial: encabezado superior (logo + navbar + selector de rol)
-    // Variables esperadas:
-    //   $basePath        -> ver head.php
-    //   $showRoleSwitch  -> (opcional, default true) el selector de rol
-    //                       es solo una simulación de demo; se puede
-    //                       ocultar en vistas que no lo necesitan.
-    // ============================================================
-    $basePath       = $basePath ?? '../../';
-    $showRoleSwitch = $showRoleSwitch ?? true;
+  // =========================================================
+  // Navbar superior de SIGuppys (logo del header + selector de rol)
+  // =========================================================
+  // Igual que sidebar.php, usa $rutaBase (declarada por la vista)
+  // para las rutas de assets/links según su profundidad.
+  if (!isset($rutaBase)) {
+      $rutaBase = '../../';
+  }
 ?>
 <div class="main-header">
   <div class="main-header-logo">
     <div class="logo-header siguppys-logo-header" data-background-color="white">
-      <a href="<?php echo $basePath; ?>Web/index.php" class="logo siguppys-logo">
+      <a href="<?php echo $rutaBase; ?>Web/index.php" class="logo siguppys-logo">
         <span class="siguppys-pin">
-          <img src="<?php echo $basePath; ?>assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
+          <img src="<?php echo $rutaBase; ?>assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
         </span>
         <span class="siguppys-brand">
           <strong>SIGuppys</strong>
@@ -33,21 +31,7 @@
     </div>
   </div>
   <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
-    <div class="container-fluid">
-      <?php if($showRoleSwitch): ?>
-      <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-        <li class="nav-item d-flex align-items-center">
-          <div class="sig-role-switcher" title="Selector de rol para esta demostración. Cuando exista inicio de sesión, el rol vendrá de la sesión del usuario.">
-            <label for="sigRoleSelect"><i class="fas fa-user-shield me-1"></i>Vista</label>
-            <select id="sigRoleSelect">
-              <option value="auxiliar">Auxiliar de campo</option>
-              <option value="coordinador">Coordinador</option>
-            </select>
-          </div>
-        </li>
-      </ul>
-      <?php endif; ?>
-    </div>
+    <div class="container-fluid"></div>
   </nav>
+  <!-- End Navbar -->
 </div>
-<!-- End Header -->

@@ -99,6 +99,7 @@
     include '../partials/head.php';
 ?>
     <div class="wrapper">
+      <?php $rutaBase = '../../'; ?>
       <?php include '../partials/sidebar.php'; ?>
       <div class="main-panel">
         <?php include '../partials/topbar.php'; ?>

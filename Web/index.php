@@ -1,11 +1,46 @@
-<?php
-    // Panel "Resumen": página estática de demostración (sin backend propio
-    // todavía). Usa los mismos partials de layout que el resto de vistas.
-    $basePath  = '../';
-    $pageTitle = 'Resumen';
-    $bodyPage  = 'resumen';
-    include '../View/partials/head.php';
-?>
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Resumen · SIGuppys</title>
+    <meta
+      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
+      name="viewport"
+    />
+    <link rel="icon" href="../assets/img/siguppys/favicon-32.png" type="image/png" />
+    <link rel="apple-touch-icon" href="../assets/img/siguppys/favicon-180.png" />
+
+    <!-- Fonts and icons -->
+    <script src="../assets/js/plugin/webfont/webfont.min.js"></script>
+    <script>
+      WebFont.load({
+        google: { families: ["Public Sans:300,400,500,600,700"] },
+        custom: {
+          families: [
+            "Font Awesome 5 Solid",
+            "Font Awesome 5 Regular",
+            "Font Awesome 5 Brands",
+            "simple-line-icons",
+          ],
+          urls: ["../assets/css/fonts.min.css"],
+        },
+        active: function () {
+          sessionStorage.fonts = true;
+        },
+      });
+    </script>
+
+    <!-- CSS Files (mismos del template, sin modificar) -->
+    <link rel="stylesheet" href="../assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../assets/css/plugins.min.css" />
+    <link rel="stylesheet" href="../assets/css/kaiadmin.min.css" />
+
+    <!-- Estilos propios de SIGuppys: solo AGREGAN reglas encima del kaiadmin.css original -->
+    <link rel="stylesheet" href="../assets/css/siguppys.css" />
+  </head>
+  <body data-page="resumen">
+    <?php $rutaBase = '../'; ?>
     <div class="wrapper">
       <?php include '../View/partials/sidebar.php'; ?>
       <div class="main-panel">
