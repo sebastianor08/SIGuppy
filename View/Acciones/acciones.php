@@ -140,7 +140,7 @@
                       </a>
                     </li>
                     <li>
-                      <a href="../../View/Zoocriadero/acciones.php" data-page="acciones-zoocriadero">
+                      <a href="../../View/Acciones/acciones.php" data-page="acciones-zoocriadero">
                         <span class="sub-item">Acciones</span>
                       </a>
                     </li>
