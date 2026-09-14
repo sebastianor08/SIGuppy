@@ -1,45 +1,9 @@
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Zoocriaderos · SIGuppy</title>
-    <meta
-      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
-      name="viewport"
-    />
-    <link rel="icon" href="../../assets/img/siguppys/favicon-32.png" type="image/png" />
-    <link rel="apple-touch-icon" href="../../assets/img/siguppys/favicon-180.png" />
-
-    <!-- Fonts and icons -->
-    <script src="../../assets/js/plugin/webfont/webfont.min.js"></script>
-    <script>
-      WebFont.load({
-        google: { families: ["Public Sans:300,400,500,600,700"] },
-        custom: {
-          families: [
-            "Font Awesome 5 Solid",
-            "Font Awesome 5 Regular",
-            "Font Awesome 5 Brands",
-            "simple-line-icons",
-          ],
-          urls: ["../../assets/css/fonts.min.css"],
-        },
-        active: function () {
-          sessionStorage.fonts = true;
-        },
-      });
-    </script>
-
-    <!-- CSS Files (mismos del template, sin modificar) -->
-    <link rel="stylesheet" href="../../assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="../../assets/css/plugins.min.css" />
-    <link rel="stylesheet" href="../../assets/css/kaiadmin.min.css" />
-
-    <!-- Estilos propios de SIGuppys: solo AGREGAN reglas encima del kaiadmin.css original -->
-    <link rel="stylesheet" href="../../assets/css/siguppys.css" />
-  </head>
-  <body data-page="zoocriaderos">
+<?php
+    $basePath  = '../../';
+    $pageTitle = 'Zoocriaderos';
+    $bodyPage  = 'zoocriaderos';
+    include '../partials/head.php';
+?>
     <div class="wrapper">
       <?php $rutaBase = '../../'; ?>
       <?php include '../partials/sidebar.php'; ?>
@@ -54,7 +18,7 @@
                 <h6 class="op-7 mb-2">Zoocriaderos</h6>
               </div>
               <div class="ms-md-auto py-2 py-md-0 d-flex gap-2 align-items-center">
-                <a href="../../View/Seguimiento_Zoocriadero/seguimiento-zoocriadero.php" class="btn btn-outline-primary btn-round">
+                <a href="../Seguimiento_Zoocriadero/seguimiento-zoocriadero.php" class="btn btn-outline-primary btn-round">
                   <i class="fas fa-clipboard-check me-1"></i> Registrar Seguimiento
                 </a>
                 <div id="registrarZoocriaderoWrap">
@@ -206,36 +170,9 @@
       </div>
     </div>
 
-    <!-- Core JS Files -->
-    <script src="../../assets/js/core/jquery-3.7.1.min.js"></script>
-    <script src="../../assets/js/core/popper.min.js"></script>
-    <script src="../../assets/js/core/bootstrap.min.js"></script>
-    <script src="../../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
-    <script src="../../assets/js/kaiadmin.min.js"></script>
-
-    <!-- SIGuppys -->
-    <script src="../../assets/js/siguppys-nav.js"></script>
-    <script src="../../assets/js/siguppys-zoocriaderos.js"></script>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        // Busca el input por su ID o por su atributo name="fecha"
-        const inputFecha = document.getElementById('fecha') || document.querySelector('input[name="fecha"]');
-        
-        if (inputFecha) {
-          // Obtener fecha actual en formato YYYY-MM-DD
-          const hoy = new Date();
-          const year = hoy.getFullYear();
-          const month = String(hoy.getMonth() + 1).padStart(2, '0');
-          const day = String(hoy.getDate()).padStart(2, '0');
-          const fechaActual = `${year}-${month}-${day}`;
-
-          // Asignar fecha de hoy y restringir min/max a solo hoy
-          inputFecha.value = fechaActual;
-          inputFecha.min = fechaActual;
-          inputFecha.max = fechaActual;
-        }
-      });
-    </script>
+<?php
+    $pageScripts = ['assets/js/siguppys-zoocriaderos.js'];
+    include '../partials/footer.php';
+?>
   </body>
 </html>

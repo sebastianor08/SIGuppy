@@ -2,6 +2,11 @@
 
 include_once '../Model/SeguimientoZoocriadero/SeguimientoZoocriaderoModel.php';
 
+// Este controlador solo responde JSON (nada de vistas HTML), así que se
+// llama siempre a través de Web/ajax.php, nunca de Web/index.php:
+//   Web/ajax.php?modulo=SeguimientoZoocriadero&controlador=SeguimientoZoocriadero&funcion=zoocriaderos
+// Web/index.php envuelve la respuesta en el layout (head/navbar/footer),
+// lo que rompería el JSON; ajax.php no agrega nada alrededor.
 class SeguimientoZoocriaderoController {
 
     public function zoocriaderos() {

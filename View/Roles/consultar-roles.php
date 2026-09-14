@@ -46,35 +46,13 @@
     }
 
     function h($v){ return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); }
+
+    $basePath       = '../../';
+    $pageTitle      = 'Consultar Roles';
+    $bodyPage       = 'roles-consultar';
+    $showRoleSwitch = false;
+    include '../partials/head.php';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Consultar Roles · SIGuppys</title>
-    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
-    <link rel="icon" href="../../assets/img/siguppys/favicon-32.png" type="image/png" />
-    <link rel="apple-touch-icon" href="../../assets/img/siguppys/favicon-180.png" />
-
-    <script src="../../assets/js/plugin/webfont/webfont.min.js"></script>
-    <script>
-      WebFont.load({
-        google: { families: ["Public Sans:300,400,500,600,700"] },
-        custom: {
-          families: ["Font Awesome 5 Solid","Font Awesome 5 Regular","Font Awesome 5 Brands","simple-line-icons"],
-          urls: ["../../assets/css/fonts.min.css"],
-        },
-        active: function () { sessionStorage.fonts = true; },
-      });
-    </script>
-
-    <link rel="stylesheet" href="../../assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="../../assets/css/plugins.min.css" />
-    <link rel="stylesheet" href="../../assets/css/kaiadmin.min.css" />
-    <link rel="stylesheet" href="../../assets/css/siguppys.css" />
-  </head>
-  <body data-page="roles-consultar">
     <div class="wrapper">
       <?php $rutaBase = '../../'; ?>
       <?php include '../partials/sidebar.php'; ?>
@@ -189,12 +167,9 @@
       </div>
     </div>
 
-    <script src="../../assets/js/core/jquery-3.7.1.min.js"></script>
-    <script src="../../assets/js/core/popper.min.js"></script>
-    <script src="../../assets/js/core/bootstrap.min.js"></script>
-    <script src="../../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
-    <script src="../../assets/js/kaiadmin.min.js"></script>
-    <!-- Aplica el modo oscuro / daltonismo guardado en Configuraciones -->
-    <script src="../../assets/js/siguppys-nav.js"></script>
+<?php
+    $pageScripts = [];
+    include '../partials/footer.php';
+?>
   </body>
 </html>

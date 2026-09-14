@@ -1,3 +1,25 @@
+/* =========================================================
+   SIGuppys — Módulo Zoocriaderos
+   =========================================================
+   Los datos YA NO están quemados en este archivo: se leen de
+   PostgreSQL a través del router MVC:
+
+     Web/ajax.php?modulo=Zoocriadero&controlador=Zoocriadero&funcion=...
+
+   Endpoints usados:
+     lista        -> GET   zoocriaderos + nº de tanques
+     comunas      -> GET   para el select "Comuna"
+     barrios      -> GET   barrios de la comuna elegida
+     tiposTanque  -> GET   para el select "Tipo de tanque"
+     tanques      -> GET   tanques de un zoocriadero (modal detalle)
+     postCreate   -> POST  INSERT en zoocriadero
+     postUpdate   -> POST  UPDATE en zoocriadero
+     postEstado   -> POST  UPDATE del campo estado (habilitar/inhabilitar)
+     postTanque   -> POST  INSERT en tanque
+
+   El diseño de la tabla, los filtros y los permisos por rol
+   quedaron igual que antes.
+   ========================================================= */
 
 (function () {
   "use strict";
@@ -12,8 +34,8 @@
     coordinador: { crear: true, editar: true, inhabilitar: true },
   };
 
-  var data = [];      // zoocriaderos traídos de la base
-  var comunas = [];   // comunas de Cali
+  var data = [];       // zoocriaderos traídos de la base
+  var comunas = [];    // comunas de Cali
   var tiposTanque = [];
   var state = { q: "", estado: "todos" };
 
@@ -359,7 +381,6 @@
       id_tipo_tanque: Number(tanqueForm.elements["id_tipo_tanque"].value),
       numero_tanque: Number(tanqueForm.elements["numero_tanque"].value),
     };
-    // Validación en el navegador (el servidor la vuelve a hacer)
     if (!payload.id_zoocriadero) { alert("Debe seleccionar un zoocriadero."); return; }
     if (!payload.numero_tanque || payload.numero_tanque < 1) {
       alert("El número de tanque debe ser un entero mayor que cero.");
@@ -392,6 +413,7 @@
       latitud: form.elements["latitud"].value,
       longitud: form.elements["longitud"].value,
     };
+
     // Un campo escrito solo con espacios queda vacío tras el .trim() de arriba
     if (payload.nombre.length < 3) {
       alert("El nombre es obligatorio y debe tener al menos 3 caracteres (no solo espacios).");

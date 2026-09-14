@@ -58,93 +58,129 @@
               <label class="form-label" for="fecha">Fecha</label>
               <input type="date" class="form-control" id="fecha" name="fecha" required />
             </div>
-
-            <div class="col-md-3">
-              <label class="form-label" for="ph">pH <span class="text-muted small"></span></label>
-              <input type="number" min="0" max="14" step="0.01" class="form-control" id="ph" name="ph" placeholder="7.20" />
-            </div>
-            <div class="col-md-3">
-              <label class="form-label" for="temperatura">Temperatura °C <span class="text-muted small"></span></label>
-              <input type="number" step="0.01" class="form-control" id="temperatura" name="temperatura" placeholder="26.50" />
-            </div>
-            <div class="col-md-2">
-              <label class="form-label" for="numero_sembrados">Peces sembrados</label>
-              <input type="number" min="0" step="1" value="0" class="form-control" id="numero_sembrados" name="numero_sembrados" required />
-            </div>
-            <div class="col-md-2">
-              <label class="form-label" for="numero_nacidos">Peces nacidos</label>
-              <input type="number" min="0" step="1" value="0" class="form-control" id="numero_nacidos" name="numero_nacidos" required />
-            </div>
-            <div class="col-md-2">
-              <label class="form-label" for="numero_muertos">Peces muertos</label>
-              <input type="number" min="0" step="1" value="0" class="form-control" id="numero_muertos" name="numero_muertos" required />
-            </div>
-            <div class="col-md-4">
-              <label class="form-label" for="id_actividad">Acción</label>
-              <select class="form-select" id="id_actividad" name="id_actividad" required><option value="">Seleccione la acción</option></select>
-            </div>
-
-            <div class="col-12">
-              <label class="form-label" for="observaciones">Observaciones</label>
-              <textarea class="form-control" id="observaciones" name="observaciones" rows="4" maxlength="300" placeholder="Escribe aquí las observaciones..."></textarea>
-              <div class="form-text text-end"><span id="observacionesCount">0</span>/300</div>
-            </div>
           </div>
 
-          <div id="seguimientoMessage" class="alert d-none mt-4 mb-0" role="alert"></div>
-          <div class="d-flex justify-content-end mt-4 gap-2">
-            <button type="button" id="btnCancelarEdicion" class="btn btn-label-secondary d-none">Cancelar edición</button>
-            <a href="../../View/Zoocriadero/zoocriaderos.php" class="btn btn-label-secondary">Volver</a>
-            <button type="submit" class="btn btn-primary" id="btnGuardarSeguimiento"><i class="fas fa-save me-1"></i>Guardar</button>
-          </div>
-        </form>
-      </div></div>
+          <div class="card sig-followup-card"><div class="card-body">
+            <form id="seguimientoZoocriaderoForm" novalidate>
+              <input type="hidden" id="id_seguimiento" name="id_seguimiento" value="" />
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label" for="id_zoocriadero">Zoocriadero</label>
+                  <select class="form-select" id="id_zoocriadero" name="id_zoocriadero" required><option value="">Seleccione un zoocriadero</option></select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="id_tanque">Tanque</label>
+                  <select class="form-select" id="id_tanque" name="id_tanque" disabled required><option value="">Seleccione primero un zoocriadero</option></select>
+                </div>
 
-      <div class="card mt-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h4 class="card-title mb-0">Seguimientos registrados</h4>
-          <button type="button" class="btn btn-sm btn-label-primary" id="btnRecargarHistorial">
-            <i class="fas fa-sync-alt me-1"></i>Actualizar
-          </button>
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table align-items-center mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Fecha</th>
-                  <th>Zoocriadero</th>
-                  <th class="text-center">Tanque</th>
-                  <th>Acción</th>
-                  <th class="text-center">Sembrados</th>
-                  <th class="text-center">Nacidos</th>
-                  <th class="text-center">Muertos</th>
-                  <th class="text-center">pH</th>
-                  <th class="text-center">T °C</th>
-                  <th class="text-center">Editar</th>
-                </tr>
-              </thead>
-              <tbody id="historialBody">
-                <tr><td colspan="10" class="text-center text-muted py-4">Cargando...</td></tr>
-              </tbody>
-            </table>
+                <div class="col-md-6">
+                  <label class="form-label" for="direccion">Dirección</label>
+                  <input type="text" class="form-control" id="direccion" readonly placeholder="Se cargará desde el zoocriadero" />
+                  <div class="form-text">La dirección pertenece al zoocriadero y no se puede modificar en este registro.</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="fecha">Fecha</label>
+                  <input type="date" class="form-control" id="fecha" name="fecha" required />
+                </div>
+
+                <div class="col-md-3">
+                  <label class="form-label" for="ph">pH <span class="text-muted small">(opcional)</span></label>
+                  <input type="number" min="0" max="14" step="0.01" class="form-control" id="ph" name="ph" placeholder="7.20" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label" for="temperatura">Temperatura °C <span class="text-muted small">(opcional)</span></label>
+                  <input type="number" step="0.01" class="form-control" id="temperatura" name="temperatura" placeholder="26.50" />
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label" for="numero_sembrados">Peces sembrados</label>
+                  <input type="number" min="0" step="1" value="0" class="form-control" id="numero_sembrados" name="numero_sembrados" required />
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label" for="numero_nacidos">Peces nacidos</label>
+                  <input type="number" min="0" step="1" value="0" class="form-control" id="numero_nacidos" name="numero_nacidos" required />
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label" for="numero_muertos">Peces muertos</label>
+                  <input type="number" min="0" step="1" value="0" class="form-control" id="numero_muertos" name="numero_muertos" required />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label" for="id_actividad">Acción</label>
+                  <select class="form-select" id="id_actividad" name="id_actividad" required><option value="">Seleccione la acción</option></select>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label" for="observaciones">Observaciones</label>
+                  <textarea class="form-control" id="observaciones" name="observaciones" rows="4" maxlength="300" placeholder="Escribe aquí las observaciones..."></textarea>
+                  <div class="form-text text-end"><span id="observacionesCount">0</span>/300</div>
+                </div>
+              </div>
+
+              <div id="seguimientoMessage" class="alert d-none mt-4 mb-0" role="alert"></div>
+              <div class="d-flex justify-content-end mt-4 gap-2">
+                <button type="button" id="btnCancelarEdicion" class="btn btn-label-secondary d-none">Cancelar edición</button>
+                <a href="../Zoocriadero/zoocriaderos.php" class="btn btn-label-secondary">Volver</a>
+                <button type="submit" class="btn btn-primary" id="btnGuardarSeguimiento"><i class="fas fa-save me-1"></i>Guardar</button>
+              </div>
+            </form>
+          </div></div>
+
+          <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h4 class="card-title mb-0">Seguimientos registrados</h4>
+              <button type="button" class="btn btn-sm btn-label-primary" id="btnRecargarHistorial">
+                <i class="fas fa-sync-alt me-1"></i>Actualizar
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table align-items-center mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Zoocriadero</th>
+                      <th class="text-center">Tanque</th>
+                      <th>Acción</th>
+                      <th class="text-center">Sembrados</th>
+                      <th class="text-center">Nacidos</th>
+                      <th class="text-center">Muertos</th>
+                      <th class="text-center">pH</th>
+                      <th class="text-center">T °C</th>
+                      <th class="text-center">Editar</th>
+                    </tr>
+                  </thead>
+                  <tbody id="historialBody">
+                    <tr><td colspan="10" class="text-center text-muted py-4">Cargando...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
+        </div></div>
       </div>
-    </div></div>
-  </div>
-</div>
+    </div>
 
-<script src="../../assets/js/core/jquery-3.7.1.min.js"></script>
-<script src="../../assets/js/core/popper.min.js"></script>
-<script src="../../assets/js/core/bootstrap.min.js"></script>
-<script src="../../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
-<script src="../../assets/js/kaiadmin.min.js"></script>
-<script src="../../assets/js/siguppys-nav.js"></script>
-<script src="../../assets/js/siguppys-seguimiento-zoocriadero.js"></script>
+<?php
+    $pageScripts = ['assets/js/siguppys-seguimiento-zoocriadero.js'];
+    include '../partials/footer.php';
+?>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // La fecha del seguimiento debe ser siempre la de hoy (el backend
+  // también lo valida): se fija el valor y se bloquea min/max.
+  const inputFecha = document.getElementById('fecha');
+  if (inputFecha) {
+    const hoy = new Date();
+    const year = hoy.getFullYear();
+    const month = String(hoy.getMonth() + 1).padStart(2, '0');
+    const day = String(hoy.getDate()).padStart(2, '0');
+    const fechaActual = `${year}-${month}-${day}`;
+
+    inputFecha.value = fechaActual;
+    inputFecha.min = fechaActual;
+    inputFecha.max = fechaActual;
+  }
+
   // 1. Apuntar exactamente al select por su ID en tu HTML
   const selectAccion = document.getElementById('id_actividad');
   const inputPh = document.getElementById('ph');
@@ -202,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function actualizarAsterisco(label, mostrar) {
     if (!label) return;
     let span = label.querySelector('.asterisco-req');
-    
+
     if (mostrar) {
       if (!span) {
         span = document.createElement('span');

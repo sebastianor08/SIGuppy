@@ -128,8 +128,9 @@ class RolesModel extends MasterModel{
         );
     }
 
-    // No se borra el rol: se inhabilita (estado = 0) o se habilita (estado = 1),
-    // igual que en zoocriadero, tanque y las demás tablas del sistema.
+    // No se borra el rol físicamente: se inhabilita (estado = 0) o se
+    // habilita (estado = 1), igual que zoocriadero, tanque y las demás
+    // tablas del sistema. Así se conserva el histórico de usuarios/permisos.
     public function cambiarEstado($idRol, $estado){
         return $this->update(
             "UPDATE rol SET estado = $1 WHERE id_rol = $2",
@@ -205,5 +206,3 @@ class RolesModel extends MasterModel{
         return true;
     }
 }
-
-?>

@@ -160,7 +160,8 @@ class ZoocriaderoController{
                 jsonResponse(['ok' => false, 'message' => $error], 422);
             }
         }
-        // Comuna y barrio ahora salen de un select: se comprueba que el
+
+        // Comuna y barrio salen de un select: se comprueba que el
         // barrio elegido realmente pertenezca a la comuna elegida.
         if($comuna !== '' && $barrio !== '' && !$obj->barrioPerteneceAComuna($barrio, $comuna)){
             jsonResponse(['ok' => false, 'message' => 'El barrio seleccionado no pertenece a esa comuna.'], 422);
@@ -172,14 +173,12 @@ class ZoocriaderoController{
         $longitud = is_numeric($longitud) ? (float) $longitud : 0;
 
         return [
-            'nombre'           => $nombre,
-            'direccion'        => $direccion,
-            'comuna'           => ($comuna !== '' ? $comuna : null),
-            'barrio'           => ($barrio !== '' ? $barrio : null),
-            'latitud'          => $latitud,
-            'longitud'         => $longitud,
+            'nombre'    => $nombre,
+            'direccion' => $direccion,
+            'comuna'    => ($comuna !== '' ? $comuna : null),
+            'barrio'    => ($barrio !== '' ? $barrio : null),
+            'latitud'   => $latitud,
+            'longitud'  => $longitud,
         ];
     }
 }
-
-?>

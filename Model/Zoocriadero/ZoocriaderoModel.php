@@ -4,12 +4,10 @@ include_once __DIR__ . '/../MasterModel.php';
 
 // ============================================================
 // Modelo del módulo Zoocriaderos.
-// Tablas: zoocriadero, tanque, tipo_tanque, usuario
+// Tablas: zoocriadero, tanque, tipo_tanque, comuna, barrio
 // ============================================================
 class ZoocriaderoModel extends MasterModel{
 
-    // Listado para la tabla: trae el nombre de la persona a cargo
-    // y cuántos tanques activos tiene cada zoocriadero.
     // Listado para la tabla: cuántos tanques activos tiene cada zoocriadero.
     public function listar(){
         return $this->selectAll(
@@ -155,5 +153,3 @@ class ZoocriaderoModel extends MasterModel{
         ) !== null;
     }
 }
-
-?>
