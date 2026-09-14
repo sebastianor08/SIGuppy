@@ -50,7 +50,7 @@
 
             if($conexion === false){
                 die("Error de conexión a PostgreSQL. Revise lib/conf/conf.php y "
-                  . "que 'extension=pgsql' esté habilitada en php.ini.");
+                    . "que 'extension=pgsql' esté habilitada en php.ini.");
             }
 
             pg_set_client_encoding($conexion, "UTF8");

@@ -320,7 +320,6 @@
                       <tr>
                         <th>Zoocriadero</th>
                         <th>Dirección</th>
-                        <th>Persona a cargo</th>
                         <th class="text-center">Tanques</th>
                         <th class="text-center">Estado</th>
                         <th class="text-center">Acciones</th>
@@ -354,16 +353,16 @@
                       <div class="row">
                         <div class="col-6 mb-3">
                           <label class="form-label">Comuna</label>
-                          <input type="text" name="comuna" class="form-control" />
+                          <select name="comuna" id="comunaSelect" class="form-select" required>
+                            <option value="">Seleccione la comuna</option>
+                          </select>
                         </div>
                         <div class="col-6 mb-3">
                           <label class="form-label">Barrio</label>
-                          <input type="text" name="barrio" class="form-control" />
+                          <select name="barrio" id="barrioSelect" class="form-select" disabled required>
+                            <option value="">Seleccione primero la comuna</option>
+                          </select>
                         </div>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Persona a cargo</label>
-                        <select name="id_persona_cargo" class="form-select"></select>
                       </div>
                       <div class="row">
                         <div class="col-6 mb-1">

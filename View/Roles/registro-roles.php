@@ -1,41 +1,70 @@
 <?php
     // =========================================================
-    // Registro Roles
-    // Formulario con la matriz Acción / Módulo (igual al diseño):
-    // las FILAS son las acciones y las COLUMNAS son los módulos.
-    // Al enviar, hace INSERT en "rol" y un INSERT en "rol_permiso"
-    // por cada casilla marcada.
+    // Registro / Edición de Roles
+    // Formulario con la matriz Acción / Módulo: las FILAS son las
+    // acciones y las COLUMNAS son los módulos.
+    //   - Sin ?id_rol  -> INSERT en "rol" + INSERT en "rol_permiso"
+    //   - Con  ?id_rol -> UPDATE del rol y reemplazo de sus permisos
     // =========================================================
+    include_once '../../lib/validaciones.php';
     include_once '../../Model/Roles/RolesModel.php';
 
-    $modelo   = new RolesModel();
-    $mensaje  = null;   // ['tipo' => 'success|danger', 'texto' => '...']
+    $modelo  = new RolesModel();
+    $mensaje = null;            // ['tipo' => 'success|danger', 'texto' => '...']
+
     $nombre      = '';
     $descripcion = '';
-    $marcados    = [];  // para no perder lo marcado si hay error
+    $marcados    = [];          // permisos marcados en la matriz
+
+    // ---------- ¿Estamos editando? ----------
+    $idRol = filter_var($_POST['id_rol'] ?? $_GET['id_rol'] ?? null, FILTER_VALIDATE_INT);
+    $rolEditado = $idRol ? $modelo->buscarRol($idRol) : null;
+    if(!$rolEditado){
+        $idRol = null;
+    }
+    $editando = $idRol !== null;
 
     if($_SERVER['REQUEST_METHOD'] === 'POST'){
 
-        $nombre      = trim($_POST['nombre_rol'] ?? '');
-        $descripcion = trim($_POST['descripcion'] ?? '');
+        // limpiar() recorta los extremos y colapsa los espacios repetidos
+        $nombre      = limpiar($_POST['nombre_rol'] ?? '');
+        $descripcion = limpiar($_POST['descripcion'] ?? '');
         $marcados    = $_POST['permisos'] ?? [];
 
-        if($nombre === ''){
-            $mensaje = ['tipo' => 'danger', 'texto' => 'El nombre del rol es obligatorio.'];
+        // Validaciones: un campo lleno solo de espacios NO cuenta como lleno.
+        $errorNombre      = validarTexto($nombre, 'Nombre', 3, 50);
+        $errorDescripcion = validarTextoOpcional($descripcion, 'Descripcion', 200);
 
-        }elseif(mb_strlen($nombre) > 50){
-            $mensaje = ['tipo' => 'danger', 'texto' => 'El nombre del rol no puede superar 50 caracteres.'];
+        if($errorNombre !== null){
+            $mensaje = ['tipo' => 'danger', 'texto' => $errorNombre];
 
-        }elseif($modelo->existeNombreRol($nombre)){
+        }elseif($errorDescripcion !== null){
+            $mensaje = ['tipo' => 'danger', 'texto' => $errorDescripcion];
+
+        }elseif($modelo->existeNombreRol($nombre, $idRol)){
             $mensaje = ['tipo' => 'danger', 'texto' => 'Ya existe un rol con el nombre "' . $nombre . '".'];
 
         }elseif(empty($marcados)){
             $mensaje = ['tipo' => 'danger', 'texto' => 'Debe marcar al menos un permiso para el rol.'];
 
-        }else{
-            $idRol = $modelo->registrarRolConPermisos($nombre, $descripcion, $marcados);
+        }elseif($editando){
+            // ---------- UPDATE ----------
+            if($modelo->actualizarRolConPermisos($idRol, $nombre, $descripcion, $marcados)){
+                $mensaje = [
+                    'tipo'  => 'success',
+                    'texto' => 'Rol "' . $nombre . '" actualizado correctamente con '
+                             . count($marcados) . ' permiso(s).'
+                ];
+                $rolEditado = $modelo->buscarRol($idRol);
+            }else{
+                $mensaje = ['tipo' => 'danger', 'texto' => 'No se pudo actualizar el rol: ' . $modelo->ultimoError()];
+            }
 
-            if($idRol){
+        }else{
+            // ---------- INSERT ----------
+            $nuevoId = $modelo->registrarRolConPermisos($nombre, $descripcion, $marcados);
+
+            if($nuevoId){
                 $mensaje = [
                     'tipo'  => 'success',
                     'texto' => 'Rol "' . $nombre . '" registrado correctamente con '
@@ -49,6 +78,12 @@
                 $mensaje = ['tipo' => 'danger', 'texto' => 'No se pudo registrar el rol: ' . $modelo->ultimoError()];
             }
         }
+
+    }elseif($editando){
+        // Primera carga en modo edición: se traen los datos y la matriz guardada
+        $nombre      = $rolEditado['nombre_rol'];
+        $descripcion = $rolEditado['descripcion'];
+        $marcados    = $modelo->matrizDelRol($idRol);
     }
 
     $acciones = $modelo->acciones();
@@ -62,7 +97,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Registro Roles · SIGuppys</title>
+    <title><?php echo $editando ? "Editar Rol" : "Registro Roles"; ?> · SIGuppys</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="../../assets/img/siguppys/favicon-32.png" type="image/png" />
     <link rel="apple-touch-icon" href="../../assets/img/siguppys/favicon-180.png" />
@@ -232,8 +267,8 @@
 
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
               <div>
-                <h3 class="fw-bold mb-3">Registro Roles</h3>
-                <h6 class="op-7 mb-2">Usuarios / Roles y Permisos</h6>
+                <h3 class="fw-bold mb-3"><?php echo $editando ? 'Editar Rol' : 'Registro Roles'; ?></h3>
+                <h6 class="op-7 mb-2">Usuarios / Roles y Permisos<?php echo $editando ? ' / Editar' : ''; ?></h6>
               </div>
               <div class="ms-md-auto py-2 py-md-0">
                 <a href="consultar-roles.php" class="btn btn-label-primary btn-round">
@@ -249,6 +284,9 @@
             <?php endif; ?>
 
             <form method="POST" action="registro-roles.php" id="formRol">
+              <?php if($editando): ?>
+                <input type="hidden" name="id_rol" value="<?php echo h($idRol); ?>">
+              <?php endif; ?>
               <div class="card">
                 <div class="card-body">
 
@@ -257,7 +295,7 @@
                       <div class="form-group">
                         <label for="nombre_rol">Nombre:</label>
                         <input type="text" class="form-control" id="nombre_rol" name="nombre_rol"
-                               maxlength="50" required placeholder="Ej: Auxiliar"
+                               maxlength="50" minlength="3" required placeholder="Ej: Auxiliar"
                                value="<?php echo h($nombre); ?>">
                       </div>
                     </div>
@@ -311,7 +349,12 @@
 
                 </div>
                 <div class="card-action">
-                  <button type="submit" class="btn btn-success">Registrar</button>
+                  <button type="submit" class="btn btn-success">
+                    <?php echo $editando ? 'Guardar cambios' : 'Registrar'; ?>
+                  </button>
+                  <?php if($editando): ?>
+                    <a href="registro-roles.php" class="btn btn-border">Cancelar edición</a>
+                  <?php endif; ?>
                 </div>
               </div>
             </form>
@@ -326,6 +369,8 @@
     <script src="../../assets/js/core/bootstrap.min.js"></script>
     <script src="../../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
     <script src="../../assets/js/kaiadmin.min.js"></script>
+    <!-- Aplica el modo oscuro / daltonismo guardado en Configuraciones -->
+    <script src="../../assets/js/siguppys-nav.js"></script>
     <script>
       // Si se marca Registrar, Editar o Eliminar, se marca Consultar
       // del mismo módulo: no tiene sentido poder editar sin poder ver.
@@ -355,6 +400,14 @@
         });
 
         document.getElementById('formRol').addEventListener('submit', function(ev){
+          var nombre = document.getElementById('nombre_rol');
+          // .trim() evita que pase un nombre hecho solo de espacios
+          if(nombre.value.trim().length < 3){
+            ev.preventDefault();
+            nombre.focus();
+            alert('El nombre del rol es obligatorio y debe tener al menos 3 caracteres.');
+            return;
+          }
           if(!tabla.querySelector('tbody input[type=checkbox]:checked')){
             ev.preventDefault();
             alert('Debe marcar al menos un permiso para el rol.');
