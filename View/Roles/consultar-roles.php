@@ -10,22 +10,6 @@
     $modelo  = new RolesModel();
     $mensaje = null;
 
-    // Eliminar rol: ?eliminar=ID
-    if(isset($_GET['eliminar'])){
-        $idRol = filter_var($_GET['eliminar'], FILTER_VALIDATE_INT);
-
-        if(!$idRol){
-            $mensaje = ['tipo' => 'danger', 'texto' => 'Rol no válido.'];
-
-        }elseif($modelo->usuariosConRol($idRol) > 0){
-            $mensaje = ['tipo' => 'warning',
-                        'texto' => 'No se puede eliminar: hay usuarios asignados a este rol.'];
-
-        }elseif($modelo->eliminarRol($idRol)){
-            $mensaje = ['tipo' => 'success', 'texto' => 'Rol eliminado correctamente.'];
-
-        }else{
-            $mensaje = ['tipo' => 'danger', 'texto' => 'No se pudo eliminar el rol.'];
     // Inhabilitar / habilitar rol: ?estado=ID&valor=0|1
     // En este módulo no hay "Eliminar": igual que en zoocriaderos y tanques,
     // el registro se conserva y solo se cambia su estado.
@@ -62,176 +46,17 @@
     }
 
     function h($v){ return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); }
+
+    $basePath       = '../../';
+    $pageTitle      = 'Consultar Roles';
+    $bodyPage       = 'roles-consultar';
+    $showRoleSwitch = false;
+    include '../partials/head.php';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Consultar Roles · SIGuppys</title>
-    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
-    <link rel="icon" href="../../assets/img/siguppys/favicon-32.png" type="image/png" />
-    <link rel="apple-touch-icon" href="../../assets/img/siguppys/favicon-180.png" />
-
-    <script src="../../assets/js/plugin/webfont/webfont.min.js"></script>
-    <script>
-      WebFont.load({
-        google: { families: ["Public Sans:300,400,500,600,700"] },
-        custom: {
-          families: ["Font Awesome 5 Solid","Font Awesome 5 Regular","Font Awesome 5 Brands","simple-line-icons"],
-          urls: ["../../assets/css/fonts.min.css"],
-        },
-        active: function () { sessionStorage.fonts = true; },
-      });
-    </script>
-
-    <link rel="stylesheet" href="../../assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="../../assets/css/plugins.min.css" />
-    <link rel="stylesheet" href="../../assets/css/kaiadmin.min.css" />
-    <link rel="stylesheet" href="../../assets/css/siguppys.css" />
-  </head>
-  <body data-page="roles-consultar">
     <div class="wrapper">
-      <!-- Sidebar -->
-      <div class="sidebar sidebar-style-2 siguppys-sidebar" data-background-color="white">
-        <div class="sidebar-logo">
-          <div class="logo-header siguppys-logo-header">
-            <a href="../../Web/index.php" class="logo siguppys-logo">
-              <span class="siguppys-pin">
-                <img src="../../assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
-              </span>
-              <span class="siguppys-brand">
-                <strong>SIGuppys</strong>
-                <small>Control Biológico contra el Dengue</small>
-              </span>
-            </a>
-            <div class="nav-toggle">
-              <button class="btn btn-toggle toggle-sidebar"><i class="gg-menu-right"></i></button>
-              <button class="btn btn-toggle sidenav-toggler"><i class="gg-menu-left"></i></button>
-            </div>
-          </div>
-        </div>
-
-        <div class="sidebar-wrapper scrollbar scrollbar-inner">
-          <div class="sidebar-content">
-            <ul class="nav nav-secondary">
-              <li class="nav-section">
-                <span class="sidebar-mini-icon"><i class="fa fa-ellipsis-h"></i></span>
-                <h4 class="text-section">Menú</h4>
-              </li>
-
-              <li class="nav-item">
-                <a href="../../Web/index.php" data-page="resumen">
-                  <i class="fas fa-home"></i>
-                  <p>Resumen</p>
-                </a>
-              </li>
-
-              <li class="nav-item submenu">
-                <a data-bs-toggle="collapse" href="#navReportes" aria-expanded="false">
-                  <i class="fas fa-chart-bar"></i>
-                  <p>Reportes</p>
-                  <span class="caret"></span>
-                </a>
-                <div class="collapse" id="navReportes">
-                  <ul class="nav nav-collapse">
-                    <li><a href="#" data-page="rep-actividades-zoo"><span class="sub-item">Seguimiento de Actividades en los Zoocriaderos</span></a></li>
-                    <li><a href="#" data-page="rep-peces-tanque"><span class="sub-item">Peces nacidos o muertos por tanque</span></a></li>
-                    <li><a href="#" data-page="rep-tanques-zoo"><span class="sub-item">Tanques por Zoocriadero</span></a></li>
-                    <li><a href="#" data-page="rep-terreno-tipo"><span class="sub-item">Actividades de Terreno por Tipo</span></a></li>
-                    <li><a href="#" data-page="rep-terreno-auxiliar"><span class="sub-item">Actividades De Terreno Por Auxiliar Responsable</span></a></li>
-                    <li><a href="#" data-page="rep-sitios-deposito"><span class="sub-item">Gráfico de Sitios por Tipo de Depósito</span></a></li>
-                  </ul>
-                </div>
-              </li>
-
-              <li class="nav-item">
-                <a href="../../View/Zoocriadero/zoocriaderos.php" data-page="zoocriaderos">
-                  <i class="fas fa-warehouse"></i>
-                  <p>Zoocriaderos</p>
-                </a>
-              </li>
-
-              <li class="nav-item submenu">
-                <a data-bs-toggle="collapse" href="#navTerreno" aria-expanded="false">
-                  <i class="fas fa-map-marker-alt"></i>
-                  <p>Terreno</p>
-                  <span class="caret"></span>
-                </a>
-                <div class="collapse" id="navTerreno">
-                  <ul class="nav nav-collapse">
-                    <li><a href="#" data-page="terreno-depositos"><span class="sub-item">Depósitos</span></a></li>
-                    <li><a href="#" data-page="terreno-actividades"><span class="sub-item">Actividades</span></a></li>
-                    <li><a href="#" data-page="terreno-tipo-depositos"><span class="sub-item">Tipo Depósitos</span></a></li>
-                  </ul>
-                </div>
-              </li>
-
-              <li class="nav-item submenu active">
-                <a data-bs-toggle="collapse" href="#navUsuarios" aria-expanded="true">
-                  <i class="fas fa-users"></i>
-                  <p>Usuarios</p>
-                  <span class="caret"></span>
-                </a>
-                <div class="collapse show" id="navUsuarios">
-                  <ul class="nav nav-collapse">
-                    <li><a href="#" data-page="usuarios-registrar"><span class="sub-item">Registrar Usuario</span></a></li>
-                    <li><a href="#" data-page="usuarios-consultar"><span class="sub-item">Consultar Usuarios</span></a></li>
-                    <li><a href="../../View/Roles/registro-roles.php" data-page="roles-registrar"><span class="sub-item">Roles y Permisos</span></a></li>
-                    <li><a href="../../View/Roles/consultar-roles.php" data-page="roles-consultar"><span class="sub-item">Consultar Roles</span></a></li>
-                  </ul>
-                </div>
-              </li>
-
-              <li class="nav-item">
-                <a href="#" data-page="copia-seguridad">
-                  <i class="fas fa-cloud-upload-alt"></i>
-                  <p>Copia de seguridad</p>
-                </a>
-              </li>
-
-              <li class="nav-item">
-                <a href="../../View/Configuraciones/configuraciones.php" data-page="configuraciones">
-                  <i class="fas fa-cogs"></i>
-                  <p>Configuraciones</p>
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div class="sidebar-footer">
-            <a href="#" class="btn-logout">
-              <i class="fas fa-sign-out-alt"></i>
-              Cerrar Sesión
-            </a>
-          </div>
-        </div>
-      </div>
-      <!-- End Sidebar -->
-
+      <?php include '../partials/sidebar.php'; ?>
       <div class="main-panel">
-        <div class="main-header">
-          <div class="main-header-logo">
-            <div class="logo-header siguppys-logo-header" data-background-color="white">
-              <a href="../../Web/index.php" class="logo siguppys-logo">
-                <span class="siguppys-pin">
-                  <img src="../../assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
-                </span>
-                <span class="siguppys-brand">
-                  <strong>SIGuppys</strong>
-                  <small>Control Biológico contra el Dengue</small>
-                </span>
-              </a>
-              <div class="nav-toggle">
-                <button class="btn btn-toggle toggle-sidebar"><i class="gg-menu-right"></i></button>
-                <button class="btn btn-toggle sidenav-toggler"><i class="gg-menu-left"></i></button>
-              </div>
-            </div>
-          </div>
-          <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
-            <div class="container-fluid"></div>
-          </nav>
-        </div>
+        <?php include '../partials/topbar.php'; ?>
 
         <div class="container">
           <div class="page-inner">
@@ -275,7 +100,6 @@
                     <tbody>
                       <?php if(empty($roles)): ?>
                         <tr>
-                          <td colspan="5" class="text-center text-muted py-4">
                           <td colspan="7" class="text-center text-muted py-4">
                             Aún no hay roles registrados.
                           </td>
@@ -301,12 +125,6 @@
                                 <?php endforeach; ?>
                               <?php endif; ?>
                             </td>
-                            <td class="text-center">
-                              <a href="consultar-roles.php?eliminar=<?php echo h($r['id_rol']); ?>"
-                                 class="btn btn-link btn-danger p-1" title="Eliminar"
-                                 onclick="return confirm('¿Eliminar el rol <?php echo h($r['nombre_rol']); ?>?');">
-                                <i class="fa fa-times"></i>
-                              </a>
                             <td class="text-center"><?php echo h($r['total_usuarios']); ?></td>
                             <td class="text-center">
                               <?php if((int) $r['estado'] === 1): ?>
@@ -348,12 +166,9 @@
       </div>
     </div>
 
-    <script src="../../assets/js/core/jquery-3.7.1.min.js"></script>
-    <script src="../../assets/js/core/popper.min.js"></script>
-    <script src="../../assets/js/core/bootstrap.min.js"></script>
-    <script src="../../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
-    <script src="../../assets/js/kaiadmin.min.js"></script>
-    <!-- Aplica el modo oscuro / daltonismo guardado en Configuraciones -->
-    <script src="../../assets/js/siguppys-nav.js"></script>
+<?php
+    $pageScripts = [];
+    include '../partials/footer.php';
+?>
   </body>
 </html>

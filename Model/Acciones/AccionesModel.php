@@ -2,22 +2,19 @@
 
 include_once __DIR__ . '/../MasterModel.php';
 
-// ============================================================
-// Modelo del módulo Actividades (Terreno).
-// Reutiliza la misma tabla "actividad" que el módulo Acciones,
-// pero delimitada por ambito = 'terreno'.
-// ============================================================
-class ActividadModel extends MasterModel
+
+class AccionesModel extends MasterModel
 {
-    const AMBITO = 'terreno';
+
+    const AMBITO = 'zoocriadero';
 
     public function listar()
     {
         return $this->selectAll(
             "SELECT id_actividad, nombre, descripcion, estado
-             FROM actividad
-             WHERE ambito = $1
-             ORDER BY id_actividad",
+         FROM actividad
+         WHERE ambito = $1
+         ORDER BY id_actividad",
             [self::AMBITO]
         );
     }
@@ -49,8 +46,8 @@ class ActividadModel extends MasterModel
     {
         return $this->selectValue(
             "INSERT INTO actividad (ambito, nombre, descripcion, estado)
-             VALUES ($1, $2, $3, $4)
-             RETURNING id_actividad",
+         VALUES ($1, $2, $3, $4)
+         RETURNING id_actividad",
             [self::AMBITO, $datos['nombre'], $datos['descripcion'], $datos['estado']]
         );
     }
@@ -65,6 +62,7 @@ class ActividadModel extends MasterModel
         );
     }
 
+
     public function cambiarEstado($idActividad, $estado)
     {
         return $this->update(
@@ -73,3 +71,5 @@ class ActividadModel extends MasterModel
         );
     }
 }
+
+?>

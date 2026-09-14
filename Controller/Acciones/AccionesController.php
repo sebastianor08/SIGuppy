@@ -1,23 +1,21 @@
 <?php
 
-include_once '../Model/Actividad/ActividadModel.php';
+include_once '../Model/Acciones/AccionesModel.php';
 
-// ============================================================
-// Controlador del módulo Actividades (Terreno). Responde solo
-// JSON, así que se llama siempre por Web/ajax.php:
-//   Web/ajax.php?modulo=Actividad&controlador=Actividad&funcion=lista
-// ============================================================
-class ActividadController{
+
+class AccionesController{
 
     public function lista(){
-        $obj = new ActividadModel();
+        $obj = new AccionesModel();
         jsonResponse(['ok' => true, 'data' => $obj->listar()]);
     }
 
+ 
+
     public function postCreate(){
-        $obj   = new ActividadModel();
+        $obj   = new AccionesModel();
         $body  = requestJsonBody();
-        $datos = $this->validarActividad($body, $obj, null);
+        $datos = $this->validarAccion($body, $obj, null);
 
         $id = $obj->crear($datos);
         if($id === null){
@@ -26,13 +24,13 @@ class ActividadController{
 
         jsonResponse([
             'ok' => true,
-            'message' => 'Actividad registrada correctamente.',
+            'message' => 'Acción registrada correctamente.',
             'id_actividad' => (int) $id,
         ], 201);
     }
 
     public function postUpdate(){
-        $obj  = new ActividadModel();
+        $obj  = new AccionesModel();
         $body = requestJsonBody();
 
         $idActividad = filter_var($body['id_actividad'] ?? null, FILTER_VALIDATE_INT);
@@ -40,20 +38,20 @@ class ActividadController{
             jsonResponse(['ok' => false, 'message' => 'id_actividad es obligatorio.'], 422);
         }
         if(!$obj->buscar($idActividad)){
-            jsonResponse(['ok' => false, 'message' => 'La actividad no existe.'], 404);
+            jsonResponse(['ok' => false, 'message' => 'La acción no existe.'], 404);
         }
 
-        $datos = $this->validarActividad($body, $obj, $idActividad);
+        $datos = $this->validarAccion($body, $obj, $idActividad);
 
         if($obj->actualizar($idActividad, $datos) === false){
             jsonResponse(['ok' => false, 'message' => 'No se pudo actualizar: ' . $obj->ultimoError()], 500);
         }
 
-        jsonResponse(['ok' => true, 'message' => 'Actividad actualizada correctamente.']);
+        jsonResponse(['ok' => true, 'message' => 'Acción actualizada correctamente.']);
     }
 
     public function postEstado(){
-        $obj  = new ActividadModel();
+        $obj  = new AccionesModel();
         $body = requestJsonBody();
 
         $idActividad = filter_var($body['id_actividad'] ?? null, FILTER_VALIDATE_INT);
@@ -63,7 +61,7 @@ class ActividadController{
             jsonResponse(['ok' => false, 'message' => 'Datos incompletos para cambiar el estado.'], 422);
         }
         if(!$obj->buscar($idActividad)){
-            jsonResponse(['ok' => false, 'message' => 'La actividad no existe.'], 404);
+            jsonResponse(['ok' => false, 'message' => 'La acción no existe.'], 404);
         }
 
         if($obj->cambiarEstado($idActividad, $estado) === false){
@@ -72,28 +70,24 @@ class ActividadController{
 
         jsonResponse([
             'ok' => true,
-            'message' => $estado === 1 ? 'Actividad habilitada.' : 'Actividad inhabilitada.',
+            'message' => $estado === 1 ? 'Acción habilitada.' : 'Acción inhabilitada.',
         ]);
     }
 
-    private function validarActividad($body, $obj, $idExcluir){
-        $nombre      = limpiar($body['nombre'] ?? '');
-        $descripcion = limpiar($body['descripcion'] ?? '');
+
+    private function validarAccion($body, $obj, $idExcluir){
+        $nombre      = trim((string) ($body['nombre'] ?? ''));
+        $descripcion = trim((string) ($body['descripcion'] ?? ''));
         $estado      = filter_var($body['estado'] ?? 1, FILTER_VALIDATE_INT);
 
-        $errorNombre = validarTexto($nombre, 'Nombre', 3, 100);
-        if($errorNombre !== null){
-            jsonResponse(['ok' => false, 'message' => $errorNombre], 422);
-        }
-        $errorDescripcion = validarTextoOpcional($descripcion, 'Descripción', 200);
-        if($errorDescripcion !== null){
-            jsonResponse(['ok' => false, 'message' => $errorDescripcion], 422);
+        if($nombre === ''){
+            jsonResponse(['ok' => false, 'message' => 'El nombre de la acción es obligatorio.'], 422);
         }
         if($estado !== 0 && $estado !== 1){
             $estado = 1;
         }
         if($obj->existeNombre($nombre, $idExcluir)){
-            jsonResponse(['ok' => false, 'message' => 'Ya existe una actividad con ese nombre.'], 422);
+            jsonResponse(['ok' => false, 'message' => 'Ya existe una acción con ese nombre.'], 422);
         }
 
         return [
@@ -103,3 +97,5 @@ class ActividadController{
         ];
     }
 }
+
+?>
