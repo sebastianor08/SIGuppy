@@ -29,6 +29,26 @@
                         'texto' => $valor === 1 ? 'Rol habilitado.' : 'Rol inhabilitado.'];
 
         }else{
+            $mensaje = ['tipo' => 'danger', 'texto' => 'No se pudo eliminar el rol.'];
+    // Inhabilitar / habilitar rol: ?estado=ID&valor=0|1
+    // En este módulo no hay "Eliminar": igual que en zoocriaderos y tanques,
+    // el registro se conserva y solo se cambia su estado.
+    if(isset($_GET['estado'])){
+        $idRol = filter_var($_GET['estado'], FILTER_VALIDATE_INT);
+        $valor = filter_var($_GET['valor'] ?? null, FILTER_VALIDATE_INT);
+
+        if(!$idRol || ($valor !== 0 && $valor !== 1)){
+            $mensaje = ['tipo' => 'danger', 'texto' => 'Solicitud no válida.'];
+
+        }elseif($valor === 0 && $modelo->usuariosConRol($idRol) > 0){
+            $mensaje = ['tipo' => 'warning',
+                        'texto' => 'No se puede inhabilitar: hay usuarios activos con este rol.'];
+
+        }elseif($modelo->cambiarEstado($idRol, $valor) !== false){
+            $mensaje = ['tipo' => 'success',
+                        'texto' => $valor === 1 ? 'Rol habilitado.' : 'Rol inhabilitado.'];
+
+        }else{
             $mensaje = ['tipo' => 'danger', 'texto' => 'No se pudo cambiar el estado del rol.'];
         }
     }
@@ -259,6 +279,7 @@
                     <tbody>
                       <?php if(empty($roles)): ?>
                         <tr>
+                          <td colspan="5" class="text-center text-muted py-4">
                           <td colspan="7" class="text-center text-muted py-4">
                             Aún no hay roles registrados.
                           </td>
@@ -284,6 +305,19 @@
                                 <?php endforeach; ?>
                               <?php endif; ?>
                             </td>
+                            <td class="text-center"><?php echo h($r['total_usuarios']); ?></td>
+                            <td class="text-center">
+                              <?php if((int) $r['estado'] === 1): ?>
+                                <span class="badge-estado activo">Activo</span>
+                              <?php else: ?>
+                                <span class="badge-estado inactivo">Inhabilitado</span>
+                              <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                              <a href="registro-roles.php?id_rol=<?php echo h($r['id_rol']); ?>"
+                                 class="btn-icon" title="Editar rol y permisos">
+                                <i class="fas fa-pen"></i>
+                              </a>
                             <td class="text-center"><?php echo h($r['total_usuarios']); ?></td>
                             <td class="text-center">
                               <?php if((int) $r['estado'] === 1): ?>

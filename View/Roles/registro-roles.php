@@ -41,12 +41,72 @@
         }elseif($errorDescripcion !== null){
             $mensaje = ['tipo' => 'danger', 'texto' => $errorDescripcion];
 
+        }elseif($modelo->existeNombreRol($nombre)){
+    // Registro / Edición de Roles
+    // Formulario con la matriz Acción / Módulo: las FILAS son las
+    // acciones y las COLUMNAS son los módulos.
+    //   - Sin ?id_rol  -> INSERT en "rol" + INSERT en "rol_permiso"
+    //   - Con  ?id_rol -> UPDATE del rol y reemplazo de sus permisos
+    // =========================================================
+    include_once '../../lib/validaciones.php';
+    include_once '../../Model/Roles/RolesModel.php';
+
+    $modelo  = new RolesModel();
+    $mensaje = null;            // ['tipo' => 'success|danger', 'texto' => '...']
+
+    $nombre      = '';
+    $descripcion = '';
+    $marcados    = [];          // permisos marcados en la matriz
+
+    // ---------- ¿Estamos editando? ----------
+    $idRol = filter_var($_POST['id_rol'] ?? $_GET['id_rol'] ?? null, FILTER_VALIDATE_INT);
+    $rolEditado = $idRol ? $modelo->buscarRol($idRol) : null;
+    if(!$rolEditado){
+        $idRol = null;
+    }
+    $editando = $idRol !== null;
+
+    if($_SERVER['REQUEST_METHOD'] === 'POST'){
+
+        // limpiar() recorta los extremos y colapsa los espacios repetidos
+        $nombre      = limpiar($_POST['nombre_rol'] ?? '');
+        $descripcion = limpiar($_POST['descripcion'] ?? '');
+        $marcados    = $_POST['permisos'] ?? [];
+
+        // Validaciones: un campo lleno solo de espacios NO cuenta como lleno.
+        $errorNombre      = validarTexto($nombre, 'Nombre', 3, 50);
+        $errorDescripcion = validarTextoOpcional($descripcion, 'Descripcion', 200);
+
+        if($errorNombre !== null){
+            $mensaje = ['tipo' => 'danger', 'texto' => $errorNombre];
+
+        }elseif($errorDescripcion !== null){
+            $mensaje = ['tipo' => 'danger', 'texto' => $errorDescripcion];
+
         }elseif($modelo->existeNombreRol($nombre, $idRol)){
             $mensaje = ['tipo' => 'danger', 'texto' => 'Ya existe un rol con el nombre "' . $nombre . '".'];
 
         }elseif(empty($marcados)){
             $mensaje = ['tipo' => 'danger', 'texto' => 'Debe marcar al menos un permiso para el rol.'];
 
+        }elseif($editando){
+            // ---------- UPDATE ----------
+            if($modelo->actualizarRolConPermisos($idRol, $nombre, $descripcion, $marcados)){
+                $mensaje = [
+                    'tipo'  => 'success',
+                    'texto' => 'Rol "' . $nombre . '" actualizado correctamente con '
+                             . count($marcados) . ' permiso(s).'
+                ];
+                $rolEditado = $modelo->buscarRol($idRol);
+            }else{
+                $mensaje = ['tipo' => 'danger', 'texto' => 'No se pudo actualizar el rol: ' . $modelo->ultimoError()];
+            }
+
+        }else{
+            // ---------- INSERT ----------
+            $nuevoId = $modelo->registrarRolConPermisos($nombre, $descripcion, $marcados);
+
+            if($idRol){
         }elseif($editando){
             // ---------- UPDATE ----------
             if($modelo->actualizarRolConPermisos($idRol, $nombre, $descripcion, $marcados)){
@@ -97,6 +157,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Registro Roles · SIGuppys</title>
     <title><?php echo $editando ? "Editar Rol" : "Registro Roles"; ?> · SIGuppys</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="../../assets/img/siguppys/favicon-32.png" type="image/png" />
@@ -267,6 +328,8 @@
 
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
               <div>
+                <h3 class="fw-bold mb-3">Registro Roles</h3>
+                <h6 class="op-7 mb-2">Usuarios / Roles y Permisos</h6>
                 <h3 class="fw-bold mb-3"><?php echo $editando ? 'Editar Rol' : 'Registro Roles'; ?></h3>
                 <h6 class="op-7 mb-2">Usuarios / Roles y Permisos<?php echo $editando ? ' / Editar' : ''; ?></h6>
               </div>
@@ -295,6 +358,7 @@
                       <div class="form-group">
                         <label for="nombre_rol">Nombre:</label>
                         <input type="text" class="form-control" id="nombre_rol" name="nombre_rol"
+                               maxlength="50" required placeholder="Ej: Auxiliar"
                                maxlength="50" minlength="3" required placeholder="Ej: Auxiliar"
                                value="<?php echo h($nombre); ?>">
                       </div>
@@ -349,6 +413,7 @@
 
                 </div>
                 <div class="card-action">
+                  <button type="submit" class="btn btn-success">Registrar</button>
                   <button type="submit" class="btn btn-success">
                     <?php echo $editando ? 'Guardar cambios' : 'Registrar'; ?>
                   </button>
