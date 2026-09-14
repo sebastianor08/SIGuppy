@@ -5,8 +5,6 @@ include_once '../Model/Acciones/AccionesModel.php';
 
 class AccionesController{
 
- 
-
     public function lista(){
         $obj = new AccionesModel();
         jsonResponse(['ok' => true, 'data' => $obj->listar()]);

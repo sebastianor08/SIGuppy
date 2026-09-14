@@ -4,7 +4,7 @@
   if (document.body.getAttribute("data-page") !== "acciones-zoocriadero") return;
 
   var AJAX_URL = "../../Web/ajax.php";
-  var MODULO = "modulo=Zoocriadero&controlador=Acciones";
+  var MODULO = "modulo=Acciones&controlador=Acciones";
 
   var PERMISOS = {
     auxiliar: { crear: false, editar: false, inhabilitar: false },

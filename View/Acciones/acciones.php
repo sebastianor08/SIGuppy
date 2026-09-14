@@ -31,12 +31,12 @@
       });
     </script>
 
-    <!-- CSS Files (mismos del template, sin modificar) -->
+    
     <link rel="stylesheet" href="../../assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="../../assets/css/plugins.min.css" />
     <link rel="stylesheet" href="../../assets/css/kaiadmin.min.css" />
 
-    <!-- Estilos propios de SIGuppys: solo AGREGAN reglas encima del kaiadmin.css original -->
+   
     <link rel="stylesheet" href="../../assets/css/siguppys.css" />
   </head>
   <body data-page="acciones-zoocriadero">
@@ -282,7 +282,7 @@
               </div>
             </div>
 
-            <!-- Formulario Gestión de Acciones -->
+            
             <div class="card">
               <div class="card-body">
                 <h5 class="fw-bold mb-3">Gestión de Acciones</h5>
@@ -318,14 +318,14 @@
               </div>
             </div>
 
-            <!-- Listado -->
+            
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-2">
               <div>
                 <h5 class="fw-bold mb-0">Acciones Registradas</h5>
                 <h6 class="op-7 mb-2">Listado de acciones disponibles en el sistema.</h6>
               </div>
               <div class="ms-md-auto py-2 py-md-0" id="crearAccionWrap">
-                <!-- el botón Crear Acción lo arma assets/js/siguppys-acciones-zoocriadero.js según el rol -->
+                
               </div>
             </div>
             <div class="card">
@@ -350,7 +350,7 @@
               </div>
             </div>
 
-            <!-- Modal Ver Detalle -->
+           
             <div class="modal fade" id="accionDetailModal" tabindex="-1" aria-hidden="true">
               <div class="modal-dialog">
                 <div class="modal-content">
@@ -370,14 +370,14 @@
       </div>
     </div>
 
-    <!-- Core JS Files -->
+    
     <script src="../../assets/js/core/jquery-3.7.1.min.js"></script>
     <script src="../../assets/js/core/popper.min.js"></script>
     <script src="../../assets/js/core/bootstrap.min.js"></script>
     <script src="../../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
     <script src="../../assets/js/kaiadmin.min.js"></script>
 
-    <!-- SIGuppys -->
+    
     <script src="../../assets/js/siguppys-nav.js"></script>
     <script src="../../assets/js/siguppys-acciones-zoocriadero.js"></script>
   </body>
