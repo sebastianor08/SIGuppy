@@ -387,51 +387,86 @@ body[data-background-color="dark"] .settings-option strong {
 }
 
 /* =========================================================
-   Modo daltonismo — paleta segura azul / naranja
+   Modo daltonismo — 4 paletas según el tipo elegido
    =========================================================
-   Sustituye el par rojo/verde (que muchas personas con daltonismo
-   rojo-verde no distinguen bien) por azul/naranja, manteniendo
-   además el texto ("Activo" / "Inhabilitado") como apoyo, no solo
-   el color. */
-body.daltonismo-mode {
-  --sig-green: #0072b2;
-  --sig-red: #e69f00;
+   Sustituye el par rojo/verde de los estados (Activo/Inhabilitado,
+   iconos de éxito/peligro) por una paleta adecuada al tipo de
+   daltonismo activo (body[data-daltonismo="..."]), manteniendo
+   siempre el texto como apoyo, no solo el color. Acromatopsia además
+   suma un ícono (✓ / ✕), porque ahí el color no ayuda en nada. */
+
+/* Protanopia y deuteranopia (rojo-verde, las más comunes):
+   azul / naranja. */
+body[data-daltonismo="protanopia"],
+body[data-daltonismo="deuteranopia"] {
+  --sig-activo-color: #0072b2;
+  --sig-activo-bg: rgba(0, 114, 178, 0.14);
+  --sig-inactivo-color: #966400;
+  --sig-inactivo-bg: rgba(230, 159, 0, 0.18);
+  --sig-inactivo-border: #e69f00;
 }
-body.daltonismo-mode .badge-estado.activo {
-  background: rgba(0, 114, 178, 0.14);
-  color: #0072b2;
+
+/* Tritanopia (azul-amarillo): verde azulado / rojo ladrillo, un
+   par que no depende de distinguir azul de amarillo. */
+body[data-daltonismo="tritanopia"] {
+  --sig-activo-color: #009e73;
+  --sig-activo-bg: rgba(0, 158, 115, 0.14);
+  --sig-inactivo-color: #a83c00;
+  --sig-inactivo-bg: rgba(213, 94, 0, 0.18);
+  --sig-inactivo-border: #d55e00;
 }
-body.daltonismo-mode .badge-estado.inactivo {
-  background: rgba(230, 159, 0, 0.18);
-  color: #966400;
+
+/* Acromatopsia (sin percepción de color, solo grises): el color no
+   sirve de nada, así que se apoya en contraste de brillo + ícono. */
+body[data-daltonismo="acromatopsia"] {
+  --sig-activo-color: #1a1a1a;
+  --sig-activo-bg: rgba(26, 26, 26, 0.06);
+  --sig-inactivo-color: #1a1a1a;
+  --sig-inactivo-bg: rgba(26, 26, 26, 0.18);
+  --sig-inactivo-border: #1a1a1a;
 }
-body.daltonismo-mode .card-stats .icon-big.icon-success {
-  background: #0072b2 !important;
+
+body[data-daltonismo] .badge-estado.activo {
+  background: var(--sig-activo-bg);
+  color: var(--sig-activo-color);
 }
-body.daltonismo-mode .card-stats .icon-big.icon-danger {
-  background: #e69f00 !important;
+body[data-daltonismo] .badge-estado.inactivo {
+  background: var(--sig-inactivo-bg);
+  color: var(--sig-inactivo-color);
 }
-body.daltonismo-mode .table-actions .btn-icon.text-danger {
-  color: #966400;
-  border-color: #e69f00;
+body[data-daltonismo="acromatopsia"] .badge-estado.activo::before {
+  content: "✓ ";
 }
-body.daltonismo-mode .table-actions .btn-icon.text-danger:hover {
-  color: #966400;
-  border-color: #e69f00;
+body[data-daltonismo="acromatopsia"] .badge-estado.inactivo::before {
+  content: "✕ ";
 }
-body.daltonismo-mode .table-actions .btn-icon.text-success {
-  color: #0072b2;
+body[data-daltonismo] .card-stats .icon-big.icon-success {
+  background: var(--sig-activo-color) !important;
 }
-body.daltonismo-mode .table-actions .btn-icon.text-success:hover {
-  color: #0072b2;
-  border-color: #0072b2;
+body[data-daltonismo] .card-stats .icon-big.icon-danger {
+  background: var(--sig-inactivo-border) !important;
 }
-body.daltonismo-mode .btn-logout {
-  border-color: #e69f00;
-  color: #966400;
+body[data-daltonismo] .table-actions .btn-icon.text-danger {
+  color: var(--sig-inactivo-color);
+  border-color: var(--sig-inactivo-border);
 }
-body.daltonismo-mode .btn-logout:hover {
-  background: #e69f00;
+body[data-daltonismo] .table-actions .btn-icon.text-danger:hover {
+  color: var(--sig-inactivo-color);
+  border-color: var(--sig-inactivo-border);
+}
+body[data-daltonismo] .table-actions .btn-icon.text-success {
+  color: var(--sig-activo-color);
+}
+body[data-daltonismo] .table-actions .btn-icon.text-success:hover {
+  color: var(--sig-activo-color);
+  border-color: var(--sig-activo-color);
+}
+body[data-daltonismo] .btn-logout {
+  border-color: var(--sig-inactivo-border);
+  color: var(--sig-inactivo-color);
+}
+body[data-daltonismo] .btn-logout:hover {
+  background: var(--sig-inactivo-border);
   color: #fff;
 }
 

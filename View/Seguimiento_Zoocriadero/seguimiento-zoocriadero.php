@@ -1,19 +1,62 @@
-<?php
-    $basePath  = '../../';
-    $pageTitle = 'Registrar Seguimiento';
-    $bodyPage  = 'seguimiento-zoocriadero';
-    include '../partials/head.php';
-?>
-    <div class="wrapper">
-      <?php include '../partials/sidebar.php'; ?>
-      <div class="main-panel">
-        <?php include '../partials/topbar.php'; ?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Registrar Seguimiento · SIGuppys</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+  <link rel="icon" href="../../assets/img/siguppys/favicon-32.png" type="image/png" />
+  <link rel="apple-touch-icon" href="../../assets/img/siguppys/favicon-180.png" />
+  <script src="../../assets/js/plugin/webfont/webfont.min.js"></script>
+  <script>
+    WebFont.load({
+      google: { families: ["Public Sans:300,400,500,600,700"] },
+      custom: { families: ["Font Awesome 5 Solid","Font Awesome 5 Regular","Font Awesome 5 Brands","simple-line-icons"], urls: ["../../assets/css/fonts.min.css"] },
+      active: function () { sessionStorage.fonts = true; }
+    });
+  </script>
+  <link rel="stylesheet" href="../../assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="../../assets/css/plugins.min.css" />
+  <link rel="stylesheet" href="../../assets/css/kaiadmin.min.css" />
+  <link rel="stylesheet" href="../../assets/css/siguppys.css" />
+</head>
+<body data-page="seguimiento-zoocriadero">
+<div class="wrapper">
+      <?php $rutaBase = '../../'; ?>
+  <?php include '../partials/sidebar.php'; ?>
 
-        <div class="container"><div class="page-inner">
-          <div class="d-flex align-items-center flex-column flex-md-row pt-2 pb-4">
-            <div>
-              <h3 class="fw-bold mb-2" id="seguimientoTitulo">Registrar Seguimiento de Zoocriadero</h3>
-              <h6 class="op-7 mb-0">Registre la actividad realizada sobre un tanque existente.</h6>
+  <div class="main-panel">
+    <?php include '../partials/topbar.php'; ?>
+
+
+    <div class="container"><div class="page-inner">
+      <div class="d-flex align-items-center flex-column flex-md-row pt-2 pb-4">
+        <div>
+          <h3 class="fw-bold mb-2" id="seguimientoTitulo">Registrar Seguimiento de Zoocriadero</h3>
+          <h6 class="op-7 mb-0">Registre la actividad realizada sobre un tanque existente.</h6></div>
+      </div>
+
+      <div class="card sig-followup-card"><div class="card-body">
+        <form id="seguimientoZoocriaderoForm" novalidate>
+          <input type="hidden" id="id_seguimiento" name="id_seguimiento" value="" />
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="id_zoocriadero">Zoocriadero</label>
+              <select class="form-select" id="id_zoocriadero" name="id_zoocriadero" required><option value="">Seleccione un zoocriadero</option></select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="id_tanque">Tanque</label>
+              <select class="form-select" id="id_tanque" name="id_tanque" disabled required><option value="">Seleccione primero un zoocriadero</option></select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="direccion">Dirección</label>
+              <input type="text" class="form-control" id="direccion" readonly placeholder="Se cargará desde el zoocriadero" />
+              <div class="form-text">La dirección pertenece al zoocriadero y no se puede modificar en este registro.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="fecha">Fecha</label>
+              <input type="date" class="form-control" id="fecha" name="fecha" required />
             </div>
           </div>
 
