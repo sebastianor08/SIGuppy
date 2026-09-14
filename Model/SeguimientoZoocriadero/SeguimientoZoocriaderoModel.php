@@ -69,14 +69,17 @@ class SeguimientoZoocriaderoModel extends MasterModel{
     public function crearSeguimiento($datos){
         $id = $this->selectValue(
             "INSERT INTO seguimiento_zoocriadero
-             (id_zoocriadero, id_tanque, id_usuario, fecha, numero_sembrados, numero_nacidos, numero_muertos, observaciones)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+             (id_zoocriadero, id_tanque, id_usuario, fecha, ph, temperatura,
+              numero_sembrados, numero_nacidos, numero_muertos, observaciones)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
              RETURNING id_seguimiento",
             [
                 $datos['id_zoocriadero'],
                 $datos['id_tanque'],
                 $datos['id_usuario'],
                 $datos['fecha'],
+                $datos['ph'],
+                $datos['temperatura'],
                 $datos['numero_sembrados'],
                 $datos['numero_nacidos'],
                 $datos['numero_muertos'],
@@ -102,18 +105,74 @@ class SeguimientoZoocriaderoModel extends MasterModel{
     }
 
     // Historial para la tabla de consulta (RF002).
+    // Trae también los ids para poder cargar un registro en el formulario y editarlo.
     public function historial($limite = 50){
         return $this->selectAll(
-            "SELECT s.id_seguimiento, s.fecha, z.nombre AS zoocriadero,
-                    t.numero_tanque, s.numero_nacidos, s.numero_muertos, s.observaciones
+            "SELECT s.id_seguimiento, TO_CHAR(s.fecha, 'YYYY-MM-DD') AS fecha,
+                    s.id_zoocriadero, z.nombre AS zoocriadero,
+                    s.id_tanque, t.numero_tanque,
+                    s.ph, s.temperatura,
+                    s.numero_sembrados, s.numero_nacidos, s.numero_muertos,
+                    s.observaciones,
+                    az.id_actividad, a.nombre AS actividad
              FROM seguimiento_zoocriadero s
              INNER JOIN zoocriadero z ON z.id_zoocriadero = s.id_zoocriadero
              INNER JOIN tanque t      ON t.id_tanque = s.id_tanque
+             LEFT JOIN actividad_zoocriadero az ON az.id_seguimiento = s.id_seguimiento
+             LEFT JOIN actividad a    ON a.id_actividad = az.id_actividad
              WHERE s.estado = 1
              ORDER BY s.fecha DESC, s.id_seguimiento DESC
              LIMIT $1",
             [$limite]
         );
+    }
+
+    public function buscarSeguimiento($idSeguimiento){
+        return $this->selectOne(
+            "SELECT s.*, az.id_actividad
+             FROM seguimiento_zoocriadero s
+             LEFT JOIN actividad_zoocriadero az ON az.id_seguimiento = s.id_seguimiento
+             WHERE s.id_seguimiento = $1",
+            [$idSeguimiento]
+        );
+    }
+
+    // ---------------- UPDATE ----------------
+    public function actualizarSeguimiento($idSeguimiento, $datos){
+        $ok = $this->update(
+            "UPDATE seguimiento_zoocriadero
+             SET id_zoocriadero = $1, id_tanque = $2, fecha = $3,
+                 ph = $4, temperatura = $5,
+                 numero_sembrados = $6, numero_nacidos = $7, numero_muertos = $8,
+                 observaciones = $9
+             WHERE id_seguimiento = $10",
+            [
+                $datos['id_zoocriadero'],
+                $datos['id_tanque'],
+                $datos['fecha'],
+                $datos['ph'],
+                $datos['temperatura'],
+                $datos['numero_sembrados'],
+                $datos['numero_nacidos'],
+                $datos['numero_muertos'],
+                ($datos['observaciones'] !== '' ? $datos['observaciones'] : null),
+                $idSeguimiento,
+            ]
+        );
+
+        if($ok === false){
+            throw new Exception("No se pudo actualizar el seguimiento: " . $this->ultimoError());
+        }
+        return true;
+    }
+
+    // La actividad vive en una tabla aparte: se borra la anterior y se pone la nueva.
+    public function reemplazarActividad($idSeguimiento, $idActividad){
+        $this->delete(
+            "DELETE FROM actividad_zoocriadero WHERE id_seguimiento = $1",
+            [$idSeguimiento]
+        );
+        $this->vincularActividad($idSeguimiento, $idActividad);
     }
 }
 

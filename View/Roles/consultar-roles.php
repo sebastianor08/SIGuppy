@@ -41,7 +41,8 @@
     }
 
     function h($v){ return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); }
-?<!DOCTYPE html>
+?>
+<!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

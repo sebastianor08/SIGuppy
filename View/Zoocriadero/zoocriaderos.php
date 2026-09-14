@@ -296,6 +296,8 @@
                   </div>
                 </div>
 
+                <div id="zoocriaderosMessage" class="alert d-none mb-3" role="alert"></div>
+
                 <div class="table-responsive">
                   <table class="table align-items-center mb-0">
                     <thead class="table-light">
@@ -343,9 +345,19 @@
                           <input type="text" name="barrio" class="form-control" />
                         </div>
                       </div>
-                      <div class="mb-1">
+                      <div class="mb-3">
                         <label class="form-label">Persona a cargo</label>
-                        <select name="persona_cargo" class="form-select"></select>
+                        <select name="id_persona_cargo" class="form-select"></select>
+                      </div>
+                      <div class="row">
+                        <div class="col-6 mb-1">
+                          <label class="form-label">Latitud <span class="text-muted small">(opcional)</span></label>
+                          <input type="number" step="0.00000001" name="latitud" class="form-control" placeholder="3.42158000" />
+                        </div>
+                        <div class="col-6 mb-1">
+                          <label class="form-label">Longitud <span class="text-muted small">(opcional)</span></label>
+                          <input type="number" step="0.00000001" name="longitud" class="form-control" placeholder="-76.52050000" />
+                        </div>
                       </div>
                     </div>
                     <div class="modal-footer">
@@ -372,12 +384,12 @@
                         <select name="id_zoocriadero" class="form-select" required></select>
                       </div>
                       <div class="mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input type="text" name="nombre" class="form-control" placeholder="Ej. Tanque 1" required />
+                        <label class="form-label">Número de tanque</label>
+                        <input type="number" min="1" step="1" name="numero_tanque" class="form-control" placeholder="Ej. 1" required />
                       </div>
                       <div class="mb-1">
-                        <label class="form-label">Descripción <span class="text-muted small">(opcional)</span></label>
-                        <textarea name="descripcion" class="form-control" rows="2"></textarea>
+                        <label class="form-label">Tipo de tanque</label>
+                        <select name="id_tipo_tanque" class="form-select" required></select>
                       </div>
                     </div>
                     <div class="modal-footer">

@@ -34,30 +34,97 @@ class SeguimientoZoocriaderoController{
     }
 
     public function postCreate(){
-        $obj = new SeguimientoZoocriaderoModel();
+        $obj  = new SeguimientoZoocriaderoModel();
+        $body = requestJsonBody();
+        $datos = $this->validar($body, $obj);
+
+        // Aún no hay login obligatorio en este módulo: si hay sesión iniciada
+        // se usa ese usuario; si no, el primer usuario activo de la BD.
+        $idUsuario = $_SESSION['id'] ?? $obj->primerUsuarioActivo();
+        if(!$idUsuario){
+            jsonResponse(['ok' => false, 'message' => 'No hay usuarios activos en la base de datos para registrar el seguimiento.'], 422);
+        }
+        $datos['id_usuario'] = $idUsuario;
+
+        try{
+            $obj->beginTransaction();
+            $idSeguimiento = $obj->crearSeguimiento($datos);      // INSERT
+            $obj->vincularActividad($idSeguimiento, $datos['id_actividad']);
+            $obj->commit();
+        }catch(Throwable $e){
+            $obj->rollBack();
+            error_log("Error al registrar seguimiento: " . $e->getMessage());
+            jsonResponse(['ok' => false, 'message' => $e->getMessage()], 500);
+        }
+
+        jsonResponse([
+            'ok' => true,
+            'message' => 'Seguimiento de zoocriadero registrado correctamente.',
+            'id_seguimiento' => $idSeguimiento,
+        ], 201);
+    }
+
+    // Edición: mismo formulario, pero hace UPDATE en vez de INSERT.
+    public function postUpdate(){
+        $obj  = new SeguimientoZoocriaderoModel();
         $body = requestJsonBody();
 
-        $idZoo = filter_var($body['id_zoocriadero'] ?? null, FILTER_VALIDATE_INT);
-        $idTanque = filter_var($body['id_tanque'] ?? null, FILTER_VALIDATE_INT);
-        $idActividad = filter_var($body['id_actividad'] ?? null, FILTER_VALIDATE_INT);
-        $numeroNacidos = filter_var($body['numero_nacidos'] ?? 0, FILTER_VALIDATE_INT);
-        $numeroMuertos = filter_var($body['numero_muertos'] ?? 0, FILTER_VALIDATE_INT);
-        $numeroSembrados = filter_var($body['numero_sembrados'] ?? 0, FILTER_VALIDATE_INT);
-        $fecha = trim((string)($body['fecha'] ?? ''));
-        $observaciones = trim((string)($body['observaciones'] ?? ''));
+        $idSeguimiento = filter_var($body['id_seguimiento'] ?? null, FILTER_VALIDATE_INT);
+        if(!$idSeguimiento){
+            jsonResponse(['ok' => false, 'message' => 'id_seguimiento es obligatorio.'], 422);
+        }
+        if(!$obj->buscarSeguimiento($idSeguimiento)){
+            jsonResponse(['ok' => false, 'message' => 'El seguimiento no existe.'], 404);
+        }
 
-        if($idZoo === false || $idZoo === null){
-            jsonResponse(['ok' => false, 'message' => 'id_zoocriadero es obligatorio.'], 422);
+        $datos = $this->validar($body, $obj);
+
+        try{
+            $obj->beginTransaction();
+            $obj->actualizarSeguimiento($idSeguimiento, $datos);   // UPDATE
+            $obj->reemplazarActividad($idSeguimiento, $datos['id_actividad']);
+            $obj->commit();
+        }catch(Throwable $e){
+            $obj->rollBack();
+            error_log("Error al actualizar seguimiento: " . $e->getMessage());
+            jsonResponse(['ok' => false, 'message' => $e->getMessage()], 500);
         }
-        if($idTanque === false || $idTanque === null){
-            jsonResponse(['ok' => false, 'message' => 'id_tanque es obligatorio.'], 422);
+
+        jsonResponse([
+            'ok' => true,
+            'message' => 'Seguimiento actualizado correctamente.',
+            'id_seguimiento' => $idSeguimiento,
+        ]);
+    }
+
+    // ---------- Validación compartida por postCreate y postUpdate ----------
+    private function validar($body, $obj){
+        $idZoo           = filter_var($body['id_zoocriadero'] ?? null, FILTER_VALIDATE_INT);
+        $idTanque        = filter_var($body['id_tanque'] ?? null, FILTER_VALIDATE_INT);
+        $idActividad     = filter_var($body['id_actividad'] ?? null, FILTER_VALIDATE_INT);
+        $numeroNacidos   = filter_var($body['numero_nacidos'] ?? 0, FILTER_VALIDATE_INT);
+        $numeroMuertos   = filter_var($body['numero_muertos'] ?? 0, FILTER_VALIDATE_INT);
+        $numeroSembrados = filter_var($body['numero_sembrados'] ?? 0, FILTER_VALIDATE_INT);
+        $fecha           = trim((string)($body['fecha'] ?? ''));
+        $observaciones   = trim((string)($body['observaciones'] ?? ''));
+        $ph              = $body['ph'] ?? null;
+        $temperatura     = $body['temperatura'] ?? null;
+
+        if(!$idZoo){
+            jsonResponse(['ok' => false, 'message' => 'Debe seleccionar un zoocriadero.'], 422);
         }
-        if($idActividad === false || $idActividad === null){
-            jsonResponse(['ok' => false, 'message' => 'id_actividad (Acción) es obligatorio.'], 422);
+        if(!$idTanque){
+            jsonResponse(['ok' => false, 'message' => 'Debe seleccionar un tanque.'], 422);
         }
-        if($numeroNacidos === false || $numeroNacidos < 0 || $numeroMuertos === false || $numeroMuertos < 0 || $numeroSembrados === false || $numeroSembrados < 0){
+        if(!$idActividad){
+            jsonResponse(['ok' => false, 'message' => 'Debe seleccionar una acción.'], 422);
+        }
+        if($numeroNacidos === false || $numeroNacidos < 0 ||
+           $numeroMuertos === false || $numeroMuertos < 0 ||
+           $numeroSembrados === false || $numeroSembrados < 0){
             jsonResponse(['ok' => false, 'message' => 'Los conteos de peces no pueden ser negativos.'], 422);
         }
+
         $fechaObj = DateTime::createFromFormat('Y-m-d', $fecha);
         if(!$fechaObj || $fechaObj->format('Y-m-d') !== $fecha){
             jsonResponse(['ok' => false, 'message' => 'La fecha no tiene un formato válido (YYYY-MM-DD).'], 422);
@@ -66,11 +133,19 @@ class SeguimientoZoocriaderoController{
             jsonResponse(['ok' => false, 'message' => 'Las observaciones no pueden superar 300 caracteres.'], 422);
         }
 
-        // Reglas de negocio: el tanque debe pertenecer al zoocriadero elegido,
-        // el zoocriadero debe existir y estar activo, y la acción debe ser válida.
-        // (El propio esquema también lo obliga con la FK compuesta
-        // fk_seg_zoo_tanque_zoocriadero, esto es una segunda barrera con
-        // mensajes claros para el usuario).
+        // ph NUMERIC(4,2) y temperatura NUMERIC(4,2): opcionales, pero si vienen deben ser números
+        $ph = ($ph === '' || $ph === null) ? null : (is_numeric($ph) ? (float) $ph : false);
+        if($ph === false || ($ph !== null && ($ph < 0 || $ph > 14))){
+            jsonResponse(['ok' => false, 'message' => 'El pH debe ser un número entre 0 y 14.'], 422);
+        }
+        $temperatura = ($temperatura === '' || $temperatura === null)
+            ? null
+            : (is_numeric($temperatura) ? (float) $temperatura : false);
+        if($temperatura === false){
+            jsonResponse(['ok' => false, 'message' => 'La temperatura debe ser un número.'], 422);
+        }
+
+        // Reglas de negocio contra la base de datos
         if(!$obj->zoocriaderoActivoExiste($idZoo)){
             jsonResponse(['ok' => false, 'message' => 'El zoocriadero seleccionado no existe o está inhabilitado.'], 422);
         }
@@ -81,39 +156,18 @@ class SeguimientoZoocriaderoController{
             jsonResponse(['ok' => false, 'message' => 'La acción seleccionada no es válida.'], 422);
         }
 
-        // Aún no hay login obligatorio en este módulo: si hay sesión iniciada
-        // (AccesoController) se usa ese usuario; si no, se usa el primer
-        // usuario activo de la BD como responsable del registro.
-        $idUsuario = $_SESSION['id'] ?? $obj->primerUsuarioActivo();
-        if(!$idUsuario){
-            jsonResponse(['ok' => false, 'message' => 'No hay usuarios activos en la base de datos para registrar el seguimiento.'], 422);
-        }
-
-        try{
-            $obj->beginTransaction();
-            $idSeguimiento = $obj->crearSeguimiento([
-                'id_zoocriadero' => $idZoo,
-                'id_tanque' => $idTanque,
-                'id_usuario' => $idUsuario,
-                'fecha' => $fecha,
-                'numero_sembrados' => $numeroSembrados,
-                'numero_nacidos' => $numeroNacidos,
-                'numero_muertos' => $numeroMuertos,
-                'observaciones' => $observaciones,
-            ]);
-            $obj->vincularActividad($idSeguimiento, $idActividad);
-            $obj->commit();
-        }catch(Throwable $e){
-            $obj->rollBack();
-            error_log("Error al registrar seguimiento: " . $e->getMessage());
-            jsonResponse(['ok' => false, 'message' => 'Error del servidor al guardar el seguimiento.'], 500);
-        }
-
-        jsonResponse([
-            'ok' => true,
-            'message' => 'Seguimiento de zoocriadero registrado correctamente.',
-            'id_seguimiento' => $idSeguimiento,
-        ], 201);
+        return [
+            'id_zoocriadero'   => $idZoo,
+            'id_tanque'        => $idTanque,
+            'id_actividad'     => $idActividad,
+            'fecha'            => $fecha,
+            'ph'               => $ph,
+            'temperatura'      => $temperatura,
+            'numero_sembrados' => $numeroSembrados,
+            'numero_nacidos'   => $numeroNacidos,
+            'numero_muertos'   => $numeroMuertos,
+            'observaciones'    => $observaciones,
+        ];
     }
 }
 
