@@ -1,14 +1,9 @@
-<footer class="footer">
-  <div class="container-fluid d-flex justify-content-between">
-    <nav class="pull-left">
-      <ul class="nav">
-        <li class="nav-item">
-          <a class="nav-link" href="#">SIGuppys</a>
-        </li>
-      </ul>
-    </nav>
-    <div class="copyright">
-      <?php echo date('Y'); ?>, Control Biológico contra el Dengue
-    </div>
-  </div>
-</footer>
+<!-- Core JS Files -->
+<script src="../assets/js/core/jquery-3.7.1.min.js"></script>
+<script src="../assets/js/core/popper.min.js"></script>
+<script src="../assets/js/core/bootstrap.min.js"></script>
+<script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+<script src="../assets/js/kaiadmin.min.js"></script>
+
+<!-- SIGuppys -->
+<script src="../assets/js/siguppys-nav.js"></script>
