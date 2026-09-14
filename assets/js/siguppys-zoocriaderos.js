@@ -1,25 +1,4 @@
-/* =========================================================
-   SIGuppys — Módulo Zoocriaderos
-   =========================================================
-   Los datos YA NO están quemados en este archivo: se leen de
-   PostgreSQL a través del router MVC:
 
-     Web/ajax.php?modulo=Zoocriadero&controlador=Zoocriadero&funcion=...
-
-   Endpoints usados:
-     lista        -> GET   zoocriaderos + persona a cargo + nº de tanques
-     comunas      -> GET   para el select "Comuna"
-     barrios      -> GET   barrios de la comuna elegida
-     tiposTanque  -> GET   para el select "Tipo de tanque"
-     tanques      -> GET   tanques de un zoocriadero (modal detalle)
-     postCreate   -> POST  INSERT en zoocriadero
-     postUpdate   -> POST  UPDATE en zoocriadero
-     postEstado   -> POST  UPDATE del campo estado (habilitar/inhabilitar)
-     postTanque   -> POST  INSERT en tanque
-
-   El diseño de la tabla, los filtros y los permisos por rol
-   quedaron igual que antes.
-   ========================================================= */
 (function () {
   "use strict";
 
