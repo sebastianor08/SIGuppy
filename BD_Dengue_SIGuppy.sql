@@ -303,3 +303,74 @@ INSERT INTO modulo (nombre, descripcion) VALUES
   ('Roles',              'Creación de roles y asignación de permisos'),
   ('Copia de seguridad', 'Respaldo de la base de datos'),
   ('Configuraciones',    'Parámetros generales del sistema');
+
+
+-- =========================================================
+-- DATOS BASE DEL SISTEMA
+-- Registros mínimos para que los módulos de Zoocriaderos y
+-- Seguimiento tengan de dónde leer (antes estaban quemados
+-- en el JavaScript).
+-- =========================================================
+
+INSERT INTO tipo_documento (nombre) VALUES
+  ('Cédula de ciudadanía'),
+  ('Cédula de extranjería'),
+  ('Tarjeta de identidad');
+
+INSERT INTO rol (nombre_rol, descripcion) VALUES
+  ('Administrador', 'Director(a) del Grupo ETV'),
+  ('Coordinador',   'Coordina control biológico y ecosalud'),
+  ('Auxiliar',      'Personal de campo');
+
+-- Contraseña de todos: demo123
+INSERT INTO usuario (id_tipodocumento, id_rol, nombre, apellido, correo, contrasena, estado) VALUES
+  (1, 2, 'Luisa Fernanda', 'Ríos',     'luisa.rios@cali.gov.co',      '$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C', 1),
+  (1, 3, 'Carlos Andrés',  'Mosquera', 'carlos.mosquera@cali.gov.co', '$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C', 1),
+  (1, 3, 'Diana Marcela',  'Ortiz',    'diana.ortiz@cali.gov.co',     '$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C', 1),
+  (1, 3, 'Jhon Édison',    'Valencia', 'jhon.valencia@cali.gov.co',   '$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C', 1),
+  (1, 3, 'María José',     'Perlaza',  'maria.perlaza@cali.gov.co',   '$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C', 1);
+
+INSERT INTO tipo_tanque (nombre, descripcion, estado) VALUES
+  ('Plástico',        'Tanque plástico estándar',   1),
+  ('Vidrio',          'Acuario / tanque de vidrio', 1),
+  ('Fibra de vidrio', 'Tanque en fibra de vidrio',  1),
+  ('Concreto',        'Tanque en concreto',         1);
+
+INSERT INTO tipo_deposito (nombre, descripcion, estado) VALUES
+  ('Tanque bajo',      'Tanque de almacenamiento a nivel de piso', 1),
+  ('Tanque elevado',   'Tanque elevado o de azotea',               1),
+  ('Alberca',          'Alberca o lavadero',                       1),
+  ('Llanta',           'Llanta a la intemperie',                   1),
+  ('Materas',          'Materas y platos de materas',              1),
+  ('Inservible',       'Recipiente inservible acumulador de agua',  1);
+
+-- Actividades del ámbito zoocriadero (alimentan el select "Acción")
+INSERT INTO actividad (ambito, nombre, descripcion, estado) VALUES
+  ('zoocriadero', 'Limpieza',            'Limpieza y mantenimiento del tanque',   1),
+  ('zoocriadero', 'Siembra',             'Siembra de alevinos en el tanque',      1),
+  ('zoocriadero', 'Cosecha',             'Extracción de peces del tanque',        1),
+  ('zoocriadero', 'Alimentación',        'Suministro de alimento',                1),
+  ('zoocriadero', 'Control de calidad',  'Medición de pH y temperatura',          1),
+  ('zoocriadero', 'Cambio de agua',      'Recambio parcial o total del agua',     1);
+
+-- Actividades del ámbito terreno
+INSERT INTO actividad (ambito, nombre, descripcion, estado) VALUES
+  ('terreno', 'Inspección',      'Inspección de depósitos en vivienda',    1),
+  ('terreno', 'Eliminación',     'Eliminación de criaderos',               1),
+  ('terreno', 'Larvicida',       'Aplicación de larvicida',                1),
+  ('terreno', 'Entrega de peces','Entrega de guppys a la comunidad',       1),
+  ('terreno', 'Educación',       'Jornada de educación sanitaria',         1);
+
+INSERT INTO zoocriadero (nombre, direccion, comuna, barrio, id_persona_cargo, latitud, longitud, estado) VALUES
+  ('Zoocriadero Central',     'Calle 13 # 24-05',  'Comuna 10', 'Guabal',   1, 3.42158000, -76.52050000, 1),
+  ('Zoocriadero Norte',       'Cra 8 # 45-12',     'Comuna 2',  'Granada',  2, 3.46210000, -76.53120000, 1),
+  ('Zoocriadero Oriente',     'Calle 70 # 28D-19', 'Comuna 13', 'El Retiro',3, 3.43980000, -76.49010000, 1),
+  ('Zoocriadero Ladera',      'Cra 26 # 9-40',     'Comuna 18', 'Meléndez', 4, 3.38720000, -76.54990000, 0),
+  ('Zoocriadero Aguablanca',  'Cra 31 # 22-71',    'Comuna 15', 'Mojica',   5, 3.41050000, -76.47330000, 1);
+
+INSERT INTO tanque (id_zoocriadero, id_tipo_tanque, numero_tanque, estado) VALUES
+  (1, 1, 1, 1), (1, 2, 2, 1), (1, 1, 3, 1), (1, 3, 4, 1),
+  (2, 1, 1, 1), (2, 3, 2, 1), (2, 2, 3, 1),
+  (3, 1, 1, 1), (3, 4, 2, 1),
+  (4, 1, 1, 1), (4, 1, 2, 1), (4, 2, 3, 1), (4, 3, 4, 1), (4, 4, 5, 1),
+  (5, 1, 1, 1), (5, 2, 2, 1), (5, 3, 3, 1);
