@@ -40,7 +40,6 @@ function obtenerDatosTanquesPorZoocriadero()
     while ($fila = pg_fetch_assoc($resultado)) {
         // PostgreSQL devuelve los números como texto, los pasamos a número
         $fila['cantidad']  = (int) $fila['cantidad'];
-        $fila['capacidad'] = (int) $fila['capacidad'];
         $registros[] = $fila;
     }
 
@@ -73,7 +72,7 @@ function obtenerDatosTanquesPorZoocriadero()
 
     foreach ($registrosFiltrados as $registro) {
         $totalTanques += $registro['cantidad'];
-        $capacidadTotal += $registro['capacidad'];
+        
         if ($registro['estado'] === 'Activo') {
             $totalTanquesActivos += $registro['cantidad'];
         }
