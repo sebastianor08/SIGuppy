@@ -18,7 +18,6 @@ function obtenerDatosTanquesPorZoocriadero()
     $sql = "SELECT z.nombre AS zoocriadero,
                 tt.nombre AS tipo,
                 COUNT(t.id_tanque) AS cantidad,
-                SUM(t.capacidad_litros) AS capacidad,
                 COALESCE(u.nombre || ' ' || u.apellido, 'Sin asignar') AS encargado,
                 CASE WHEN z.estado = 1 THEN 'Activo' ELSE 'Inactivo' END AS estado
             FROM tanque t
