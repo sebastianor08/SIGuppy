@@ -3,7 +3,19 @@ require_once __DIR__ . '/../../Controller/Reportes/PesesNacidos-MuertosPorTanque
 
 $datos = obtenerDatosPecesNacidosMuertosPorTanque();
 extract($datos);
+
+$basePath  = '../../';
+$pageTitle = 'Peces nacidos o muertos por tanque';
+$bodyPage  = 'rep-peces-tanque';
+include '../partials/head.php';
 ?>
+    <div class="wrapper">
+      <?php $rutaBase = '../../'; ?>
+      <?php include '../partials/sidebar.php'; ?>
+      <div class="main-panel">
+        <?php include '../partials/topbar.php'; ?>
+        <div class="container">
+          <div class="page-inner">
 
 <div class="caja">
     <h2 class="titulo-pagina">Reporte de peces nacidos o muertos por tanque</h2>
@@ -385,3 +397,15 @@ extract($datos);
         font-size: 13px;
     }
 </style>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+<?php
+    $pageScripts = [];
+    include '../partials/footer.php';
+?>
+  </body>
+</html>

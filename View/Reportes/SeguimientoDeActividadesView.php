@@ -3,7 +3,19 @@ require_once __DIR__ . '/../../Controller/Reportes/SeguimientoDeActividadesContr
 
 $datos = obtenerDatosSeguimientoDeActividades();
 extract($datos);
+
+$basePath  = '../../';
+$pageTitle = 'Seguimiento de Actividades';
+$bodyPage  = 'rep-actividades-zoo';
+include '../partials/head.php';
 ?>
+    <div class="wrapper">
+      <?php $rutaBase = '../../'; ?>
+      <?php include '../partials/sidebar.php'; ?>
+      <div class="main-panel">
+        <?php include '../partials/topbar.php'; ?>
+        <div class="container">
+          <div class="page-inner">
 
 <div class="caja">
     <h2 class="titulo-pagina">Seguimiento de Actividades en los Zoocriaderos</h2>
@@ -287,3 +299,15 @@ extract($datos);
         background-color: #e74c3c;
     }
 </style>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+<?php
+    $pageScripts = [];
+    include '../partials/footer.php';
+?>
+  </body>
+</html>

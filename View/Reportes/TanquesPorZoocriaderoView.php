@@ -3,7 +3,19 @@ require_once __DIR__ . '/../../Controller/Reportes/TanquesPorZoocriaderoControll
 
 $datos = obtenerDatosTanquesPorZoocriadero();
 extract($datos);
+
+$basePath  = '../../';
+$pageTitle = 'Tanques por Zoocriadero';
+$bodyPage  = 'rep-tanques-zoo';
+include '../partials/head.php';
 ?>
+    <div class="wrapper">
+      <?php $rutaBase = '../../'; ?>
+      <?php include '../partials/sidebar.php'; ?>
+      <div class="main-panel">
+        <?php include '../partials/topbar.php'; ?>
+        <div class="container">
+          <div class="page-inner">
 
 <div class="caja">
     <h2 class="titulo-pagina">Reporte de Tanques por Zoocriadero</h2>
@@ -80,7 +92,7 @@ extract($datos);
                     <th>Zoocriadero</th>
                     <th>Cantidad</th>
                     <th>Tipo de tanques</th>
-                    <th>Capacidad total (L)</th>
+                    <!-- <th>Capacidad total (L)</th>-->
                     <th>Encargado</th>
                     <th>Estado</th>
                 </tr>
@@ -390,3 +402,15 @@ extract($datos);
         flex-shrink: 0;
     }
 </style>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+<?php
+    $pageScripts = [];
+    include '../partials/footer.php';
+?>
+  </body>
+</html>
