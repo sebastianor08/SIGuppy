@@ -66,17 +66,12 @@ if (!isset($rutaBase)) {
           </a>
           <div class="collapse" id="navReportes">
             <ul class="nav nav-collapse">
-              <li><a href="#" data-page="rep-actividades-zoo"><span class="sub-item">Seguimiento de Actividades en los
-                    Zoocriaderos</span></a></li>
-              <li><a href="#" data-page="rep-peces-tanque"><span class="sub-item">Peces nacidos o muertos por
-                    tanque</span></a></li>
-              <li><a href="#" data-page="rep-tanques-zoo"><span class="sub-item">Tanques por Zoocriadero</span></a></li>
-              <li><a href="#" data-page="rep-terreno-tipo"><span class="sub-item">Actividades de Terreno por
-                    Tipo</span></a></li>
-              <li><a href="#" data-page="rep-terreno-auxiliar"><span class="sub-item">Actividades De Terreno Por
-                    Auxiliar Responsable</span></a></li>
-              <li><a href="#" data-page="rep-sitios-deposito"><span class="sub-item">Gráfico de Sitios por Tipo de
-                    Depósito</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Reportes/SeguimientoDeActividadesView.php" data-page="rep-actividades-zoo"><span class="sub-item">Seguimiento de Actividades en los Zoocriaderos</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Reportes/PesesNacidos-MuertosPorTanqueView.php" data-page="rep-peces-tanque"><span class="sub-item">Peces nacidos o muertos por tanque</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Reportes/TanquesPorZoocriaderoView.php" data-page="rep-tanques-zoo"><span class="sub-item">Tanques por Zoocriadero</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Reportes/ActividadesDeTerrenoPorTipoView.php" data-page="rep-terreno-tipo"><span class="sub-item">Actividades de Terreno por Tipo</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Reportes/ActividadesPorAuxiliarView.php" data-page="rep-terreno-auxiliar"><span class="sub-item">Actividades De Terreno Por Auxiliar Responsable</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Reportes/GráficoDeSitiosPorDepósitoView.php" data-page="rep-sitios-deposito"><span class="sub-item">Gráfico de Sitios por Tipo de Depósito</span></a></li>
             </ul>
           </div>
         </li>
@@ -132,7 +127,7 @@ if (!isset($rutaBase)) {
         </li>
 
         <li class="nav-item">
-          <a href="#" data-page="copia-seguridad">
+          <a href="<?php echo $rutaBase; ?>View/CopiaSeguridad/copia-seguridad.php" data-page="copia-seguridad">
             <i class="fas fa-cloud-upload-alt"></i>
             <p>Copia de seguridad</p>
           </a>
