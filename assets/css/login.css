@@ -1,0 +1,73 @@
+/* Estilos personalizados para el Login de SIGuppy */
+
+
+body {
+    background: linear-gradient(135deg, #e9ecef 0%, #dbe2ef 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Public Sans', sans-serif;
+    margin: 0;
+}
+
+.login-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0px 15px 35px rgba(0, 0, 0, 0.1);
+    padding: 40px 35px;
+    width: 100%;
+    max-width: 460px;
+    transition: transform 0.3s ease;
+}
+
+.login-card:hover {
+    transform: translateY(-3px);
+}
+
+/* Alineación y tamaño de logos */
+.logo-header {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 25px;
+    gap: 15px;
+}
+
+.logo-header img {
+    max-height: 75px; /* Logos más grandes */
+    width: auto;
+    object-fit: contain;
+}
+
+/* Campos de entrada */
+.form-control {
+    height: 45px;
+}
+
+.form-control:focus {
+    box-shadow: none;
+    border-color: #17a2b8;
+}
+
+.input-group-text {
+    border-color: #ced4da;
+}
+
+/* Botón principal */
+.btn-info-custom {
+    background-color: #17a2b8;
+    border: none;
+    color: #ffffff;
+    font-weight: 700;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+}
+
+.btn-info-custom:hover {
+    background-color: #138496;
+    color: #ffffff;
+    box-shadow: 0px 5px 15px rgba(23, 162, 184, 0.4);
+}
