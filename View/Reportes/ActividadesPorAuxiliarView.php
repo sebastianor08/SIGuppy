@@ -155,54 +155,56 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                 <div class="fila-inferior">
                     <div class="caja caja-gris caja-desempeno">
                         <h3>Desempeño por Auxiliar</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Auxiliar</th>
-                                    <th>Actividades Completadas</th>
-                                    <th>En progreso</th>
-                                    <th>Retrasadas</th>
-                                    <th>% Cumplimiento</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (count($auxiliaresPagina) === 0): ?>
+                        <div class="tabla-responsive">
+                            <table>
+                                <thead>
                                     <tr>
-                                        <td colspan="5" style="text-align:center; color:#888;">No hay auxiliares con esos filtros</td>
+                                        <th>Auxiliar</th>
+                                        <th>Actividades Completadas</th>
+                                        <th>En progreso</th>
+                                        <th>Retrasadas</th>
+                                        <th>% Cumplimiento</th>
                                     </tr>
-                                <?php endif; ?>
-                                <?php foreach ($auxiliaresPagina as $fila): ?>
-                                    <tr>
-                                        <td><?= $fila['auxiliar'] ?></td>
-                                        <td><?= $fila['completadas'] ?></td>
-                                        <td><?= $fila['enProgreso'] ?></td>
-                                        <td><?= $fila['retrasadas'] ?></td>
+                                </thead>
+                                <tbody>
+                                    <?php if (count($auxiliaresPagina) === 0): ?>
+                                        <tr>
+                                            <td colspan="5" style="text-align:center; color:#888;">No hay auxiliares con esos filtros</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                    <?php foreach ($auxiliaresPagina as $fila): ?>
+                                        <tr>
+                                            <td><?= $fila['auxiliar'] ?></td>
+                                            <td><?= $fila['completadas'] ?></td>
+                                            <td><?= $fila['enProgreso'] ?></td>
+                                            <td><?= $fila['retrasadas'] ?></td>
+                                            <td>
+                                                <div class="celda-cumplimiento">
+                                                    <span><?= $fila['cumplimiento'] ?>%</span>
+                                                    <div class="barra-fondo">
+                                                        <div class="barra-relleno" style="width: <?= $fila['cumplimiento'] ?>%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    <tr class="fila-total">
+                                        <td>Total</td>
+                                        <td><?= $totalCompletas ?></td>
+                                        <td><?= $totalEnProgreso ?></td>
+                                        <td><?= $totalRetrasadas ?></td>
                                         <td>
                                             <div class="celda-cumplimiento">
-                                                <span><?= $fila['cumplimiento'] ?>%</span>
+                                                <span><?= $cumplimientoGeneral ?>%</span>
                                                 <div class="barra-fondo">
-                                                    <div class="barra-relleno" style="width: <?= $fila['cumplimiento'] ?>%;"></div>
+                                                    <div class="barra-relleno" style="width: <?= $cumplimientoGeneral ?>%;"></div>
                                                 </div>
                                             </div>
                                         </td>
                                     </tr>
-                                <?php endforeach; ?>
-                                <tr class="fila-total">
-                                    <td>Total</td>
-                                    <td><?= $totalCompletas ?></td>
-                                    <td><?= $totalEnProgreso ?></td>
-                                    <td><?= $totalRetrasadas ?></td>
-                                    <td>
-                                        <div class="celda-cumplimiento">
-                                            <span><?= $cumplimientoGeneral ?>%</span>
-                                            <div class="barra-fondo">
-                                                <div class="barra-relleno" style="width: <?= $cumplimientoGeneral ?>%;"></div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
 
                         <div class="pie-tabla">
                             <span>Mostrando <?= $desde ?>-<?= $hasta ?> de <?= $totalAuxiliares ?> auxiliares</span>
@@ -574,6 +576,31 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                     .nota-inferior {
                         font-size: 13px;
                         color: #555;
+                    }
+
+                    .tabla-responsive {
+                        overflow-x: auto;
+                        -webkit-overflow-scrolling: touch;
+                    }
+
+                    @media (max-width: 768px) {
+                        .tarjetas {
+                            flex-direction: column;
+                        }
+
+                        .fila-inferior {
+                            flex-direction: column;
+                        }
+
+                        .bloque-donut {
+                            flex-wrap: wrap;
+                        }
+
+                        .pie-tabla {
+                            flex-direction: column;
+                            align-items: flex-start;
+                            gap: 10px;
+                        }
                     }
                 </style>
 

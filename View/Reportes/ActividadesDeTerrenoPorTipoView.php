@@ -94,41 +94,43 @@ include '../partials/head.php';
                 <div class="fila-inferior">
                     <div class="caja caja-tabla">
                         <h3>Actividades por Tipo</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Tipo de actividad</th>
-                                    <th>Completadas</th>
-                                    <th>En progreso</th>
-                                    <th>Retrasadas</th>
-                                    <th>Total</th>
-                                    <th>% del total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($resumenPorTipo as $fila): ?>
+                        <div class="tabla-responsive">
+                            <table>
+                                <thead>
                                     <tr>
-                                        <td>
-                                            <span class="punto-tipo" style="background-color: <?= $fila['color'] ?>;"></span>
-                                            <?= $fila['tipo'] ?>
-                                        </td>
-                                        <td><?= $fila['completadas'] ?></td>
-                                        <td><?= $fila['enProgreso'] ?></td>
-                                        <td><?= $fila['retrasadas'] ?></td>
-                                        <td><?= $fila['total'] ?></td>
-                                        <td><?= $fila['porcentaje'] ?>%</td>
+                                        <th>Tipo de actividad</th>
+                                        <th>Completadas</th>
+                                        <th>En progreso</th>
+                                        <th>Retrasadas</th>
+                                        <th>Total</th>
+                                        <th>% del total</th>
                                     </tr>
-                                <?php endforeach; ?>
-                                <tr class="fila-total">
-                                    <td>Total</td>
-                                    <td><?= $totalCompletas ?></td>
-                                    <td><?= $totalEnProgreso ?></td>
-                                    <td><?= $totalRetrasadas ?></td>
-                                    <td><?= $totalActividades ?></td>
-                                    <td>100%</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($resumenPorTipo as $fila): ?>
+                                        <tr>
+                                            <td>
+                                                <span class="punto-tipo" style="background-color: <?= $fila['color'] ?>;"></span>
+                                                <?= $fila['tipo'] ?>
+                                            </td>
+                                            <td><?= $fila['completadas'] ?></td>
+                                            <td><?= $fila['enProgreso'] ?></td>
+                                            <td><?= $fila['retrasadas'] ?></td>
+                                            <td><?= $fila['total'] ?></td>
+                                            <td><?= $fila['porcentaje'] ?>%</td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    <tr class="fila-total">
+                                        <td>Total</td>
+                                        <td><?= $totalCompletas ?></td>
+                                        <td><?= $totalEnProgreso ?></td>
+                                        <td><?= $totalRetrasadas ?></td>
+                                        <td><?= $totalActividades ?></td>
+                                        <td>100%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                         <p class="pie-tabla">Mostrando 1 - <?= count($resumenPorTipo) ?> de <?= count($resumenPorTipo) ?> tipos</p>
                     </div>
 
@@ -391,6 +393,21 @@ include '../partials/head.php';
                         color: #999;
                         font-size: 12px;
                         font-style: italic;
+                    }
+
+                    .tabla-responsive {
+                        overflow-x: auto;
+                        -webkit-overflow-scrolling: touch;
+                    }
+
+                    @media (max-width: 768px) {
+                        .tarjetas {
+                            flex-direction: column;
+                        }
+
+                        .fila-inferior {
+                            flex-direction: column;
+                        }
                     }
                 </style>
 

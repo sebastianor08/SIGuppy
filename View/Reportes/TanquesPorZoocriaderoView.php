@@ -18,7 +18,7 @@ include '../partials/head.php';
         <div class="container">
             <div class="page-inner">
 
-            <!--  primera caja con los filtros y generar reportes-->
+                <!--  primera caja con los filtros y generar reportes-->
                 <div class="caja">
 
                     <!-- titulo de la pagina-->
@@ -30,7 +30,7 @@ include '../partials/head.php';
                     <!-- formulario de filtros -->
                     <form method="GET">
 
-                    <!-- filtro de Zoocriadero -->
+                        <!-- filtro de Zoocriadero -->
                         <div class="fila-filtros">
                             <div>
                                 <label>Zoocriadero</label>
@@ -65,7 +65,7 @@ include '../partials/head.php';
                 <!-- caja de tarjetas -->
                 <div class="caja tarjetas">
 
-                <!-- tarjeta de resumen de zoocriaderos-->
+                    <!-- tarjeta de resumen de zoocriaderos-->
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
                             <div class="icono icono-azul">🏠</div>
@@ -98,44 +98,46 @@ include '../partials/head.php';
                 <div class="caja caja-gris">
                     <h3>Tanques por Zoocriaderos</h3>
                     <div class="contenido-tabla-grafica">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Zoocriadero</th>
-                                    <th>Cantidad</th>
-                                    <th>Tipo de tanques</th>
-                                    <th>Encargado</th>
-                                    <th>Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (count($registrosFiltrados) === 0): ?>
+                        <div class="tabla-responsive">
+                            <table>
+                                <thead>
                                     <tr>
-                                        <td colspan="5" style="text-align:center; color:#888;">No hay registros con esos filtros</td>
+                                        <th>Zoocriadero</th>
+                                        <th>Cantidad</th>
+                                        <th>Tipo de tanques</th>
+                                        <th>Encargado</th>
+                                        <th>Estado</th>
                                     </tr>
-                                <?php endif; ?>
-                                <?php foreach ($registrosFiltrados as $registro): ?>
-                                    <tr>
-                                        <td><?= $registro['zoocriadero'] ?></td>
-                                        <td><?= $registro['cantidad'] ?></td>
-                                        <td><?= $registro['tipo'] ?></td>
-                                        <td><?= $registro['encargado'] ?></td>
-                                        <td>
-                                            <span class="badge <?= $registro['estado'] === 'Activo' ? 'badge-verde' : 'badge-rojo' ?>">
-                                                <?= $registro['estado'] ?>
-                                            </span>
-                                        </td>
+                                </thead>
+                                <tbody>
+                                    <?php if (count($registrosFiltrados) === 0): ?>
+                                        <tr>
+                                            <td colspan="5" style="text-align:center; color:#888;">No hay registros con esos filtros</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                    <?php foreach ($registrosFiltrados as $registro): ?>
+                                        <tr>
+                                            <td><?= $registro['zoocriadero'] ?></td>
+                                            <td><?= $registro['cantidad'] ?></td>
+                                            <td><?= $registro['tipo'] ?></td>
+                                            <td><?= $registro['encargado'] ?></td>
+                                            <td>
+                                                <span class="badge <?= $registro['estado'] === 'Activo' ? 'badge-verde' : 'badge-rojo' ?>">
+                                                    <?= $registro['estado'] ?>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    <tr class="fila-total">
+                                        <td>Total</td>
+                                        <td><?= $totalTanques ?></td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>-</td>
                                     </tr>
-                                <?php endforeach; ?>
-                                <tr class="fila-total">
-                                    <td>Total</td>
-                                    <td><?= $totalTanques ?></td>
-                                    <td>-</td>
-                                    <td>-</td>
-                                    <td>-</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
 
                         <div class="bloque-donut">
                             <?php
@@ -409,6 +411,29 @@ include '../partials/head.php';
                         height: 10px;
                         border-radius: 50%;
                         flex-shrink: 0;
+                    }
+
+                    .tabla-responsive {
+                        overflow-x: auto;
+                        -webkit-overflow-scrolling: touch;
+                    }
+
+                    @media (max-width: 768px) {
+                        .tarjetas {
+                            flex-direction: column;
+                        }
+
+                        .contenido-tabla-grafica {
+                            flex-direction: column;
+                        }
+
+                        .contenido-tabla-grafica table {
+                            min-width: 0;
+                        }
+
+                        .bloque-donut {
+                            flex-wrap: wrap;
+                        }
                     }
                 </style>
 
