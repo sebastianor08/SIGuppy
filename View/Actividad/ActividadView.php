@@ -1,293 +1,199 @@
 <?php
+    $basePath  = '../../';
+    $pageTitle = 'Actividades';
+    $bodyPage  = 'terreno-actividades';
+    $extraStyles = <<<CSS
+        .actividades-card {
+            border-radius: 12px;
+        }
 
-// Datos de prueba
-// Puedes reemplazar este arreglo por tu consulta SQL o PDO
-$actividades = [
-    [
-        'id' => 1,
-        'nombre' => 'Alimentación de especies',
-        'descripcion' => 'Actividad relacionada con la alimentación diaria de los animales.',
-        'estado' => 'Activo'
-    ],
-    [
-        'id' => 2,
-        'nombre' => 'Limpieza de tanques',
-        'descripcion' => 'Limpieza y mantenimiento de los tanques del zoocriadero.',
-        'estado' => 'Inactivo'
-    ],
-    [
-        'id' => 3,
-        'nombre' => 'Revisión de especies',
-        'descripcion' => 'Inspección del estado general de las especies.',
-        'estado' => 'Activo'
-    ],
-    [
-        'id' => 4,
-        'nombre' => 'Control sanitario',
-        'descripcion' => 'Verificación de las condiciones sanitarias de los animales.',
-        'estado' => 'Activo'
-    ]
-];
+        .actividades-table th {
+            white-space: nowrap;
+        }
 
+        .actividades-table td {
+            vertical-align: middle;
+        }
+
+        .actividad-descripcion {
+            max-width: 400px;
+        }
+
+        .actividad-descripcion .descripcion {
+            color: #8a8d93;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        #actividadesTableBody .sig-empty-row td {
+            padding: 45px 20px;
+            text-align: center;
+        }
+
+        .btn-crear-actividad {
+            min-width: 145px;
+        }
+
+        .estado-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .estado-activo {
+            color: #166534;
+            background-color: #dcfce7;
+        }
+
+        .estado-inactivo {
+            color: #991b1b;
+            background-color: #fee2e2;
+        }
+
+        .acciones-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-accion {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 15px;
+        }
+
+        .btn-editar {
+            color: #4f46e5;
+        }
+
+        .btn-editar:hover {
+            color: #3730a3;
+        }
+
+        .btn-estado {
+            color: #dc2626;
+        }
+
+        .btn-estado:hover {
+            color: #991b1b;
+        }
+CSS;
+    include '../partials/head.php';
 ?>
+    <div class="wrapper">
+      <?php include '../partials/sidebar.php'; ?>
+      <div class="main-panel">
+        <?php include '../partials/topbar.php'; ?>
 
-<style>
-    .actividad-container {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        color: #334155;
-    }
+        <div class="container">
+          <div class="page-inner">
 
-    .actividad-container .page-title {
-        font-size: 22px;
-        font-weight: 700;
-        color: #0F172A;
-        margin-bottom: 28px;
-    }
+            <!-- Título -->
+            <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+              <div>
+                <h3 class="fw-bold mb-3">Trabajo de terreno - Actividades</h3>
+                <h6 class="op-7 mb-2">Trabajo de terreno / Actividades</h6>
+              </div>
+            </div>
 
-    .actividad-container .table-card {
-        background-color: #FFFFFF;
-        border-radius: 12px;
-        border: 1px solid #E2E8F0;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-        overflow: hidden;
-    }
+            <!-- Mensaje -->
+            <div id="actividadesMessage" class="alert d-none mb-3" role="alert"></div>
 
-    .actividad-container .custom-table {
-        width: 100%;
-        border-collapse: collapse;
-        text-align: left;
-        margin: 0;
-    }
+            <!-- Tabla -->
+            <div class="card card-round actividades-card">
+              <div class="card-body">
+                <div class="sig-table-toolbar">
+                  <div class="sig-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="actividadesSearch" class="form-control" placeholder="Buscar por nombre o descripción...">
+                  </div>
+                  <div class="d-flex align-items-center gap-2">
+                    <select id="actividadesEstadoFiltro" class="form-select form-select-sm" style="width: auto;">
+                      <option value="todos">Todos los estados</option>
+                      <option value="activo">Activos</option>
+                      <option value="inactivo">Inactivos</option>
+                    </select>
+                    <span class="small text-muted" id="actividadesCount"></span>
+                  </div>
+                </div>
 
-    .actividad-container .custom-table th {
-        background-color: #FAFAFA;
-        color: #64748B;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        padding: 16px 20px;
-        border-bottom: 1px solid #E2E8F0;
-    }
+                <div class="table-responsive">
+                  <table class="table align-items-center mb-0 actividades-table">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody id="actividadesTableBody">
+                      <tr class="sig-empty-row">
+                        <td colspan="4">Cargando actividades...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
 
-    .actividad-container .custom-table td {
-        padding: 16px 20px;
-        font-size: 14px;
-        color: #334155;
-        border-bottom: 1px solid #F1F5F9;
-        vertical-align: middle;
-    }
+            <!-- Botón crear -->
+            <div class="d-flex justify-content-end mt-4 only-coordinador">
+              <button type="button" id="btnCrearActividad" class="btn btn-primary btn-round btn-crear-actividad" data-bs-toggle="modal" data-bs-target="#actividadModal">
+                <i class="fas fa-plus me-1"></i>
+                Crear Actividad
+              </button>
+            </div>
 
-    .actividad-container .custom-table tr:last-child td {
-        border-bottom: none;
-    }
-
-    /* Descripción */
-    .actividad-container .description-cell {
-        max-width: 400px;
-        line-height: 1.5;
-    }
-
-    /* Badges de estado */
-    .actividad-container .status-badge {
-        display: inline-block;
-        padding: 4px 14px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        text-align: center;
-    }
-
-    .actividad-container .status-badge.activo {
-        background-color: #DCFCE7;
-        color: #166534;
-    }
-
-    .actividad-container .status-badge.inactivo {
-        background-color: #FEE2E2;
-        color: #991B1B;
-    }
-
-    /* Botones de acción */
-    .actividad-container .actions-cell {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .actividad-container .btn-action {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 4px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.1s ease;
-    }
-
-    .actividad-container .btn-action:hover {
-        transform: scale(1.1);
-    }
-
-    /* Botón inferior "Crear Actividad" */
-    .actividad-container .action-bar {
-        margin-top: 24px;
-        display: flex;
-        justify-content: flex-end;
-    }
-
-    .actividad-container .btn-actividad-primary {
-        background-color: #2563EB;
-        color: #FFFFFF;
-        font-weight: 600;
-        font-size: 14px;
-        padding: 12px 24px;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
-        transition: background-color 0.2s ease, transform 0.1s ease;
-        text-decoration: none;
-        display: inline-block;
-    }
-
-    .actividad-container .btn-actividad-primary:hover {
-        background-color: #1D4ED8;
-        color: #FFFFFF;
-    }
-</style>
-
-<div class="actividad-container">
-
-    <h1 class="page-title">Trabajo de terreno - Actividades</h1>
-
-    <!-- Tabla principal -->
-    <div class="table-card">
-
-        <table class="custom-table">
-
-            <thead>
-                <tr>
-                    <th>NOMBRE</th>
-                    <th>DESCRIPCIÓN</th>
-                    <th>ESTADO</th>
-                    <th>ACCIONES</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                <?php foreach ($actividades as $actividad): ?>
-
-                    <tr>
-
-                        <!-- Nombre -->
-                        <td>
-                            <?= htmlspecialchars($actividad['nombre']) ?>
-                        </td>
-
-                        <!-- Descripción -->
-                        <td class="description-cell">
-                            <?= htmlspecialchars($actividad['descripcion']) ?>
-                        </td>
-
-                        <!-- Estado -->
-                        <td>
-                            <span class="status-badge <?= strtolower($actividad['estado']) ?>">
-                                <?= htmlspecialchars($actividad['estado']) ?>
-                            </span>
-                        </td>
-
-                        <!-- Acciones -->
-                        <td class="actions-cell">
-
-                            <!-- Botón Editar -->
-                            <a
-                                href="editar_actividad.php?id=<?= $actividad['id'] ?>"
-                                class="btn-action"
-                                title="Editar"
-                                style="display: none;"
-                            >
-                                <svg
-                                    width="18"
-                                    height="18"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="#4F46E5"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                >
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-9.5-9.5z"></path>
-                                </svg>
-                            </a>
-
-                            <!-- Botón Cambiar Estado -->
-                            <?php if ($actividad['estado'] === 'Activo'): ?>
-
-                                <a
-                                    href="cambiar_estado_actividad.php?id=<?= $actividad['id'] ?>&accion=desactivar"
-                                    class="btn-action"
-                                    title="Desactivar"
-                                >
-                                    <svg
-                                        width="18"
-                                        height="18"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="#EF4444"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    >
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
-                                    </svg>
-                                </a>
-
-                            <?php else: ?>
-
-                                <a
-                                    href="cambiar_estado_actividad.php?id=<?= $actividad['id'] ?>&accion=activar"
-                                    class="btn-action"
-                                    title="Activar"
-                                >
-                                    <svg
-                                        width="18"
-                                        height="18"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="#22C55E"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    >
-                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                    </svg>
-                                </a>
-
-                            <?php endif; ?>
-
-                        </td>
-
-                    </tr>
-
-                <?php endforeach; ?>
-
-            </tbody>
-
-        </table>
-
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Botón de acción principal -->
-    <div class="action-bar">
-        <a href="crear_actividad.php" class="btn-actividad-primary">
-            Crear Actividad
-        </a>
+    <!-- Modal Crear / Editar Actividad -->
+    <div class="modal fade" id="actividadModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="actividadForm">
+            <input type="hidden" name="id_actividad" id="idActividad">
+            <div class="modal-header">
+              <h5 class="modal-title" id="actividadModalLabel">Crear Actividad</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="nombreActividad" class="form-label">Nombre de la actividad</label>
+                <input type="text" name="nombre" id="nombreActividad" class="form-control" placeholder="Ejemplo: Limpieza de tanques" required>
+              </div>
+              <div class="mb-3">
+                <label for="descripcionActividad" class="form-label">Descripción</label>
+                <textarea name="descripcion" id="descripcionActividad" class="form-control" rows="4" placeholder="Ingrese una descripción de la actividad" required></textarea>
+              </div>
+              <div class="mb-3">
+                <label for="estadoActividad" class="form-label">Estado</label>
+                <select name="estado" id="estadoActividad" class="form-select" required>
+                  <option value="1">Activo</option>
+                  <option value="0">Inactivo</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary" id="actividadSubmitBtn">Guardar</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
 
-</div>
+<?php
+    $pageScripts = ['assets/js/siguppys-actividades.js'];
+    include '../partials/footer.php';
+?>
+</body>
+</html>
