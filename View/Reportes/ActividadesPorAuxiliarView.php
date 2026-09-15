@@ -10,8 +10,13 @@ $datos = obtenerDatosActividadesPorAuxiliar();
 /*extract() "extrae" los datos que están dentro del arreglo $datos y crea variables utilizando los nombres de las posiciones del arreglo. */
 extract($datos);
 
+// $basePath guarda la ruta que se utilizará como referencia y - '../..' = subir dos carpetas.
 $basePath  = '../../';
+
+// $pageTitle guarda el título que tendrá esta página.
 $pageTitle = 'Actividades por Auxiliar';
+
+// $bodyPage guarda el nombre o identificador de la página que se está mostrando.
 $bodyPage  = 'rep-terreno-auxiliar';
 include '../partials/head.php';
 ?>
