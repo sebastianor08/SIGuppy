@@ -193,8 +193,7 @@
     </div>
 
 <?php
+    $basePath    = '../';
     $pageScripts = [];
     include '../View/partials/footer.php';
 ?>
-  </body>
-</html>

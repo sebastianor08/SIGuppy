@@ -1,19 +1,19 @@
 <?php
-  // =========================================================
-  // Sidebar de SIGuppys (menú lateral + logo)
-  // =========================================================
-  // Cada vista declara $rutaBase ANTES de este include, según su
-  // profundidad respecto a la raíz del proyecto (SIGuppy/):
-  //   Web/index.php                -> $rutaBase = '../';
-  //   View/<Modulo>/archivo.php    -> $rutaBase = '../../';
-  //
-  // El link activo (y el submenú que corresponde abrir) NO se marca
-  // aquí a mano: lo hace highlightActiveNav() en siguppys-nav.js
-  // leyendo el data-page del <body> de cada vista. Así no hay que
-  // tocar este archivo cuando cambia cuál página está activa.
-  if (!isset($rutaBase)) {
-      $rutaBase = '../../';
-  }
+// =========================================================
+// Sidebar de SIGuppys (menú lateral + logo)
+// =========================================================
+// Cada vista declara $rutaBase ANTES de este include, según su
+// profundidad respecto a la raíz del proyecto (SIGuppy/):
+//   Web/index.php                -> $rutaBase = '../';
+//   View/<Modulo>/archivo.php    -> $rutaBase = '../../';
+//
+// El link activo (y el submenú que corresponde abrir) NO se marca
+// aquí a mano: lo hace highlightActiveNav() en siguppys-nav.js
+// leyendo el data-page del <body> de cada vista. Así no hay que
+// tocar este archivo cuando cambia cuál página está activa.
+if (!isset($rutaBase)) {
+  $rutaBase = '../../';
+}
 ?>
 <!-- Sidebar -->
 <div class="sidebar sidebar-style-2 siguppys-sidebar" data-background-color="white">
@@ -66,22 +66,37 @@
           </a>
           <div class="collapse" id="navReportes">
             <ul class="nav nav-collapse">
-              <li><a href="#" data-page="rep-actividades-zoo"><span class="sub-item">Seguimiento de Actividades en los Zoocriaderos</span></a></li>
-              <li><a href="#" data-page="rep-peces-tanque"><span class="sub-item">Peces nacidos o muertos por tanque</span></a></li>
+              <li><a href="#" data-page="rep-actividades-zoo"><span class="sub-item">Seguimiento de Actividades en los
+                    Zoocriaderos</span></a></li>
+              <li><a href="#" data-page="rep-peces-tanque"><span class="sub-item">Peces nacidos o muertos por
+                    tanque</span></a></li>
               <li><a href="#" data-page="rep-tanques-zoo"><span class="sub-item">Tanques por Zoocriadero</span></a></li>
-              <li><a href="#" data-page="rep-terreno-tipo"><span class="sub-item">Actividades de Terreno por Tipo</span></a></li>
-              <li><a href="#" data-page="rep-terreno-auxiliar"><span class="sub-item">Actividades De Terreno Por Auxiliar Responsable</span></a></li>
-              <li><a href="#" data-page="rep-sitios-deposito"><span class="sub-item">Gráfico de Sitios por Tipo de Depósito</span></a></li>
+              <li><a href="#" data-page="rep-terreno-tipo"><span class="sub-item">Actividades de Terreno por
+                    Tipo</span></a></li>
+              <li><a href="#" data-page="rep-terreno-auxiliar"><span class="sub-item">Actividades De Terreno Por
+                    Auxiliar Responsable</span></a></li>
+              <li><a href="#" data-page="rep-sitios-deposito"><span class="sub-item">Gráfico de Sitios por Tipo de
+                    Depósito</span></a></li>
             </ul>
           </div>
         </li>
 
-        <li class="nav-item">
-          <a href="<?php echo $rutaBase; ?>View/Zoocriadero/zoocriaderos.php" data-page="zoocriaderos">
+        <li class="nav-item submenu">
+          <a data-bs-toggle="collapse" href="#navZoocriaderos" aria-expanded="false">
             <i class="fas fa-warehouse"></i>
             <p>Zoocriaderos</p>
+            <span class="caret"></span>
           </a>
+          <div class="collapse" id="navZoocriaderos">
+            <ul class="nav nav-collapse">
+              <li><a href="<?php echo $rutaBase; ?>View/Zoocriadero/zoocriaderos.php" data-page="zoocriaderos"><span
+                    class="sub-item">Zoocriaderos</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Acciones/acciones.php" data-page="acciones-zoocriadero"><span
+                    class="sub-item">Acciones</span></a></li>
+            </ul>
+          </div>
         </li>
+
 
         <li class="nav-item submenu">
           <a data-bs-toggle="collapse" href="#navTerreno" aria-expanded="false">
@@ -108,8 +123,10 @@
             <ul class="nav nav-collapse">
               <li><a href="#" data-page="usuarios-registrar"><span class="sub-item">Registrar Usuario</span></a></li>
               <li><a href="#" data-page="usuarios-consultar"><span class="sub-item">Consultar Usuarios</span></a></li>
-              <li><a href="<?php echo $rutaBase; ?>View/Roles/registro-roles.php" data-page="roles-registrar"><span class="sub-item">Roles y Permisos</span></a></li>
-              <li><a href="<?php echo $rutaBase; ?>View/Roles/consultar-roles.php" data-page="roles-consultar"><span class="sub-item">Consultar Roles</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Roles/registro-roles.php" data-page="roles-registrar"><span
+                    class="sub-item">Roles y Permisos</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Roles/consultar-roles.php" data-page="roles-consultar"><span
+                    class="sub-item">Consultar Roles</span></a></li>
             </ul>
           </div>
         </li>
