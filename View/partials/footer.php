@@ -18,8 +18,6 @@
 
 <!-- SIGuppys: resaltado de menú activo, modo oscuro/daltonismo y selector de rol -->
 <script src="<?php echo $basePath; ?>Web/assets/js/siguppys-nav.js"></script>
-<!-- SIGuppys: botón "Exportar a PDF" en reportes y gráficos (no hace nada fuera de Reportes) -->
-<script src="<?php echo $basePath; ?>Web/assets/js/siguppys-exportar-pdf.js"></script>
 <?php foreach($pageScripts as $script): ?>
 <script src="<?php echo $basePath . $script; ?>"></script>
 <?php endforeach; ?>

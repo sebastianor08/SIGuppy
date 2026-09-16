@@ -39,25 +39,10 @@
         </li>
 
         <li class="nav-item">
-          <a href="<?php echo $rutaBase; ?>Web/index.php" data-page="inicio">
+          <a href="<?php echo $rutaBase; ?>Web/index.php" data-page="resumen">
             <i class="fas fa-home"></i>
-            <p>Inicio</p>
+            <p>Resumen</p>
           </a>
-        </li>
-
-        <!-- "Terreno" priorizado: va justo despues de Inicio. Submodulos: Sitio y Territorio Priorizado -->
-        <li class="nav-item submenu">
-          <a data-bs-toggle="collapse" href="#navTerreno" aria-expanded="false">
-            <i class="fas fa-map-marker-alt"></i>
-            <p>Terreno</p>
-            <span class="caret"></span>
-          </a>
-          <div class="collapse" id="navTerreno">
-            <ul class="nav nav-collapse">
-              <li><a href="<?php echo $rutaBase; ?>Web/mvc.php?modulo=Sitio&amp;controlador=Sitio&amp;funcion=list" data-page="terreno-sitio"><span class="sub-item">Sitio</span></a></li>
-              <li><a href="<?php echo $rutaBase; ?>Web/mvc.php?modulo=TerritorioPriorizado&amp;controlador=TerritorioPriorizado&amp;funcion=list" data-page="terreno-territorio-priorizado"><span class="sub-item">Territorio Priorizado</span></a></li>
-            </ul>
-          </div>
         </li>
 
         <li class="nav-item submenu">
@@ -94,6 +79,22 @@
           </div>
         </li>
 
+
+        <li class="nav-item submenu">
+          <a data-bs-toggle="collapse" href="#navTerreno" aria-expanded="false">
+            <i class="fas fa-map-marker-alt"></i>
+            <p>Terreno</p>
+            <span class="caret"></span>
+          </a>
+          <div class="collapse" id="navTerreno">
+            <ul class="nav nav-collapse">
+              <li><a href="#" data-page="terreno-depositos"><span class="sub-item">Depósitos</span></a></li>
+              <li><a href="#" data-page="terreno-actividades"><span class="sub-item">Actividades</span></a></li>
+              <li><a href="#" data-page="terreno-tipo-depositos"><span class="sub-item">Tipo Depósitos</span></a></li>
+            </ul>
+          </div>
+        </li>
+
         <li class="nav-item submenu">
           <a data-bs-toggle="collapse" href="#navUsuarios" aria-expanded="false">
             <i class="fas fa-users"></i>
@@ -102,7 +103,7 @@
           </a>
           <div class="collapse" id="navUsuarios">
             <ul class="nav nav-collapse">
-              <li><a href="<?php echo $rutaBase; ?>Web/mvc.php?modulo=Usuarios&amp;controlador=Usuarios&amp;funcion=list" data-page="usuarios-registrar"><span class="sub-item">Gestión De Usuarios</span></a></li>
+              <li><a href="#" data-page="usuarios-registrar"><span class="sub-item">Gestión De Usuarios</span></a></li>
               <li><a href="<?php echo $rutaBase; ?>View/Roles/registro-roles.php" data-page="roles-registrar"><span class="sub-item">Roles y Permisos</span></a></li>
               <li><a href="<?php echo $rutaBase; ?>View/Roles/consultar-roles.php" data-page="roles-consultar"><span class="sub-item">Consultar Roles</span></a></li>
             </ul>
