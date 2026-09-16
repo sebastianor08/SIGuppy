@@ -115,7 +115,7 @@ if (!isset($rutaBase)) {
         </li>
 
         <li class="nav-item">
-          <a href="#" data-page="copia-seguridad">
+          <a href="<?php echo $rutaBase; ?>View/CopiaSeguridad/copia-seguridad.php" data-page="copia-seguridad">
             <i class="fas fa-cloud-upload-alt"></i>
             <p>Copia de seguridad</p>
           </a>
