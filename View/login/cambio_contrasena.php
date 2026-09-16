@@ -23,12 +23,12 @@ if (!isset($_SESSION['id_recuperar'])) {
     <div class="login-card">
         <!-- Header Logos Grandes -->
         <div class="top-header">
-            <img src="assets/img/.png" class="logo-secretaria" alt="Secretaría de Salud">
+            <img src="assets/img/.png" class="logo-secretaria" alt="">
         </div>
 
         <div class="text-center mb-3">
             <img src="../../assets/img/mas profundoo.png" class="logo-siguppy" alt="SIGuppy">
-            <div class="slogan-text mt-1">Control biológico contra el dengue</div>
+            <div class="slogan-text mt-1"></div>
         </div>
 
         <!-- Títulos exactos de tu Figma -->

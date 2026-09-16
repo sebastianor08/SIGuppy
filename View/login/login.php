@@ -48,7 +48,7 @@
     <div class="login-card">
         <!-- Logo institucional a la izquierda -->
         <div class="top-header">
-            <img src="../../assets/img/.png" class="logo-secretaria" alt="Secretaría de Salud">
+            <img src="../../assets/img/.png" class="logo-secretaria" alt="">
         </div>
 
         <!-- Logo SIGuppy centrado y más visible -->
