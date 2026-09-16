@@ -1,24 +1,11 @@
 <?php
-  // =========================================================
-  // Sidebar de SIGuppys (menú lateral + logo)
-  // =========================================================
-  // Cada vista declara $rutaBase ANTES de este include, según su
-  // profundidad respecto a la raíz del proyecto (SIGuppy/):
-  //   Web/index.php                -> $rutaBase = '../';
-  //   View/<Modulo>/archivo.php    -> $rutaBase = '../../';
-  //
-  // El link activo (y el submenú que corresponde abrir) NO se marca
-  // aquí a mano: lo hace highlightActiveNav() en siguppys-nav.js
-  // leyendo el data-page del <body> de cada vista. Así no hay que
-  // tocar este archivo cuando cambia cuál página está activa.
+
   if (!isset($rutaBase)) {
       $rutaBase = '../../';
   }
 ?>
-<!-- Sidebar -->
 <div class="sidebar sidebar-style-2 siguppys-sidebar" data-background-color="white">
   <div class="sidebar-logo">
-    <!-- Logo Header -->
     <div class="logo-header siguppys-logo-header">
       <a href="<?php echo $rutaBase; ?>Web/index.php" class="logo siguppys-logo">
         <span class="siguppys-pin">
@@ -128,13 +115,12 @@
         </li>
       </ul>
     </div>
+  </div>
 
-    <div class="sidebar-footer">
-      <a href="#" class="btn-logout">
-        <i class="fas fa-sign-out-alt"></i>
-        Cerrar Sesión
-      </a>
-    </div>
+  <div class="sidebar-footer">
+    <a href="#" class="btn-logout">
+      <i class="fas fa-sign-out-alt"></i>
+      Cerrar Sesión
+    </a>
   </div>
 </div>
-<!-- End Sidebar -->
