@@ -22,10 +22,10 @@
                   <i class="fas fa-clipboard-check me-1"></i> Registrar Seguimiento
                 </a>
                 <div id="registrarZoocriaderoWrap">
-                  <!-- el botón Registrar Zoocriadero lo arma assets/js/siguppys-zoocriaderos.js según el rol -->
+                  <!-- el botón Registrar Zoocriadero lo arma Web/assets/js/siguppys-zoocriaderos.js según el rol -->
                 </div>
                 <div id="registrarTanqueWrap">
-                  <!-- el botón Registrar Tanque lo arma assets/js/siguppys-zoocriaderos.js según el rol -->
+                  <!-- el botón Registrar Tanque lo arma Web/assets/js/siguppys-zoocriaderos.js según el rol -->
                 </div>
               </div>
             </div>
@@ -171,7 +171,7 @@
     </div>
 
 <?php
-    $pageScripts = ['assets/js/siguppys-zoocriaderos.js'];
+    $pageScripts = ['Web/assets/js/siguppys-zoocriaderos.js'];
     include '../partials/footer.php';
 ?>
   </body>

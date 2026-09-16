@@ -178,7 +178,7 @@
     </div>
 
 <?php
-    $pageScripts = ['assets/js/siguppys-copia-seguridad.js'];
+    $pageScripts = ['Web/assets/js/siguppys-copia-seguridad.js'];
     include '../partials/footer.php';
 ?>
   </body>

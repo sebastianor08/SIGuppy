@@ -8,11 +8,11 @@
       content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
       name="viewport"
     />
-    <link rel="icon" href="../assets/img/siguppys/favicon-32.png" type="image/png" />
-    <link rel="apple-touch-icon" href="../assets/img/siguppys/favicon-180.png" />
+    <link rel="icon" href="../Web/assets/img/siguppys/favicon-32.png" type="image/png" />
+    <link rel="apple-touch-icon" href="../Web/assets/img/siguppys/favicon-180.png" />
 
     <!-- Fonts and icons -->
-    <script src="../assets/js/plugin/webfont/webfont.min.js"></script>
+    <script src="../Web/assets/js/plugin/webfont/webfont.min.js"></script>
     <script>
       WebFont.load({
         google: { families: ["Public Sans:300,400,500,600,700"] },
@@ -23,7 +23,7 @@
             "Font Awesome 5 Brands",
             "simple-line-icons",
           ],
-          urls: ["../assets/css/fonts.min.css"],
+          urls: ["../Web/assets/css/fonts.min.css"],
         },
         active: function () {
           sessionStorage.fonts = true;
@@ -32,12 +32,12 @@
     </script>
 
     <!-- CSS Files (mismos del template, sin modificar) -->
-    <link rel="stylesheet" href="../assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="../assets/css/plugins.min.css" />
-    <link rel="stylesheet" href="../assets/css/kaiadmin.min.css" />
+    <link rel="stylesheet" href="../Web/assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../Web/assets/css/plugins.min.css" />
+    <link rel="stylesheet" href="../Web/assets/css/kaiadmin.min.css" />
 
     <!-- Estilos propios de SIGuppys: solo AGREGAN reglas encima del kaiadmin.css original -->
-    <link rel="stylesheet" href="../assets/css/siguppys.css" />
+    <link rel="stylesheet" href="../Web/assets/css/siguppys.css" />
   </head>
   <body data-page="resumen">
     <?php $rutaBase = '../'; ?>

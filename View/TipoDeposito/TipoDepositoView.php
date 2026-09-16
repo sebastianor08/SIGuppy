@@ -144,7 +144,7 @@ CSS;
     </div>
 
 <?php
-    $pageScripts = ['assets/js/siguppys-tipos-deposito.js'];
+    $pageScripts = ['Web/assets/js/siguppys-tipos-deposito.js'];
     include '../partials/footer.php';
 ?>
 </body>

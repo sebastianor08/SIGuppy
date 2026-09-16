@@ -14,7 +14,7 @@
                     echo "<div class='main-header-logo'>";
                         echo "<div class='logo-header siguppys-logo-header' data-background-color='white'>";
                             echo "<a href='Index.php' class='logo siguppys-logo'>";
-                                echo "<span class='siguppys-pin'><img src='../assets/img/siguppys/logo-pin.png' alt='SIGuppys' /></span>";
+                                echo "<span class='siguppys-pin'><img src='../Web/assets/img/siguppys/logo-pin.png' alt='SIGuppys' /></span>";
                                 echo "<span class='siguppys-brand'><strong>SIGuppys</strong><small>Control Biológico contra el Dengue</small></span>";
                             echo "</a>";
                             echo "<div class='nav-toggle'>";

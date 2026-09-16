@@ -102,7 +102,7 @@
     </div>
 
 <?php
-    $pageScripts = ['assets/js/siguppys-acciones-zoocriadero.js'];
+    $pageScripts = ['Web/assets/js/siguppys-acciones-zoocriadero.js'];
     include '../partials/footer.php';
 ?>
   </body>
