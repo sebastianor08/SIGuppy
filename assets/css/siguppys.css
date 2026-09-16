@@ -389,14 +389,24 @@ body[data-background-color="dark"] .settings-option strong {
 /* =========================================================
    Modo daltonismo — 4 paletas según el tipo elegido
    =========================================================
-   Sustituye el par rojo/verde de los estados (Activo/Inhabilitado,
-   iconos de éxito/peligro) por una paleta adecuada al tipo de
-   daltonismo activo (body[data-daltonismo="..."]), manteniendo
-   siempre el texto como apoyo, no solo el color. Acromatopsia además
-   suma un ícono (✓ / ✕), porque ahí el color no ayuda en nada. */
+   Sustituye el trío rojo/verde/naranja (estados Activo/Inhabilitado,
+   iconos de éxito/peligro Y los botones normales de acción: Guardar
+   =verde, Eliminar/Inhabilitar =rojo, Restaurar/advertencia =naranja)
+   por una paleta adecuada al tipo de daltonismo activo
+   (body[data-daltonismo="..."]), manteniendo siempre el texto como
+   apoyo, no solo el color. Acromatopsia además suma un ícono (✓ / ✕ / !),
+   porque ahí el color no ayuda en nada.
+
+   --sig-activo-*   reemplaza al verde   (éxito / Guardar / Habilitar)
+   --sig-inactivo-* reemplaza al rojo    (peligro / Eliminar / Inhabilitar)
+   --sig-warning-*  reemplaza al naranja (advertencia / Restaurar)
+   El azul primario (--bs-primary, sidebar, botones "Guardar" que ya
+   son btn-primary) NO se toca: no forma parte del par rojo/verde y no
+   genera confusión de daltonismo. */
 
 /* Protanopia y deuteranopia (rojo-verde, las más comunes):
-   azul / naranja. */
+   azul / naranja / púrpura rojizo (paleta Okabe-Ito, las 3 se
+   distinguen bien entre sí aunque no distingas rojo de verde). */
 body[data-daltonismo="protanopia"],
 body[data-daltonismo="deuteranopia"] {
   --sig-activo-color: #0072b2;
@@ -404,16 +414,22 @@ body[data-daltonismo="deuteranopia"] {
   --sig-inactivo-color: #966400;
   --sig-inactivo-bg: rgba(230, 159, 0, 0.18);
   --sig-inactivo-border: #e69f00;
+  --sig-warning-color: #a3005c;
+  --sig-warning-bg: rgba(204, 121, 167, 0.2);
+  --sig-warning-border: #cc79a7;
 }
 
-/* Tritanopia (azul-amarillo): verde azulado / rojo ladrillo, un
-   par que no depende de distinguir azul de amarillo. */
+/* Tritanopia (azul-amarillo): verde azulado / rojo ladrillo / púrpura
+   rojizo, un trío que no depende de distinguir azul de amarillo. */
 body[data-daltonismo="tritanopia"] {
   --sig-activo-color: #009e73;
   --sig-activo-bg: rgba(0, 158, 115, 0.14);
   --sig-inactivo-color: #a83c00;
   --sig-inactivo-bg: rgba(213, 94, 0, 0.18);
   --sig-inactivo-border: #d55e00;
+  --sig-warning-color: #a3005c;
+  --sig-warning-bg: rgba(204, 121, 167, 0.2);
+  --sig-warning-border: #cc79a7;
 }
 
 /* Acromatopsia (sin percepción de color, solo grises): el color no
@@ -424,8 +440,12 @@ body[data-daltonismo="acromatopsia"] {
   --sig-inactivo-color: #1a1a1a;
   --sig-inactivo-bg: rgba(26, 26, 26, 0.18);
   --sig-inactivo-border: #1a1a1a;
+  --sig-warning-color: #1a1a1a;
+  --sig-warning-bg: rgba(26, 26, 26, 0.35);
+  --sig-warning-border: #1a1a1a;
 }
 
+/* ---- Etiquetas de estado (badge-estado) ---- */
 body[data-daltonismo] .badge-estado.activo {
   background: var(--sig-activo-bg);
   color: var(--sig-activo-color);
@@ -440,12 +460,16 @@ body[data-daltonismo="acromatopsia"] .badge-estado.activo::before {
 body[data-daltonismo="acromatopsia"] .badge-estado.inactivo::before {
   content: "✕ ";
 }
+
+/* ---- Íconos de tarjetas de resumen ---- */
 body[data-daltonismo] .card-stats .icon-big.icon-success {
   background: var(--sig-activo-color) !important;
 }
 body[data-daltonismo] .card-stats .icon-big.icon-danger {
   background: var(--sig-inactivo-border) !important;
 }
+
+/* ---- Íconos de acciones en tablas (Habilitar / Inhabilitar) ---- */
 body[data-daltonismo] .table-actions .btn-icon.text-danger {
   color: var(--sig-inactivo-color);
   border-color: var(--sig-inactivo-border);
@@ -461,6 +485,8 @@ body[data-daltonismo] .table-actions .btn-icon.text-success:hover {
   color: var(--sig-activo-color);
   border-color: var(--sig-activo-color);
 }
+
+/* ---- Botón de cerrar sesión ---- */
 body[data-daltonismo] .btn-logout {
   border-color: var(--sig-inactivo-border);
   color: var(--sig-inactivo-color);
@@ -468,6 +494,84 @@ body[data-daltonismo] .btn-logout {
 body[data-daltonismo] .btn-logout:hover {
   background: var(--sig-inactivo-border);
   color: #fff;
+}
+
+/* ---- Botones normales de acción (Guardar, Eliminar, Restaurar...) ----
+   El azul (btn-primary) no se toca a propósito: solo se remapean los
+   colores que forman el par/trío problemático rojo-verde-naranja. */
+body[data-daltonismo] .btn-success,
+body[data-daltonismo] .btn-success:hover,
+body[data-daltonismo] .btn-success:focus {
+  background: var(--sig-activo-color) !important;
+  border-color: var(--sig-activo-color) !important;
+}
+body[data-daltonismo] .btn-outline-success {
+  --bs-btn-color: var(--sig-activo-color);
+  --bs-btn-border-color: var(--sig-activo-color);
+  --bs-btn-hover-bg: var(--sig-activo-color);
+  --bs-btn-hover-border-color: var(--sig-activo-color);
+  --bs-btn-active-bg: var(--sig-activo-color);
+  --bs-btn-active-border-color: var(--sig-activo-color);
+}
+body[data-daltonismo] .btn-danger,
+body[data-daltonismo] .btn-danger:hover,
+body[data-daltonismo] .btn-danger:focus {
+  background: var(--sig-inactivo-border) !important;
+  border-color: var(--sig-inactivo-border) !important;
+}
+body[data-daltonismo] .btn-outline-danger {
+  --bs-btn-color: var(--sig-inactivo-border);
+  --bs-btn-border-color: var(--sig-inactivo-border);
+  --bs-btn-hover-bg: var(--sig-inactivo-border);
+  --bs-btn-hover-border-color: var(--sig-inactivo-border);
+  --bs-btn-active-bg: var(--sig-inactivo-border);
+  --bs-btn-active-border-color: var(--sig-inactivo-border);
+}
+body[data-daltonismo] .btn-warning,
+body[data-daltonismo] .btn-warning:hover,
+body[data-daltonismo] .btn-warning:focus {
+  background: var(--sig-warning-border) !important;
+  border-color: var(--sig-warning-border) !important;
+  color: #fff !important;
+}
+body[data-daltonismo] .btn-outline-warning {
+  --bs-btn-color: var(--sig-warning-border);
+  --bs-btn-border-color: var(--sig-warning-border);
+  --bs-btn-hover-bg: var(--sig-warning-border);
+  --bs-btn-hover-border-color: var(--sig-warning-border);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: var(--sig-warning-border);
+  --bs-btn-active-border-color: var(--sig-warning-border);
+}
+
+/* ---- Badges sueltos bg-success / bg-danger / bg-warning (por si
+   algún módulo futuro los usa en vez de .badge-estado) ---- */
+body[data-daltonismo] .badge.bg-success {
+  background-color: var(--sig-activo-color) !important;
+}
+body[data-daltonismo] .badge.bg-danger {
+  background-color: var(--sig-inactivo-border) !important;
+}
+body[data-daltonismo] .badge.bg-warning {
+  background-color: var(--sig-warning-border) !important;
+  color: #fff !important;
+}
+
+/* ---- Acromatopsia: refuerzo con ícono en botones de acción, porque
+   ahí el color por sí solo no comunica nada ---- */
+body[data-daltonismo="acromatopsia"] .btn-success::before {
+  content: "✓ ";
+}
+body[data-daltonismo="acromatopsia"] .btn-outline-success::before {
+  content: "✓ ";
+}
+body[data-daltonismo="acromatopsia"] .btn-danger::before,
+body[data-daltonismo="acromatopsia"] .btn-outline-danger::before {
+  content: "✕ ";
+}
+body[data-daltonismo="acromatopsia"] .btn-warning::before,
+body[data-daltonismo="acromatopsia"] .btn-outline-warning::before {
+  content: "! ";
 }
 
 /* ---- Página Configuraciones: tarjetas de preferencia ---- */
