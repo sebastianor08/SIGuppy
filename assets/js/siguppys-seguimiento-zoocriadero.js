@@ -1,15 +1,15 @@
 /* =========================================================
-   SIGuppys — Seguimiento de Zoocriadero
-   =========================================================
-   Todo sale de PostgreSQL a través del router MVC:
-     Web/ajax.php?modulo=SeguimientoZoocriadero&controlador=SeguimientoZoocriadero&funcion=...
+  SIGuppys — Seguimiento de Zoocriadero
+  =========================================================
+  Todo sale de PostgreSQL a través del router MVC:
+  Web/ajax.php?modulo=SeguimientoZoocriadero&controlador=SeguimientoZoocriadero&funcion=...
 
-     zoocriaderos -> GET  llena el select "Zoocriadero"
-     tanques      -> GET  llena el select "Tanque" del zoocriadero elegido
-     acciones     -> GET  llena el select "Acción" (tabla actividad)
-     historial    -> GET  tabla de seguimientos registrados
-     postCreate   -> POST INSERT en seguimiento_zoocriadero
-     postUpdate   -> POST UPDATE del seguimiento que se está editando
+    zoocriaderos -> GET  llena el select "Zoocriadero"
+    tanques      -> GET  llena el select "Tanque" del zoocriadero elegido
+    acciones     -> GET  llena el select "Acción" (tabla actividad)
+    historial    -> GET  tabla de seguimientos registrados
+    postCreate   -> POST INSERT en seguimiento_zoocriadero
+    postUpdate   -> POST UPDATE del seguimiento que se está editando
    ========================================================= */
 (function () {
   "use strict";
@@ -29,8 +29,20 @@
   var phInput = document.getElementById("ph");
   var temperaturaInput = document.getElementById("temperatura");
   var sembradosInput = document.getElementById("numero_sembrados");
-  var nacidosInput = document.getElementById("numero_nacidos");
-  var muertosInput = document.getElementById("numero_muertos");
+  var nacidosHembraInput = document.getElementById("numero_nacidos_hembra");
+  var nacidosMachoInput = document.getElementById("numero_nacidos_macho");
+  var muertosHembraInput = document.getElementById("numero_muertos_hembra");
+  var muertosMachoInput = document.getElementById("numero_muertos_macho");
+  var totalNacidosMuertosEl = document.getElementById("totalNacidosMuertos");
+
+  function actualizarTotales() {
+    var totalNacidos = (Number(nacidosHembraInput.value) || 0) + (Number(nacidosMachoInput.value) || 0);
+    var totalMuertos = (Number(muertosHembraInput.value) || 0) + (Number(muertosMachoInput.value) || 0);
+    totalNacidosMuertosEl.textContent = totalNacidos + " / " + totalMuertos;
+  }
+  [nacidosHembraInput, nacidosMachoInput, muertosHembraInput, muertosMachoInput].forEach(function (input) {
+    input.addEventListener("input", actualizarTotales);
+  });
   var obsInput = document.getElementById("observaciones");
   var obsCount = document.getElementById("observacionesCount");
   var message = document.getElementById("seguimientoMessage");
@@ -106,15 +118,15 @@
 
     tanqueSelect.innerHTML = tanques.length
       ? '<option value="">Seleccione un tanque</option>' +
-        tanques
-          .map(function (t) {
-            var sel = String(t.id_tanque) === String(seleccionado) ? " selected" : "";
-            return (
-              '<option value="' + t.id_tanque + '"' + sel + ">Tanque " +
-              escapeHtml(t.numero_tanque) + " - " + escapeHtml(t.tipo_tanque) + "</option>"
-            );
-          })
-          .join("")
+      tanques
+        .map(function (t) {
+          var sel = String(t.id_tanque) === String(seleccionado) ? " selected" : "";
+          return (
+            '<option value="' + t.id_tanque + '"' + sel + ">Tanque " +
+            escapeHtml(t.numero_tanque) + " - " + escapeHtml(t.tipo_tanque) + "</option>"
+          );
+        })
+        .join("")
       : '<option value="">No hay tanques activos para este zoocriadero</option>';
     tanqueSelect.disabled = tanques.length === 0;
   }
@@ -178,8 +190,11 @@
     phInput.value = s.ph || "";
     temperaturaInput.value = s.temperatura || "";
     sembradosInput.value = s.numero_sembrados;
-    nacidosInput.value = s.numero_nacidos;
-    muertosInput.value = s.numero_muertos;
+    nacidosHembraInput.value = s.numero_nacidos_hembra;
+    nacidosMachoInput.value = s.numero_nacidos_macho;
+    muertosHembraInput.value = s.numero_muertos_hembra;
+    muertosMachoInput.value = s.numero_muertos_macho;
+    actualizarTotales();
     obsInput.value = s.observaciones || "";
     obsCount.textContent = obsInput.value.length;
     accionSelect.value = s.id_actividad || "";
@@ -255,8 +270,10 @@
       ph: phInput.value,
       temperatura: temperaturaInput.value,
       numero_sembrados: Number(sembradosInput.value),
-      numero_nacidos: Number(nacidosInput.value),
-      numero_muertos: Number(muertosInput.value),
+      numero_nacidos_hembra: Number(nacidosHembraInput.value),
+      numero_nacidos_macho: Number(nacidosMachoInput.value),
+      numero_muertos_hembra: Number(muertosHembraInput.value),
+      numero_muertos_macho: Number(muertosMachoInput.value),
       observaciones: obsInput.value.trim(),
       id_actividad: Number(accionSelect.value),
     };

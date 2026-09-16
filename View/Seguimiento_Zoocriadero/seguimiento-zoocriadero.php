@@ -91,17 +91,29 @@
                   <label class="form-label" for="temperatura">Temperatura °C <span class="text-muted small">(opcional)</span></label>
                   <input type="number" step="0.01" class="form-control" id="temperatura" name="temperatura" placeholder="26.50" />
                 </div>
-                <div class="col-md-2">
+                                <div class="col-md-2">
                   <label class="form-label" for="numero_sembrados">Peces sembrados</label>
                   <input type="number" min="0" step="1" value="0" class="form-control" id="numero_sembrados" name="numero_sembrados" required />
                 </div>
                 <div class="col-md-2">
-                  <label class="form-label" for="numero_nacidos">Peces nacidos</label>
-                  <input type="number" min="0" step="1" value="0" class="form-control" id="numero_nacidos" name="numero_nacidos" required />
+                  <label class="form-label" for="numero_nacidos_hembra">Hembras nacidas</label>
+                  <input type="number" min="0" step="1" value="0" class="form-control" id="numero_nacidos_hembra" name="numero_nacidos_hembra" required />
                 </div>
                 <div class="col-md-2">
-                  <label class="form-label" for="numero_muertos">Peces muertos</label>
-                  <input type="number" min="0" step="1" value="0" class="form-control" id="numero_muertos" name="numero_muertos" required />
+                  <label class="form-label" for="numero_nacidos_macho">Machos nacidos</label>
+                  <input type="number" min="0" step="1" value="0" class="form-control" id="numero_nacidos_macho" name="numero_nacidos_macho" required />
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label" for="numero_muertos_hembra">Hembras muertas</label>
+                  <input type="number" min="0" step="1" value="0" class="form-control" id="numero_muertos_hembra" name="numero_muertos_hembra" required />
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label" for="numero_muertos_macho">Machos muertos</label>
+                  <input type="number" min="0" step="1" value="0" class="form-control" id="numero_muertos_macho" name="numero_muertos_macho" required />
+                </div>
+                <div class="col-md-2">
+                  <span class="form-label d-block">Total nacidos / muertos</span>
+                  <span class="form-control-plaintext fw-bold" id="totalNacidosMuertos">0 / 0</span>
                 </div>
                 <div class="col-md-4">
                   <label class="form-label" for="id_actividad">Acción</label>
