@@ -1,6 +1,3 @@
-/* Estilos personalizados para el Login de SIGuppy */
-
-
 body {
     background: linear-gradient(135deg, #e9ecef 0%, #dbe2ef 100%);
     min-height: 100vh;
@@ -11,63 +8,61 @@ body {
     margin: 0;
 }
 
+/* Tarjeta de login estilizada y amplia */
 .login-card {
     background: #ffffff;
     border-radius: 20px;
     box-shadow: 0px 15px 35px rgba(0, 0, 0, 0.1);
-    padding: 40px 35px;
+    padding: 35px 45px;
     width: 100%;
-    max-width: 460px;
-    transition: transform 0.3s ease;
+    max-width: 540px;
+    position: relative;
 }
 
-.login-card:hover {
-    transform: translateY(-3px);
-}
-
-/* Alineación y tamaño de logos */
-.logo-header {
+/* Alineación del logo institucional arriba a la izquierda */
+.top-header {
     display: flex;
-    justify-content: space-around;
-    align-items: center;
-    margin-bottom: 25px;
-    gap: 15px;
+    justify-content: flex-start;
+    margin-bottom: 10px;
 }
 
-.logo-header img {
-    max-height: 75px; /* Logos más grandes */
+.logo-secretaria {
+    height: 60px;
     width: auto;
     object-fit: contain;
 }
 
-/* Campos de entrada */
+/* Logo SIGuppy centrado y destacado */
+.logo-siguppy {
+    height: 95px;
+    width: auto;
+    object-fit: contain;
+}
+
 .form-control {
-    height: 45px;
+    height: 48px;
+    font-size: 14px;
 }
 
 .form-control:focus {
     box-shadow: none;
-    border-color: #17a2b8;
+    border-color: #009688;
 }
 
-.input-group-text {
-    border-color: #ced4da;
-}
-
-/* Botón principal */
+/* Botón estilizado con el color de SIGuppy */
 .btn-info-custom {
-    background-color: #17a2b8;
+    background-color: #009688;
     border: none;
     color: #ffffff;
     font-weight: 700;
-    padding: 12px;
+    padding: 13px;
     border-radius: 10px;
-    font-size: 15px;
+    font-size: 16px;
     transition: all 0.3s ease;
 }
 
 .btn-info-custom:hover {
-    background-color: #138496;
+    background-color: #00796b;
     color: #ffffff;
-    box-shadow: 0px 5px 15px rgba(23, 162, 184, 0.4);
+    box-shadow: 0px 5px 15px rgba(0, 150, 136, 0.3);
 }
