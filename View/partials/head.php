@@ -11,11 +11,11 @@
 
     <title><?php echo htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8'); ?> · SIGuppys</title>
 
-    <link rel="icon" href="<?php echo $basePath; ?>assets/img/siguppys/favicon-32.png" type="image/png">
-    <link rel="apple-touch-icon" href="<?php echo $basePath; ?>assets/img/siguppys/favicon-180.png">
+    <link rel="icon" href="<?php echo $basePath; ?>Web/assets/img/siguppys/favicon-32.png" type="image/png">
+    <link rel="apple-touch-icon" href="<?php echo $basePath; ?>Web/assets/img/siguppys/favicon-180.png">
 
     <!-- Fuentes e iconos -->
-    <script src="<?php echo $basePath; ?>assets/js/plugin/webfont/webfont.min.js"></script>
+    <script src="<?php echo $basePath; ?>Web/assets/js/plugin/webfont/webfont.min.js"></script>
     <script>
       WebFont.load({
         google: { families: ["Public Sans:300,400,500,600,700"] },
@@ -26,19 +26,19 @@
             "Font Awesome 5 Brands",
             "simple-line-icons"
           ],
-          urls: ["<?php echo $basePath; ?>assets/css/fonts.min.css"]
+          urls: ["<?php echo $basePath; ?>Web/assets/css/fonts.min.css"]
         },
         active: function () { sessionStorage.fonts = true; }
       });
     </script>
 
     <!-- CSS del template (mismos archivos en todas las vistas) -->
-    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/plugins.min.css">
-    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/kaiadmin.min.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/plugins.min.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/kaiadmin.min.css">
 
     <!-- Estilos propios de SIGuppys: solo AGREGAN reglas encima del kaiadmin.css original -->
-    <link rel="stylesheet" href="<?php echo $basePath; ?>assets/css/siguppys.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/siguppys.css">
     <?php if(!empty($extraStyles)): ?>
     <style>
 <?php echo $extraStyles; ?>

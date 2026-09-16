@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Resumen · SIGuppys</title>
+    <title>Inicio · SIGuppys</title>
     <meta
       content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
       name="viewport"
     />
-    <link rel="icon" href="../assets/img/siguppys/favicon-32.png" type="image/png" />
-    <link rel="apple-touch-icon" href="../assets/img/siguppys/favicon-180.png" />
+    <link rel="icon" href="../Web/assets/img/siguppys/favicon-32.png" type="image/png" />
+    <link rel="apple-touch-icon" href="../Web/assets/img/siguppys/favicon-180.png" />
 
     <!-- Fonts and icons -->
-    <script src="../assets/js/plugin/webfont/webfont.min.js"></script>
+    <script src="../Web/assets/js/plugin/webfont/webfont.min.js"></script>
     <script>
       WebFont.load({
         google: { families: ["Public Sans:300,400,500,600,700"] },
@@ -23,7 +23,7 @@
             "Font Awesome 5 Brands",
             "simple-line-icons",
           ],
-          urls: ["../assets/css/fonts.min.css"],
+          urls: ["../Web/assets/css/fonts.min.css"],
         },
         active: function () {
           sessionStorage.fonts = true;
@@ -32,14 +32,14 @@
     </script>
 
     <!-- CSS Files (mismos del template, sin modificar) -->
-    <link rel="stylesheet" href="../assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="../assets/css/plugins.min.css" />
-    <link rel="stylesheet" href="../assets/css/kaiadmin.min.css" />
+    <link rel="stylesheet" href="../Web/assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../Web/assets/css/plugins.min.css" />
+    <link rel="stylesheet" href="../Web/assets/css/kaiadmin.min.css" />
 
     <!-- Estilos propios de SIGuppys: solo AGREGAN reglas encima del kaiadmin.css original -->
-    <link rel="stylesheet" href="../assets/css/siguppys.css" />
+    <link rel="stylesheet" href="../Web/assets/css/siguppys.css" />
   </head>
-  <body data-page="resumen">
+  <body data-page="inicio">
     <?php $rutaBase = '../'; ?>
     <div class="wrapper">
       <?php include '../View/partials/sidebar.php'; ?>
@@ -50,8 +50,8 @@
           <div class="page-inner">
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
               <div>
-                <h3 class="fw-bold mb-3">Resumen</h3>
-                <h6 class="op-7 mb-2">Inicio / Resumen</h6>
+                <h3 class="fw-bold mb-3">Inicio</h3>
+                <h6 class="op-7 mb-2">Inicio</h6>
               </div>
             </div>
             <div class="row">
@@ -181,8 +181,17 @@
               </div>
               <div class="col-md-5">
                 <div class="card">
+                  <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <h4 class="card-title">Mapa de zoocriaderos y depósitos</h4>
+                    </div>
+                    <div id="mapaFiltros" class="d-flex flex-wrap gap-2 mt-2 small"></div>
+                  </div>
                   <div class="card-body">
-                    <!-- Espacio reservado: aquí irá contenido nuevo (ya no son los accesos rápidos) -->
+                    <!-- Lo pinta assets/js/siguppys-mapa-resumen.js, que ya existía pero nunca
+                         se había conectado a ninguna vista: solo necesitaba este contenedor,
+                         Leaflet cargado, y el <script> incluido más abajo. -->
+                    <div id="mapaResumen" style="height: 360px; border-radius: 8px;"></div>
                   </div>
                 </div>
               </div>
@@ -192,8 +201,16 @@
       </div>
     </div>
 
+<!-- Leaflet: libreria del mapa. Se carga por CDN porque no viene incluida en
+     Web/assets/js/plugin (a diferencia del resto de librerias del template,
+     que sí están vendorizadas localmente). Si se prefiere, se puede descargar
+     leaflet.js/leaflet.css y moverlos a Web/assets/js/plugin/leaflet/ más
+     adelante sin tocar nada más: solo cambiarían estas dos rutas. -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <?php
     $basePath    = '../';
-    $pageScripts = [];
+    $pageScripts = ['Web/assets/js/siguppys-mapa-resumen.js'];
     include '../View/partials/footer.php';
 ?>

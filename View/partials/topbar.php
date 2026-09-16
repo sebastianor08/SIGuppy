@@ -3,7 +3,7 @@
   // Navbar superior de SIGuppys (logo del header + selector de rol)
   // =========================================================
   // Igual que sidebar.php, usa $rutaBase (declarada por la vista)
-  // para las rutas de assets/links según su profundidad.
+  // para las rutas de Web/assets/links según su profundidad.
   if (!isset($rutaBase)) {
       $rutaBase = '../../';
   }
@@ -13,7 +13,7 @@
     <div class="logo-header siguppys-logo-header" data-background-color="white">
       <a href="<?php echo $rutaBase; ?>Web/index.php" class="logo siguppys-logo">
         <span class="siguppys-pin">
-          <img src="<?php echo $rutaBase; ?>assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
+          <img src="<?php echo $rutaBase; ?>Web/assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
         </span>
         <span class="siguppys-brand">
           <strong>SIGuppys</strong>

@@ -33,27 +33,27 @@
     <title>Login - SIGuppy</title>
     
     <!-- CSS de Bootstrap y Kaiadmin (Ruta relativa desde la raíz SIGuppy) -->
-    <link rel="stylesheet" href="../../assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../../assets/css/plugins.min.css">
-    <link rel="stylesheet" href="../../assets/css/kaiadmin.min.css">
+    <link rel="stylesheet" href="../../Web/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../Web/assets/css/plugins.min.css">
+    <link rel="stylesheet" href="../../Web/assets/css/kaiadmin.min.css">
     
     <!-- Iconos Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Estilos personalizados -->
-    <link rel="stylesheet" href="../../assets/css/login.css">
+    <link rel="stylesheet" href="../../Web/assets/css/login.css">
 </head>
 <body>
 
     <div class="login-card">
         <!-- Logo institucional a la izquierda -->
         <div class="top-header">
-            <img src="../../assets/img/.png" class="logo-secretaria" alt="">
+            <img src="../../Web/assets/img/logo-secretaria-salud.png" class="logo-secretaria" alt="">
         </div>
 
         <!-- Logo SIGuppy centrado y más visible -->
         <div class="text-center mb-3">
-            <img src="../../assets/img/mas profundoo.png" class="logo-siguppy" alt="SIGuppy">
+            <img src="../../Web/assets/img/SIGUPPY.png" class="logo-siguppy" alt="SIGuppy">
             <h3 class="fw-bold text-dark mt-2 mb-1"></h3>
             <p class="text-muted small"></p>
         </div>

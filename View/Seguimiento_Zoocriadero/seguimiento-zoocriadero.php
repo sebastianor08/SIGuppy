@@ -5,20 +5,20 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Registrar Seguimiento · SIGuppys</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
-  <link rel="icon" href="../../assets/img/siguppys/favicon-32.png" type="image/png" />
-  <link rel="apple-touch-icon" href="../../assets/img/siguppys/favicon-180.png" />
-  <script src="../../assets/js/plugin/webfont/webfont.min.js"></script>
+  <link rel="icon" href="../../Web/assets/img/siguppys/favicon-32.png" type="image/png" />
+  <link rel="apple-touch-icon" href="../../Web/assets/img/siguppys/favicon-180.png" />
+  <script src="../../Web/assets/js/plugin/webfont/webfont.min.js"></script>
   <script>
     WebFont.load({
       google: { families: ["Public Sans:300,400,500,600,700"] },
-      custom: { families: ["Font Awesome 5 Solid","Font Awesome 5 Regular","Font Awesome 5 Brands","simple-line-icons"], urls: ["../../assets/css/fonts.min.css"] },
+      custom: { families: ["Font Awesome 5 Solid","Font Awesome 5 Regular","Font Awesome 5 Brands","simple-line-icons"], urls: ["../../Web/assets/css/fonts.min.css"] },
       active: function () { sessionStorage.fonts = true; }
     });
   </script>
-  <link rel="stylesheet" href="../../assets/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="../../assets/css/plugins.min.css" />
-  <link rel="stylesheet" href="../../assets/css/kaiadmin.min.css" />
-  <link rel="stylesheet" href="../../assets/css/siguppys.css" />
+  <link rel="stylesheet" href="../../Web/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="../../Web/assets/css/plugins.min.css" />
+  <link rel="stylesheet" href="../../Web/assets/css/kaiadmin.min.css" />
+  <link rel="stylesheet" href="../../Web/assets/css/siguppys.css" />
 </head>
 <body data-page="seguimiento-zoocriadero">
 <div class="wrapper">
@@ -172,7 +172,7 @@
     </div>
 
 <?php
-    $pageScripts = ['assets/js/siguppys-seguimiento-zoocriadero.js'];
+    $pageScripts = ['Web/assets/js/siguppys-seguimiento-zoocriadero.js'];
     include '../partials/footer.php';
 ?>
 

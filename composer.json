@@ -1,0 +1,7 @@
+{
+    "name": "siguppys/siguppys",
+    "description": "SIGuppys - Sistema de Informacion Geografica para el control biologico contra el dengue",
+    "require": {
+        "phpmailer/phpmailer": "^6.9"
+    }
+}

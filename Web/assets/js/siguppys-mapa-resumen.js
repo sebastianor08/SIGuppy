@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  if (document.body.getAttribute("data-page") !== "resumen") return;
+  if (document.body.getAttribute("data-page") !== "inicio") return;
 
   var mapaEl = document.getElementById("mapaResumen");
   if (!mapaEl) return;
