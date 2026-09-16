@@ -1,3 +1,30 @@
+<!-- Mensajes de Excepciones según requerimientos -->
+<?php if (isset($_GET['error'])): ?>
+    <?php if ($_GET['error'] === 'inactive'): ?>
+        <div class="alert alert-warning py-2 small text-center mb-3">
+            Su cuenta se encuentra inactiva. Contacte al Administrador.
+        </div>
+    <?php elseif ($_GET['error'] === 'blocked'): ?>
+        <div class="alert alert-danger py-2 small text-center mb-3">
+            Ha superado el límite de 5 intentos fallidos. Su cuenta ha sido bloqueada temporalmente. Intente nuevamente en <?php echo htmlspecialchars($_GET['minutos'] ?? '15'); ?> minutos.
+        </div>
+    <?php elseif ($_GET['error'] === 'invalid'): ?>
+        <div class="alert alert-danger py-2 small text-center mb-3">
+            Credenciales incorrectas. 
+            <?php if (isset($_GET['intentos'])): ?>
+                (Te quedan <?php echo htmlspecialchars($_GET['intentos']); ?> intentos)
+            <?php endif; ?>
+        </div>
+    <?php elseif ($_GET['error'] === 'empty'): ?>
+        <div class="alert alert-info py-2 small text-center mb-3">
+            Por favor, complete todos los campos requeridos.
+        </div>
+    <?php elseif ($_GET['error'] === 'system'): ?>
+        <div class="alert alert-danger py-2 small text-center mb-3">
+            Ocurrió un error en el sistema. Intente de nuevo más tarde.
+        </div>
+    <?php endif; ?>
+<?php endif; ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>

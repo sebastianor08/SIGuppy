@@ -20,11 +20,11 @@
 
     <div class="login-card">
         <div class="top-header">
-            <img src="assets/img/logo_secretaria.png" class="logo-secretaria" alt="Secretaría de Salud">
+            <img src="assets/img/mas profundoo.png" class="logo-secretaria" alt="Secretaría de Salud">
         </div>
 
         <div class="text-center mb-3">
-            <img src="assets/img/logo_siguppy.png" class="logo-siguppy" alt="SIGuppy">
+            <img src="assets/img/SIGUPPY.png" class="logo-siguppy" alt="SIGuppy">
             <div class="slogan-text mt-1">Control biológico contra el dengue</div>
         </div>
 
