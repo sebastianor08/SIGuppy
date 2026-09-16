@@ -7,7 +7,7 @@ function obtenerDatosSitiosPorDeposito()
     // ---------------------------------------------------------
     require __DIR__ . '/../../lib/conf/conf.php';
 
-    $conexion = pg_connect("host=localhost dbname=DB_Dengue_SIGuppy user=postgres password=Liliannys2008");
+$conexion = pg_connect("host=$host port=$port dbname=$database user=$user password=$password");
 
     if (!$conexion) {
         die("No se pudo conectar a la base de datos");

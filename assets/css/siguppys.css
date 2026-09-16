@@ -657,3 +657,113 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
   color: #9ea5b5 !important;
   border-color: #36405a !important;
 }
+
+/* ============================================================
+   Anula el "flyout" de kaiadmin: al pasar el mouse sobre el
+   sidebar colapsado (icono), el template lo expande flotando
+   ENCIMA del contenido (sidebar_minimize_hover) en vez de
+   empujarlo. Si esa clase queda pegada tras un segundo clic,
+   se ve como si el sidebar tapara los reportes. Con esto, el
+   sidebar colapsado se queda colapsado (75px) siempre, y solo
+   cambia de tamaño con el clic del botón de colapsar/expandir,
+   nunca por hover.
+   ============================================================ */
+.sidebar_minimize_hover .sidebar,
+.sidebar_minimize.sidebar_minimize_hover .sidebar {
+  width: 75px;
+  position: relative;
+}
+
+.sidebar_minimize_hover .sidebar .logo-header,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .logo-header {
+  width: 75px;
+  padding: 0;
+  text-align: center;
+}
+
+.sidebar_minimize_hover .sidebar .logo-header .logo,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .logo-header .logo {
+  position: absolute !important;
+  transform: translate3d(25px, 0, 0) !important;
+  opacity: 0 !important;
+}
+
+.sidebar_minimize_hover .sidebar .logo-header .logo img,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .logo-header .logo img {
+  display: none !important;
+}
+
+.sidebar_minimize_hover .sidebar .sidebar-wrapper,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper {
+  width: 75px;
+}
+
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a i,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a i {
+  margin-right: unset;
+}
+
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .badge,
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .caret,
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a p,
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a span,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .badge,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .caret,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a p,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a span {
+  display: none;
+}
+
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .sidebar-mini-icon,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .sidebar-mini-icon {
+  display: block !important;
+  margin-right: 0;
+}
+
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.active .nav-collapse,
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.submenu .nav-collapse,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.active .nav-collapse,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.submenu .nav-collapse {
+  display: none;
+}
+
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .sidebar-mini-icon,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .sidebar-mini-icon {
+  display: block;
+}
+
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .text-section,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .text-section {
+  display: none;
+}
+
+/* ============================================================
+   Por debajo de 991.5px (el mismo punto que usa kaiadmin para
+   su menú móvil), el sidebar SIEMPRE debe comportarse como
+   menú móvil: oculto por defecto, visible solo con el botón
+   que agrega "nav_open" a <html>. Sin esto, si el sidebar
+   quedó en modo "iconos" (sidebar_minimize) o en la vista
+   previa de hover a un ancho de pantalla más grande, esas
+   clases quedan pegadas y el menú no se adapta al redimensionar
+   la ventana del navegador: se queda empujando el contenido en
+   vez de esconderse. Esta regla ignora esas clases por completo
+   y deja que solo mande el tamaño real de la pantalla.
+   ============================================================ */
+@media (max-width: 991.5px) {
+  .sidebar {
+    transform: translate3d(-270px, 0, 0) !important;
+  }
+
+  html.nav_open .sidebar {
+    transform: translate3d(0, 0, 0) !important;
+  }
+
+  .main-panel,
+  .main-header {
+    width: 100% !important;
+  }
+
+  html.nav_open .main-panel {
+    transform: translate3d(265px, 0, 0) !important;
+  }
+}
