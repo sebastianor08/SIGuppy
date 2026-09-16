@@ -96,6 +96,10 @@
             </div>
 
             <button type="submit" class="btn btn-primary btn-info-custom w-100">Iniciar sesión</button>
+
+            <div class="text-center mt-3">
+                <p class="small text-muted mb-0">¿No tienes una cuenta? <a href="registro.php" class="text-info fw-bold text-decoration-none">Regístrate aquí</a></p>
+            </div>
         </form>
     </div>
 
