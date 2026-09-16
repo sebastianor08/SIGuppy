@@ -48,12 +48,12 @@
     <div class="login-card">
         <!-- Logo institucional a la izquierda -->
         <div class="top-header">
-            <img src="assets/img/mas profundoo.png" class="logo-secretaria" alt="Secretaría de Salud">
+            <img src="assets/img/.png" class="logo-secretaria" alt="Secretaría de Salud">
         </div>
 
         <!-- Logo SIGuppy centrado y más visible -->
         <div class="text-center mb-3">
-            <img src="assets/img/SIGUPPY.png" class="logo-siguppy" alt="SIGuppy">
+            <img src="assets/img/mas profundoo.png" class="logo-siguppy" alt="SIGuppy">
             <h3 class="fw-bold text-dark mt-2 mb-1"></h3>
             <p class="text-muted small"></p>
         </div>
