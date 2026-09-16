@@ -5,21 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Validación de código - SIGuppy</title>
     
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/kaiadmin.min.css">
+    <link rel="stylesheet" href="../../assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../assets/css/kaiadmin.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/login.css">
+    <link rel="stylesheet" href="../../assets/css/login.css">
 </head>
 <body>
 
     <div class="login-card">
         <!-- Header con Logos Grandes -->
         <div class="top-header">
-            <img src="assets/img/logo_secretaria.png" class="logo-secretaria" alt="Secretaría de Salud">
+            <img src="assets/img/.png" class="logo-secretaria" alt="Secretaría de Salud">
         </div>
 
         <div class="text-center mb-3">
-            <img src="assets/img/logo_siguppy.png" class="logo-siguppy" alt="SIGuppy">
+            <img src="../../assets/img/mas profundoo.png" class="logo-siguppy" alt="SIGuppy">
             <div class="slogan-text mt-1">Control biológico contra el dengue</div>
         </div>
 
