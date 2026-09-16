@@ -7,14 +7,17 @@ include_once '../Model/SeguimientoZoocriadero/SeguimientoZoocriaderoModel.php';
 //   Web/ajax.php?modulo=SeguimientoZoocriadero&controlador=SeguimientoZoocriadero&funcion=zoocriaderos
 // Web/index.php envuelve la respuesta en el layout (head/navbar/footer),
 // lo que rompería el JSON; ajax.php no agrega nada alrededor.
-class SeguimientoZoocriaderoController {
+class SeguimientoZoocriaderoController
+{
 
-    public function zoocriaderos() {
+    public function zoocriaderos()
+    {
         $obj = new SeguimientoZoocriaderoModel();
         jsonResponse(['ok' => true, 'data' => $obj->zoocriaderosActivos()]);
     }
 
-    public function tanques() {
+    public function tanques()
+    {
         $obj = new SeguimientoZoocriaderoModel();
         $idZoo = filter_var($_GET['id_zoocriadero'] ?? null, FILTER_VALIDATE_INT);
         if ($idZoo === false || $idZoo === null) {
@@ -23,17 +26,20 @@ class SeguimientoZoocriaderoController {
         jsonResponse(['ok' => true, 'data' => $obj->tanquesPorZoocriadero($idZoo)]);
     }
 
-    public function acciones() {
+    public function acciones()
+    {
         $obj = new SeguimientoZoocriaderoModel();
         jsonResponse(['ok' => true, 'data' => $obj->accionesActivas()]);
     }
 
-    public function historial() {
+    public function historial()
+    {
         $obj = new SeguimientoZoocriaderoModel();
         jsonResponse(['ok' => true, 'data' => $obj->historial()]);
     }
 
-    public function postCreate() {
+    public function postCreate()
+    {
         $obj  = new SeguimientoZoocriaderoModel();
         $body = requestJsonBody();
         $datos = $this->validar($body, $obj);
@@ -65,7 +71,8 @@ class SeguimientoZoocriaderoController {
     }
 
     // Edición: mismo formulario, pero hace UPDATE en vez de INSERT.
-    public function postUpdate() {
+    public function postUpdate()
+    {
         $obj  = new SeguimientoZoocriaderoModel();
         $body = requestJsonBody();
 
@@ -98,12 +105,15 @@ class SeguimientoZoocriaderoController {
     }
 
     // ---------- Validación compartida por postCreate y postUpdate ----------
-    private function validar($body, $obj) {
+    private function validar($body, $obj)
+    {
         $idZoo           = filter_var($body['id_zoocriadero'] ?? null, FILTER_VALIDATE_INT);
         $idTanque        = filter_var($body['id_tanque'] ?? null, FILTER_VALIDATE_INT);
         $idActividad     = filter_var($body['id_actividad'] ?? null, FILTER_VALIDATE_INT);
-        $numeroNacidos   = filter_var($body['numero_nacidos'] ?? 0, FILTER_VALIDATE_INT);
-        $numeroMuertos   = filter_var($body['numero_muertos'] ?? 0, FILTER_VALIDATE_INT);
+        $nacidosHembra   = filter_var($body['numero_nacidos_hembra'] ?? 0, FILTER_VALIDATE_INT);
+        $nacidosMacho    = filter_var($body['numero_nacidos_macho'] ?? 0, FILTER_VALIDATE_INT);
+        $muertosHembra   = filter_var($body['numero_muertos_hembra'] ?? 0, FILTER_VALIDATE_INT);
+        $muertosMacho    = filter_var($body['numero_muertos_macho'] ?? 0, FILTER_VALIDATE_INT);
         $numeroSembrados = filter_var($body['numero_sembrados'] ?? 0, FILTER_VALIDATE_INT);
         $fecha           = trim((string)($body['fecha'] ?? ''));
         $observaciones   = limpiar($body['observaciones'] ?? '');
@@ -119,11 +129,19 @@ class SeguimientoZoocriaderoController {
         if (!$idActividad) {
             jsonResponse(['ok' => false, 'message' => 'Debe seleccionar una acción.'], 422);
         }
-        if ($numeroNacidos === false || $numeroNacidos < 0 ||
-           $numeroMuertos === false || $numeroMuertos < 0 ||
-           $numeroSembrados === false || $numeroSembrados < 0) {
+        if (
+            $nacidosHembra === false || $nacidosHembra < 0 ||
+            $nacidosMacho === false || $nacidosMacho < 0 ||
+            $muertosHembra === false || $muertosHembra < 0 ||
+            $muertosMacho === false || $muertosMacho < 0 ||
+            $numeroSembrados === false || $numeroSembrados < 0
+        ) {
             jsonResponse(['ok' => false, 'message' => 'Los conteos de peces no pueden ser negativos.'], 422);
         }
+
+        // El total nunca lo escribe el usuario: siempre se calcula a partir del desglose por sexo EN ESTOS MOMENTOS.
+        $numeroNacidos = $nacidosHembra + $nacidosMacho;
+        $numeroMuertos = $muertosHembra + $muertosMacho;
 
         // Validar formato de fecha YYYY-MM-DD
         $fechaObj = DateTime::createFromFormat('Y-m-d', $fecha);
@@ -166,16 +184,20 @@ class SeguimientoZoocriaderoController {
         }
 
         return [
-            'id_zoocriadero'   => $idZoo,
-            'id_tanque'        => $idTanque,
-            'id_actividad'     => $idActividad,
-            'fecha'            => $fecha,
-            'ph'               => $ph,
-            'temperatura'      => $temperatura,
-            'numero_sembrados' => $numeroSembrados,
-            'numero_nacidos'   => $numeroNacidos,
-            'numero_muertos'   => $numeroMuertos,
-            'observaciones'    => $observaciones,
+            'id_zoocriadero'        => $idZoo,
+            'id_tanque'              => $idTanque,
+            'id_actividad'           => $idActividad,
+            'fecha'                  => $fecha,
+            'ph'                     => $ph,
+            'temperatura'            => $temperatura,
+            'numero_sembrados'       => $numeroSembrados,
+            'numero_nacidos'         => $numeroNacidos,
+            'numero_muertos'         => $numeroMuertos,
+            'numero_nacidos_hembra'  => $nacidosHembra,
+            'numero_nacidos_macho'   => $nacidosMacho,
+            'numero_muertos_hembra'  => $muertosHembra,
+            'numero_muertos_macho'   => $muertosMacho,
+            'observaciones'          => $observaciones,
         ];
     }
 }
