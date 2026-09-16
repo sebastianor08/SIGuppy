@@ -76,12 +76,22 @@ if (!isset($rutaBase)) {
           </div>
         </li>
 
-        <li class="nav-item">
-          <a href="<?php echo $rutaBase; ?>View/Zoocriadero/zoocriaderos.php" data-page="zoocriaderos">
+        <li class="nav-item submenu">
+          <a data-bs-toggle="collapse" href="#navZoocriaderos" aria-expanded="false">
             <i class="fas fa-warehouse"></i>
             <p>Zoocriaderos</p>
+            <span class="caret"></span>
           </a>
+          <div class="collapse" id="navZoocriaderos">
+            <ul class="nav nav-collapse">
+              <li><a href="<?php echo $rutaBase; ?>View/Zoocriadero/zoocriaderos.php" data-page="zoocriaderos"><span
+                    class="sub-item">Zoocriaderos</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Acciones/acciones.php" data-page="acciones-zoocriadero"><span
+                    class="sub-item">Acciones</span></a></li>
+            </ul>
+          </div>
         </li>
+
 
         <li class="nav-item submenu">
           <a data-bs-toggle="collapse" href="#navTerreno" aria-expanded="false">
@@ -108,8 +118,10 @@ if (!isset($rutaBase)) {
             <ul class="nav nav-collapse">
               <li><a href="#" data-page="usuarios-registrar"><span class="sub-item">Registrar Usuario</span></a></li>
               <li><a href="#" data-page="usuarios-consultar"><span class="sub-item">Consultar Usuarios</span></a></li>
-              <li><a href="<?php echo $rutaBase; ?>View/Roles/registro-roles.php" data-page="roles-registrar"><span class="sub-item">Roles y Permisos</span></a></li>
-              <li><a href="<?php echo $rutaBase; ?>View/Roles/consultar-roles.php" data-page="roles-consultar"><span class="sub-item">Consultar Roles</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Roles/registro-roles.php" data-page="roles-registrar"><span
+                    class="sub-item">Roles y Permisos</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Roles/consultar-roles.php" data-page="roles-consultar"><span
+                    class="sub-item">Consultar Roles</span></a></li>
             </ul>
           </div>
         </li>
