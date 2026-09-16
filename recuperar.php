@@ -59,7 +59,7 @@
             <div class="modal-content text-center p-4 border-0 rounded-4 shadow">
                 <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
                 <div class="modal-body pt-0">
-                    <div class="party-icon"></div>
+                    <div class="party-icon">🎉</div>
                     <h5 class="fw-bold text-dark mb-4">Hemos enviado el código a tu correo</h5>
                     <button type="button" class="btn btn-info-custom w-75" data-bs-dismiss="modal" onclick="window.location.href='login.php'">Continuar</button>
                 </div>
