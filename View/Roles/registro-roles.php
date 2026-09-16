@@ -190,14 +190,14 @@
                   </div>
 
                 </div>
-                <div class="card-action">
-                  <button type="submit" class="btn btn-success">
-                    <?php echo $editando ? 'Guardar cambios' : 'Registrar'; ?>
-                  </button>
-                  <?php if($editando): ?>
-                    <a href="registro-roles.php" class="btn btn-border">Cancelar edición</a>
-                  <?php endif; ?>
-                </div>
+<div class="card-action">
+  <button type="submit" class="btn text-white" style="background-color: #19A1FF; border-color: #19A1FF;">
+    <?php echo $editando ? 'Guardar cambios' : 'Registrar'; ?>
+  </button>
+  <?php if($editando): ?>
+    <a href="registro-roles.php" class="btn btn-border">Cancelar edición</a>
+  <?php endif; ?>
+</div>
               </div>
             </form>
 

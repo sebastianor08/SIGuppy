@@ -1,24 +1,11 @@
 <?php
-// =========================================================
-// Sidebar de SIGuppys (menú lateral + logo)
-// =========================================================
-// Cada vista declara $rutaBase ANTES de este include, según su
-// profundidad respecto a la raíz del proyecto (SIGuppy/):
-//   Web/index.php                -> $rutaBase = '../';
-//   View/<Modulo>/archivo.php    -> $rutaBase = '../../';
-//
-// El link activo (y el submenú que corresponde abrir) NO se marca
-// aquí a mano: lo hace highlightActiveNav() en siguppys-nav.js
-// leyendo el data-page del <body> de cada vista. Así no hay que
-// tocar este archivo cuando cambia cuál página está activa.
-if (!isset($rutaBase)) {
-  $rutaBase = '../../';
-}
+
+  if (!isset($rutaBase)) {
+      $rutaBase = '../../';
+  }
 ?>
-<!-- Sidebar -->
 <div class="sidebar sidebar-style-2 siguppys-sidebar" data-background-color="white">
   <div class="sidebar-logo">
-    <!-- Logo Header -->
     <div class="logo-header siguppys-logo-header">
       <a href="<?php echo $rutaBase; ?>Web/index.php" class="logo siguppys-logo">
         <span class="siguppys-pin">
@@ -116,12 +103,9 @@ if (!isset($rutaBase)) {
           </a>
           <div class="collapse" id="navUsuarios">
             <ul class="nav nav-collapse">
-              <li><a href="#" data-page="usuarios-registrar"><span class="sub-item">Registrar Usuario</span></a></li>
-              <li><a href="#" data-page="usuarios-consultar"><span class="sub-item">Consultar Usuarios</span></a></li>
-              <li><a href="<?php echo $rutaBase; ?>View/Roles/registro-roles.php" data-page="roles-registrar"><span
-                    class="sub-item">Roles y Permisos</span></a></li>
-              <li><a href="<?php echo $rutaBase; ?>View/Roles/consultar-roles.php" data-page="roles-consultar"><span
-                    class="sub-item">Consultar Roles</span></a></li>
+              <li><a href="#" data-page="usuarios-registrar"><span class="sub-item">Gestión De Usuarios</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Roles/registro-roles.php" data-page="roles-registrar"><span class="sub-item">Roles y Permisos</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Roles/consultar-roles.php" data-page="roles-consultar"><span class="sub-item">Consultar Roles</span></a></li>
             </ul>
           </div>
         </li>
@@ -141,13 +125,12 @@ if (!isset($rutaBase)) {
         </li>
       </ul>
     </div>
+  </div>
 
-    <div class="sidebar-footer">
-      <a href="#" class="btn-logout">
-        <i class="fas fa-sign-out-alt"></i>
-        Cerrar Sesión
-      </a>
-    </div>
+  <div class="sidebar-footer">
+    <a href="#" class="btn-logout">
+      <i class="fas fa-sign-out-alt"></i>
+      Cerrar Sesión
+    </a>
   </div>
 </div>
-<!-- End Sidebar -->

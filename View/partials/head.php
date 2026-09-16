@@ -1,14 +1,4 @@
 <?php
-    // ============================================================
-    // Partial: <head>
-    // Variables esperadas (definidas por la vista ANTES de incluir este archivo):
-    //   $basePath     -> prefijo relativo hacia la raíz del proyecto
-    //                    ('../../' desde View/Modulo/archivo.php, '../' desde Web/index.php)
-    //   $pageTitle    -> texto que va antes de "· SIGuppys" en <title>
-    //   $bodyPage     -> valor de <body data-page="...">, usado por siguppys-nav.js
-    //                    para resaltar el ítem activo del menú
-    //   $extraStyles  -> (opcional) string con CSS adicional propio de la vista
-    // ============================================================
     $basePath  = $basePath  ?? '../../';
     $pageTitle = $pageTitle ?? 'SIGuppys';
     $bodyPage  = $bodyPage  ?? '';

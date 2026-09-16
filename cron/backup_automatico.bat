@@ -11,4 +11,4 @@ REM      C:\laragon\bin\php\php-8.x\php.exe).
 REM   2) Ajusta la ruta de backup_automatico.php si moviste la carpeta.
 REM ============================================================
 
-"C:\laragon\bin\php\php-8.2.0-Win32-vs16-x64\php.exe" "C:\laragon\www\SIGuppy\SIGuppy\cron\backup_automatico.php" >> "C:\laragon\www\SIGuppy\SIGuppy\cron\backup_automatico.log" 2>&1
+"C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe" "C:\laragon\www\SIGuppy\SIGuppy\cron\backup_automatico.php" >> "C:\laragon\www\SIGuppy\SIGuppy\cron\backup_automatico.log" 2>&1
