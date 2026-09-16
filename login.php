@@ -21,14 +21,14 @@
     <div class="login-card">
         <!-- Logo institucional a la izquierda -->
         <div class="top-header">
-            <img src="assets/img/logo_secretaria.png" class="logo-secretaria" alt="Secretaría de Salud">
+            <img src="assets/img/logo secretaria de salud (2).png" class="logo-secretaria" alt="Secretaría de Salud">
         </div>
 
         <!-- Logo SIGuppy centrado y más visible -->
         <div class="text-center mb-3">
-            <img src="assets/img/logo_siguppy.png" class="logo-siguppy" alt="SIGuppy">
-            <h3 class="fw-bold text-dark mt-2 mb-1">Iniciar sesión</h3>
-            <p class="text-muted small">Accede según tu rol asignado</p>
+            <img src="assets/img/SIGUPPY.png" class="logo-siguppy" alt="SIGuppy">
+            <h3 class="fw-bold text-dark mt-2 mb-1"></h3>
+            <p class="text-muted small"></p>
         </div>
 
         <!-- Alertas PHP -->
@@ -68,7 +68,7 @@
                 <a href="#" class="text-decoration-none small text-info">¿Olvidaste tu contraseña?</a>
             </div>
 
-            <button type="submit" class="btn btn-info-custom w-100">Iniciar sesión</button>
+            <button type="submit" class="btn btn-primary btn-info-custom w-100">Iniciar sesión</button>
         </form>
     </div>
 

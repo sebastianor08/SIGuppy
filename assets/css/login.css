@@ -8,37 +8,41 @@ body {
     margin: 0;
 }
 
-/* Tarjeta de login estilizada y amplia */
+/* Tarjeta amplia y centrada */
 .login-card {
     background: #ffffff;
     border-radius: 20px;
     box-shadow: 0px 15px 35px rgba(0, 0, 0, 0.1);
     padding: 35px 45px;
     width: 100%;
-    max-width: 540px;
+    max-width: 560px; /* Un poco más ancha para dar holgura a las imágenes */
     position: relative;
 }
 
-/* Alineación del logo institucional arriba a la izquierda */
+/* Ubicación del logo institucional arriba a la izquierda */
 .top-header {
     display: flex;
     justify-content: flex-start;
+    align-items: center;
     margin-bottom: 10px;
 }
 
+/* Logo de la Secretaría significativamente más grande */
 .logo-secretaria {
-    height: 60px;
+    height: 110px; /* Aumentado a 110px para que los textos y escudos se noten claramente */
+    max-width: 220px; /* Ancho máximo para evitar desbordes */
     width: auto;
     object-fit: contain;
 }
 
-/* Logo SIGuppy centrado y destacado */
+/* Logo de SIGuppy un poquitín más grande */
 .logo-siguppy {
-    height: 95px;
+    height: 145px; /* Ligero aumento sugerido */
     width: auto;
     object-fit: contain;
 }
 
+/* Estilos de inputs */
 .form-control {
     height: 48px;
     font-size: 14px;
@@ -46,12 +50,12 @@ body {
 
 .form-control:focus {
     box-shadow: none;
-    border-color: #009688;
+    border-color: #17a2b8;
 }
 
-/* Botón estilizado con el color de SIGuppy */
+/* Botón azul original */
 .btn-info-custom {
-    background-color: #009688;
+    background-color: #17a2b8 !important;
     border: none;
     color: #ffffff;
     font-weight: 700;
@@ -62,7 +66,7 @@ body {
 }
 
 .btn-info-custom:hover {
-    background-color: #00796b;
+    background-color: #138496 !important;
     color: #ffffff;
-    box-shadow: 0px 5px 15px rgba(0, 150, 136, 0.3);
+    box-shadow: 0px 5px 15px rgba(23, 162, 184, 0.4);
 }
