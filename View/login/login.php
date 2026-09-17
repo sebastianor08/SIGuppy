@@ -70,7 +70,7 @@
         <?php endif; ?>
 
         <!-- Formulario -->
-        <form action="controller/login_process.php" method="POST" id="formLogin">
+        <form action="../../Controller/login/login_process.php" method="POST" id="formLogin">
             
             <div class="form-group mb-3 px-0">
                 <label for="correo" class="form-label fw-bold small text-secondary">Usuario o correo electrónico</label>
