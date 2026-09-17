@@ -6,11 +6,11 @@
     <title>Login - SIGuppy</title>
     
     <!-- Archivos CSS -->
-    <link rel="stylesheet" href="../../assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../../assets/css/plugins.min.css">
-    <link rel="stylesheet" href="../../assets/css/kaiadmin.min.css">
+    <link rel="stylesheet" href="../../Web/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../Web/assets/css/plugins.min.css">
+    <link rel="stylesheet" href="../../Web/assets/css/kaiadmin.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../assets/css/login.css">
+    <link rel="stylesheet" href="../../Web/assets/css/login.css">
 </head>
 <body class="d-flex align-items-center justify-content-center vh-100 bg-light">
 
@@ -48,19 +48,8 @@
         
         <!-- Header con Logos -->
         <div class="text-center mb-3">
-            <img src="../../assets/img/mas profundoo.png" class="logo-siguppy mb-2" alt="SIGuppy" style="max-height: 80px;">
+            <img src="../../Web/assets/img/mas profundoo.png" class="logo-siguppy mb-2" alt="SIGuppy" style="max-height: 80px;">
         </div>
-
-        <!-- Alertas PHP -->
-        <?php if (isset($_GET['error'])): ?>
-            <div class="alert alert-danger py-2 small text-center mb-3">
-                <?php 
-                    if ($_GET['error'] == 'vacio') echo "Por favor, complete todos los campos.";
-                    elseif ($_GET['error'] == 'invalid') echo "Correo o contraseña incorrectos.";
-                    elseif ($_GET['error'] == 'inactivo') echo "Tu usuario se encuentra inactivo.";
-                ?>
-            </div>
-        <?php endif; ?>
 
         <!-- Formulario -->
         <form action="../../Controller/login/login_process.php" method="POST" id="formLogin">
