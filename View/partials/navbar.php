@@ -4,7 +4,7 @@
     <div class="logo-header siguppys-logo-header">
       <a href="Index.php" class="logo siguppys-logo">
         <span class="siguppys-pin">
-          <img src="../assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
+          <img src="../Web/assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
         </span>
         <span class="siguppys-brand">
           <strong>SIGuppys</strong>

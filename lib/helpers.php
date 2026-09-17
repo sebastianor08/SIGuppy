@@ -1,6 +1,8 @@
 <?php
 
     session_start();
+
+    include_once __DIR__ . '/validaciones.php';
     function redirect($url){
         echo "<script>";
             echo "window.location.href='$url'";
@@ -83,5 +85,7 @@
             echo "El modulo $modulo no existe";
         }
     }
+
+
 
 ?>
