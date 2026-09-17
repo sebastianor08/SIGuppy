@@ -135,6 +135,7 @@
   flex: none;
   padding: 16px 20px 22px;
   border-top: 1px solid #f1f1f1;
+}
 .sidebar-wrapper {
   padding-bottom: 90px; /* espacio para que el menú no quede tapado detrás del botón fijo */
 }
