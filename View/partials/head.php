@@ -32,6 +32,7 @@
       });
     </script>
 
+
     <!-- CSS del template (mismos archivos en todas las vistas) -->
     <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/plugins.min.css">
