@@ -1,7 +1,14 @@
 <?php
 
-include_once __DIR__ . '/../../Model/Deposito/DepositoModel.php';
+include_once '../Model/Deposito/DepositoModel.php';
 
+// ============================================================
+// Controlador del módulo Depósitos. Responde solo JSON:
+//   Web/ajax.php?modulo=Deposito&controlador=Deposito&funcion=lista
+//
+// El depósito es un registro de la tabla "sitio" (id_sitio,
+// id_tipo_deposito, id_direccion, estado).
+// ============================================================
 class DepositoController
 {
     public function lista()
@@ -158,8 +165,7 @@ class DepositoController
 
         return [
             'id_tipo_deposito' => $idTipo,
-            'id_direccion' => $idDireccion
+            'id_direccion' => $idDireccion,
         ];
     }
 }
-?>
