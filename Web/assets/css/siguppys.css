@@ -1,11 +1,8 @@
-<<<<<<< HEAD
 /* =========================================================
    SIGuppys — estilos propios
    Se agregan sobre kaiadmin.min.css, sin tocar el archivo base.
    ========================================================= */
-=======
 
->>>>>>> origin/dev
 
 :root {
   --sig-blue: #1d7af3;
@@ -89,7 +86,6 @@
   font-size: 11px;
 }
 
-<<<<<<< HEAD
 /* ---- Estado activo estilo "pastilla" ----
    Kaiadmin trae, para .sidebar-style-2 + .nav-secondary, un relleno sólido
    de color con más especificidad; aquí lo reemplazamos por un tono suave.
@@ -97,8 +93,6 @@
    agrega assets/js/siguppys-nav.js según la página actual (data-page),
    así que un módulo o submódulo solo se ve azul cuando realmente estás
    dentro de él. */
-=======
->>>>>>> origin/dev
 .siguppys-sidebar.sidebar.sidebar-style-2 .nav.nav-secondary > .nav-item.active > a,
 .siguppys-sidebar .nav > .nav-item > a[aria-expanded="true"] {
   background: var(--sig-blue-soft) !important;
@@ -136,13 +130,11 @@
   line-height: 1.4;
 }
 
-<<<<<<< HEAD
 /* ---- Pie del sidebar: botón Cerrar Sesión ---- */
 .sidebar-footer {
   flex: none;
   padding: 16px 20px 22px;
   border-top: 1px solid #f1f1f1;
-=======
 .sidebar-wrapper {
   padding-bottom: 90px; /* espacio para que el menú no quede tapado detrás del botón fijo */
 }
@@ -155,7 +147,6 @@
   border-top: 1px solid #f1f1f1;
   background: #fff;
   z-index: 6;
->>>>>>> origin/dev
 }
 .btn-logout {
   display: flex;
@@ -340,7 +331,6 @@ body[data-role="coordinador"] .table-actions.only-coordinador {
   color: var(--sig-muted);
 }
 
-<<<<<<< HEAD
 /* =========================================================
    Modo oscuro — ajustes para los elementos propios de SIGuppys
    =========================================================
@@ -350,8 +340,6 @@ body[data-role="coordinador"] .table-actions.only-coordinador {
    se encarga de poner y quitar ese atributo. Aquí solo adaptamos
    las piezas que agregamos nosotros (marca, selector de rol,
    placeholders, tabla de acciones). */
-=======
->>>>>>> origin/dev
 body[data-background-color="dark"] .siguppys-logo-header {
   border-bottom-color: rgba(255, 255, 255, 0.08);
 }
@@ -363,10 +351,7 @@ body[data-background-color="dark"] .siguppys-brand small {
 }
 body[data-background-color="dark"] .sidebar-footer {
   border-top-color: rgba(255, 255, 255, 0.08);
-<<<<<<< HEAD
-=======
   background: #1a2035;
->>>>>>> origin/dev
 }
 body[data-background-color="dark"] .sig-role-switcher {
   background: rgba(255, 255, 255, 0.04);
@@ -415,7 +400,6 @@ body[data-background-color="dark"] .settings-option strong {
   color: #fff;
 }
 
-<<<<<<< HEAD
 /* =========================================================
    Modo daltonismo — paleta segura azul / naranja
    =========================================================
@@ -465,7 +449,6 @@ body.daltonismo-mode .btn-logout:hover {
   color: #fff;
 }
 
-=======
 body[data-daltonismo="protanopia"],
 body[data-daltonismo="deuteranopia"] {
   --sig-activo-color: #0072b2;
@@ -633,7 +616,6 @@ body[data-daltonismo="acromatopsia"] .btn-outline-warning::before {
   content: "! ";
 }
 
->>>>>>> origin/dev
 /* ---- Página Configuraciones: tarjetas de preferencia ---- */
 .settings-option {
   display: flex;
@@ -666,13 +648,10 @@ body[data-daltonismo="acromatopsia"] .btn-outline-warning::before {
 }
 
 
-<<<<<<< HEAD
 
 /* =========================================================
    Formulario de Seguimiento de Zoocriadero
    ========================================================= */
-=======
->>>>>>> origin/dev
 .sig-followup-card {
   border-radius: 14px;
 }
@@ -684,12 +663,9 @@ body[data-daltonismo="acromatopsia"] .btn-outline-warning::before {
   color: #6b7280;
 }
 
-<<<<<<< HEAD
 /* =========================================================
    Modo oscuro — Modales, formularios y componentes flotantes
    ========================================================= */
-=======
->>>>>>> origin/dev
 body[data-background-color="dark"] .modal-content,
 body[data-background-color="dark2"] .modal-content {
   background-color: #202940;
@@ -827,8 +803,6 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
   color: #9ea5b5 !important;
   border-color: #36405a !important;
 }
-<<<<<<< HEAD
-=======
 
 /* ============================================================
    Anula el "flyout" de kaiadmin: al pasar el mouse sobre el
@@ -1044,4 +1018,3 @@ body[data-background-color="dark"] .caja .linea-eje {
 body[data-background-color="dark"] .caja .texto-eje {
   fill: #8d9498;
 }
->>>>>>> origin/dev
