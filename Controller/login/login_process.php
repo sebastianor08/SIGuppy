@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $correo = trim($_POST['correo'] ?? '');
     $contrasena = trim($_POST['contrasena'] ?? '');
 
-    // Excepción 1: Campos vacíos
+    // Validación de campos vacíos
     if (empty($correo) || empty($contrasena)) {
         header("Location: ../../View/login/login.php?error=empty");
         exit();
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 WHERE LOWER(correo) = LOWER($1)";
         $usuario = $masterModel->selectOne($sql, [$correo]);
 
-        // Si el usuario no existe
+        // Si no existe el usuario
         if (!$usuario) {
             header("Location: ../../View/login/login.php?error=invalid");
             exit();
