@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict CY2RSzhMtfS9gIyL8WpYzatg6i65M8imbkdBkSz2pVyM1Q4rfdtPzgXdsb270gl
+\restrict urWfRkaES5cyP0h1IgQxDNRL1kZsDOzDfgnOgFezM96AoujtEcJGCTfiT48BekD
 
 -- Dumped from database version 18.4
 -- Dumped by pg_dump version 18.4
@@ -27,13 +27,12 @@ CREATE FUNCTION public.fn_auditoria_general() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 DECLARE
-  v_operacion      VARCHAR(20);
-  v_momento        VARCHAR(20);
-  v_id_usuario     BIGINT;
-  v_usuario_texto  VARCHAR(160);
-  v_accion_texto   VARCHAR(20);
+  v_operacion     VARCHAR(20);
+  v_momento       VARCHAR(20);
+  v_id_usuario    BIGINT;
+  v_usuario_texto VARCHAR(160);
+  v_accion_texto  VARCHAR(20);
 BEGIN
-  -- Traduce la operacion tecnica a una palabra en espanol
   IF TG_OP = 'INSERT' THEN
     v_operacion    := 'INSERTAR';
     v_accion_texto := 'registro';
@@ -45,15 +44,13 @@ BEGIN
     v_accion_texto := 'elimino';
   END IF;
 
-  -- TG_WHEN identifica si el disparador se ejecuta ANTES o DESPUES
   v_momento := CASE WHEN TG_WHEN = 'BEFORE' THEN 'ANTES' ELSE 'DESPUES' END;
 
-  -- Usuario que inicio sesion (dato quemado, tomado de la conexion actual)
   v_id_usuario := fn_usuario_actual();
 
   SELECT nombre || ' ' || apellido INTO v_usuario_texto
-  FROM usuario
-  WHERE id_usuario = v_id_usuario;
+    FROM usuario
+   WHERE id_usuario = v_id_usuario;
 
   v_usuario_texto := COALESCE(v_usuario_texto, 'Usuario no identificado');
 
@@ -89,11 +86,11 @@ CREATE FUNCTION public.fn_auditoria_seguimiento_zoocriadero() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 DECLARE
-  v_operacion     VARCHAR(20);
-  v_momento       VARCHAR(20);
-  v_id_seg        BIGINT;
-  v_id_usuario    BIGINT;
-  v_accion_texto  VARCHAR(20);
+  v_operacion    VARCHAR(20);
+  v_momento      VARCHAR(20);
+  v_id_seg       BIGINT;
+  v_id_usuario   BIGINT;
+  v_accion_texto VARCHAR(20);
 BEGIN
   IF TG_OP = 'INSERT' THEN
     v_operacion    := 'INSERTAR';
@@ -110,18 +107,23 @@ BEGIN
 
   IF TG_OP = 'DELETE' THEN
     v_id_seg     := OLD.id_seguimiento;
-    v_id_usuario := OLD.id_usuario;   -- usuario que habia registrado el seguimiento eliminado
+    v_id_usuario := OLD.id_usuario;
   ELSE
     v_id_seg     := NEW.id_seguimiento;
-    v_id_usuario := NEW.id_usuario;   -- usuario que inicio sesion y registra/edita el seguimiento
+    v_id_usuario := NEW.id_usuario;
   END IF;
 
+  -- si la aplicacion informo el usuario de la sesion, ese tiene prioridad
+  v_id_usuario := COALESCE(fn_usuario_actual(), v_id_usuario);
+
   INSERT INTO auditoria_seguimiento_zoocriadero
-    (id_seguimiento, id_usuario, operacion, momento, fecha_evento, hora_evento, fecha_hora_evento, detalle)
+    (id_seguimiento, id_usuario, operacion, momento,
+     fecha_evento, hora_evento, fecha_hora_evento, detalle)
   VALUES
-    (v_id_seg, v_id_usuario, v_operacion, v_momento, CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP,
-     'El usuario ' || v_accion_texto || ' un seguimiento de zoocriadero (' || v_momento ||
-       ' de guardar el cambio)');
+    (v_id_seg, v_id_usuario, v_operacion, v_momento,
+     CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP,
+     'El usuario ' || v_accion_texto || ' un seguimiento de zoocriadero (' ||
+       v_momento || ' de guardar el cambio)');
 
   IF TG_OP = 'DELETE' THEN
     RETURN OLD;
@@ -356,8 +358,8 @@ ALTER TABLE public.auditoria_sistema ALTER COLUMN id_auditoria ADD GENERATED ALW
 
 CREATE TABLE public.barrio (
     id_barrio bigint NOT NULL,
-    nombre character varying(100) NOT NULL,
-    id_comuna bigint
+    id_comuna bigint,
+    nombre character varying(100) NOT NULL
 );
 
 
@@ -436,11 +438,11 @@ ALTER TABLE public.comuna ALTER COLUMN id_comuna ADD GENERATED ALWAYS AS IDENTIT
 --
 
 CREATE TABLE public.copia_seguridad_historial (
-    id_historial integer NOT NULL,
+    id_historial bigint NOT NULL,
     fecha_hora timestamp without time zone DEFAULT now() NOT NULL,
     tipo_operacion character varying(20) NOT NULL,
     nombre_archivo character varying(255),
-    id_usuario integer,
+    id_usuario bigint,
     usuario_nombre character varying(150) DEFAULT 'Sistema'::character varying NOT NULL,
     estado character varying(10) NOT NULL,
     detalle text,
@@ -455,22 +457,14 @@ ALTER TABLE public.copia_seguridad_historial OWNER TO postgres;
 -- Name: copia_seguridad_historial_id_historial_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE public.copia_seguridad_historial_id_historial_seq
-    AS integer
+ALTER TABLE public.copia_seguridad_historial ALTER COLUMN id_historial ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.copia_seguridad_historial_id_historial_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.copia_seguridad_historial_id_historial_seq OWNER TO postgres;
-
---
--- Name: copia_seguridad_historial_id_historial_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.copia_seguridad_historial_id_historial_seq OWNED BY public.copia_seguridad_historial.id_historial;
+    CACHE 1
+);
 
 
 --
@@ -669,8 +663,14 @@ CREATE TABLE public.seguimiento_zoocriadero (
     numero_sembrados integer DEFAULT 0,
     numero_nacidos integer DEFAULT 0,
     numero_muertos integer DEFAULT 0,
+    numero_nacidos_hembra integer DEFAULT 0 NOT NULL,
+    numero_nacidos_macho integer DEFAULT 0 NOT NULL,
+    numero_muertos_hembra integer DEFAULT 0 NOT NULL,
+    numero_muertos_macho integer DEFAULT 0 NOT NULL,
     observaciones character varying(300) DEFAULT NULL::character varying,
-    estado smallint DEFAULT 1 NOT NULL
+    estado smallint DEFAULT 1 NOT NULL,
+    estado_actividad character varying(20) DEFAULT 'En progreso'::character varying NOT NULL,
+    CONSTRAINT seguimiento_zoocriadero_estado_actividad_check CHECK (((estado_actividad)::text = ANY ((ARRAY['Completada'::character varying, 'En progreso'::character varying, 'Retrasada'::character varying])::text[])))
 );
 
 
@@ -697,7 +697,12 @@ ALTER TABLE public.seguimiento_zoocriadero ALTER COLUMN id_seguimiento ADD GENER
 CREATE TABLE public.sitio (
     id_sitio bigint NOT NULL,
     id_tipo_deposito bigint NOT NULL,
-    id_direccion bigint NOT NULL,
+    id_direccion bigint,
+    direccion character varying(200) DEFAULT NULL::character varying,
+    comuna character varying(60) DEFAULT NULL::character varying,
+    barrio character varying(60) DEFAULT NULL::character varying,
+    latitud numeric(10,8) DEFAULT NULL::numeric,
+    longitud numeric(11,8) DEFAULT NULL::numeric,
     estado smallint DEFAULT 1 NOT NULL,
     creado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
@@ -882,7 +887,11 @@ CREATE TABLE public.usuario (
     correo character varying(120) NOT NULL,
     contrasena character varying(255) NOT NULL,
     estado smallint DEFAULT 1 NOT NULL,
-    creado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    creado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    intentos_fallidos integer DEFAULT 0 NOT NULL,
+    bloqueo_hasta timestamp without time zone,
+    token_recuperacion character varying(255) DEFAULT NULL::character varying,
+    token_expira timestamp without time zone
 );
 
 
@@ -937,21 +946,14 @@ ALTER TABLE public.zoocriadero ALTER COLUMN id_zoocriadero ADD GENERATED ALWAYS 
 
 
 --
--- Name: copia_seguridad_historial id_historial; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.copia_seguridad_historial ALTER COLUMN id_historial SET DEFAULT nextval('public.copia_seguridad_historial_id_historial_seq'::regclass);
-
-
---
 -- Data for Name: accion_permiso; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.accion_permiso (id_accion_permiso, nombre) FROM stdin;
-1	Registrar
-2	Consultar
-3	Editar
-4	Eliminar
+1	Eliminar
+2	Registrar
+3	Consultar
+4	Editar
 \.
 
 
@@ -991,6 +993,12 @@ COPY public.actividad (id_actividad, ambito, nombre, descripcion, estado) FROM s
 --
 
 COPY public.actividad_terreno (id_actividad_terreno, id_seguimiento_terreno, id_actividad) FROM stdin;
+7	7	15
+8	8	16
+9	9	17
+10	10	19
+11	11	22
+12	12	23
 \.
 
 
@@ -999,9 +1007,38 @@ COPY public.actividad_terreno (id_actividad_terreno, id_seguimiento_terreno, id_
 --
 
 COPY public.actividad_zoocriadero (id_actividad_zoocriadero, id_seguimiento, id_actividad) FROM stdin;
-1	1	1
-2	2	10
-3	3	7
+54	1	1
+55	2	2
+56	3	3
+57	4	4
+58	5	5
+59	6	6
+60	7	7
+61	8	8
+62	9	9
+63	10	10
+64	11	11
+65	12	12
+66	13	13
+67	14	14
+68	15	1
+69	16	2
+70	17	3
+71	18	4
+72	19	5
+73	20	6
+74	21	7
+75	22	8
+76	23	9
+77	24	10
+78	25	11
+79	26	12
+80	27	13
+81	28	14
+82	29	1
+83	30	2
+84	31	3
+85	32	4
 \.
 
 
@@ -1010,6 +1047,70 @@ COPY public.actividad_zoocriadero (id_actividad_zoocriadero, id_seguimiento, id_
 --
 
 COPY public.auditoria_seguimiento_zoocriadero (id_auditoria, id_seguimiento, id_usuario, operacion, momento, fecha_evento, hora_evento, fecha_hora_evento, detalle) FROM stdin;
+1	1	5	INSERTAR	DESPUES	2026-09-14	18:40:18.247231	2026-09-14 18:40:18.247231	Se registro un nuevo seguimiento de zoocriadero
+2	2	5	INSERTAR	DESPUES	2026-09-14	18:40:18.247231	2026-09-14 18:40:18.247231	Se registro un nuevo seguimiento de zoocriadero
+3	3	3	INSERTAR	DESPUES	2026-09-14	18:40:18.247231	2026-09-14 18:40:18.247231	Se registro un nuevo seguimiento de zoocriadero
+4	4	3	INSERTAR	DESPUES	2026-09-14	18:40:18.247231	2026-09-14 18:40:18.247231	Se registro un nuevo seguimiento de zoocriadero
+5	5	4	INSERTAR	DESPUES	2026-09-14	18:40:18.247231	2026-09-14 18:40:18.247231	Se registro un nuevo seguimiento de zoocriadero
+6	6	4	INSERTAR	DESPUES	2026-09-14	18:40:18.247231	2026-09-14 18:40:18.247231	Se registro un nuevo seguimiento de zoocriadero
+7	7	1	INSERTAR	DESPUES	2026-09-14	18:40:18.247231	2026-09-14 18:40:18.247231	Se registro un nuevo seguimiento de zoocriadero
+8	8	1	INSERTAR	DESPUES	2026-09-14	18:40:18.247231	2026-09-14 18:40:18.247231	Se registro un nuevo seguimiento de zoocriadero
+9	9	5	INSERTAR	DESPUES	2026-09-14	18:51:37.977149	2026-09-14 18:51:37.977149	Se registro un nuevo seguimiento de zoocriadero
+10	10	5	INSERTAR	DESPUES	2026-09-14	18:51:37.977149	2026-09-14 18:51:37.977149	Se registro un nuevo seguimiento de zoocriadero
+11	11	3	INSERTAR	DESPUES	2026-09-14	18:51:37.977149	2026-09-14 18:51:37.977149	Se registro un nuevo seguimiento de zoocriadero
+12	12	3	INSERTAR	DESPUES	2026-09-14	18:51:37.977149	2026-09-14 18:51:37.977149	Se registro un nuevo seguimiento de zoocriadero
+13	13	4	INSERTAR	DESPUES	2026-09-14	18:51:37.977149	2026-09-14 18:51:37.977149	Se registro un nuevo seguimiento de zoocriadero
+14	14	4	INSERTAR	DESPUES	2026-09-14	18:51:37.977149	2026-09-14 18:51:37.977149	Se registro un nuevo seguimiento de zoocriadero
+15	15	1	INSERTAR	DESPUES	2026-09-14	18:51:37.977149	2026-09-14 18:51:37.977149	Se registro un nuevo seguimiento de zoocriadero
+16	16	1	INSERTAR	DESPUES	2026-09-14	18:51:37.977149	2026-09-14 18:51:37.977149	Se registro un nuevo seguimiento de zoocriadero
+17	17	5	INSERTAR	DESPUES	2026-09-14	18:51:38.274627	2026-09-14 18:51:38.274627	Se registro un nuevo seguimiento de zoocriadero
+18	18	5	INSERTAR	DESPUES	2026-09-14	18:51:38.274627	2026-09-14 18:51:38.274627	Se registro un nuevo seguimiento de zoocriadero
+19	19	3	INSERTAR	DESPUES	2026-09-14	18:51:38.274627	2026-09-14 18:51:38.274627	Se registro un nuevo seguimiento de zoocriadero
+20	20	3	INSERTAR	DESPUES	2026-09-14	18:51:38.274627	2026-09-14 18:51:38.274627	Se registro un nuevo seguimiento de zoocriadero
+21	21	4	INSERTAR	DESPUES	2026-09-14	18:51:38.274627	2026-09-14 18:51:38.274627	Se registro un nuevo seguimiento de zoocriadero
+22	22	4	INSERTAR	DESPUES	2026-09-14	18:51:38.274627	2026-09-14 18:51:38.274627	Se registro un nuevo seguimiento de zoocriadero
+23	23	1	INSERTAR	DESPUES	2026-09-14	18:51:38.274627	2026-09-14 18:51:38.274627	Se registro un nuevo seguimiento de zoocriadero
+24	24	1	INSERTAR	DESPUES	2026-09-14	18:51:38.274627	2026-09-14 18:51:38.274627	Se registro un nuevo seguimiento de zoocriadero
+25	25	5	INSERTAR	DESPUES	2026-09-14	18:51:38.472225	2026-09-14 18:51:38.472225	Se registro un nuevo seguimiento de zoocriadero
+26	26	5	INSERTAR	DESPUES	2026-09-14	18:51:38.472225	2026-09-14 18:51:38.472225	Se registro un nuevo seguimiento de zoocriadero
+27	27	3	INSERTAR	DESPUES	2026-09-14	18:51:38.472225	2026-09-14 18:51:38.472225	Se registro un nuevo seguimiento de zoocriadero
+28	28	3	INSERTAR	DESPUES	2026-09-14	18:51:38.472225	2026-09-14 18:51:38.472225	Se registro un nuevo seguimiento de zoocriadero
+29	29	4	INSERTAR	DESPUES	2026-09-14	18:51:38.472225	2026-09-14 18:51:38.472225	Se registro un nuevo seguimiento de zoocriadero
+30	30	4	INSERTAR	DESPUES	2026-09-14	18:51:38.472225	2026-09-14 18:51:38.472225	Se registro un nuevo seguimiento de zoocriadero
+31	31	1	INSERTAR	DESPUES	2026-09-14	18:51:38.472225	2026-09-14 18:51:38.472225	Se registro un nuevo seguimiento de zoocriadero
+32	32	1	INSERTAR	DESPUES	2026-09-14	18:51:38.472225	2026-09-14 18:51:38.472225	Se registro un nuevo seguimiento de zoocriadero
+233	1	5	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+234	2	5	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+235	3	3	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+236	4	3	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+237	5	4	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+238	6	4	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+239	7	1	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+240	8	1	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+241	9	5	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+242	10	5	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+243	11	3	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+244	12	3	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+245	13	4	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+246	14	4	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+247	15	1	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+248	16	1	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+249	17	5	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+250	18	5	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+251	19	3	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+252	20	3	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+253	21	4	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+254	22	4	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+255	23	1	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+256	24	1	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+257	25	5	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+258	26	5	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+259	27	3	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+260	28	3	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+261	29	4	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+262	30	4	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+263	31	1	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
+264	32	1	ACTUALIZAR	DESPUES	2026-09-15	11:50:14.556232	2026-09-15 11:50:14.556232	Se actualizo un seguimiento de zoocriadero
 \.
 
 
@@ -1025,274 +1126,274 @@ COPY public.auditoria_sistema (id_auditoria, tabla_afectada, operacion, momento,
 -- Data for Name: barrio; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.barrio (id_barrio, nombre, id_comuna) FROM stdin;
-1	Rodrigo Lara Bonilla	11
-2	Los Guayacanes	4
-3	Puerto Nuevo	3
-4	Ciudad Capri	17
-5	El Paraíso	22
-6	El Retiro	14
-7	Julio Rincón	22
-8	Pizamos I	12
-9	Polvorines	2
-10	Chiminangos Segunda Etapa	4
-11	Comuneros I	14
-12	Compartir	12
-13	Departamental	20
-14	Calima	5
-15	Potrero Grande	12
-16	Manuela Beltrán	16
-17	El Cedro	18
-18	El Morichal	14
-19	El Sena	4
-20	Lili	17
-21	Normandía	1
-22	Flora Industrial	5
-23	Los Cámbulos	18
-24	Juanambú	1
-25	Jockey Club	15
-26	Charco Azul	11
-27	Pasoancho	20
-28	Alfonso Bonilla Aragón	16
-29	Lleras Camargo	21
-30	San Nicolás	10
-31	Benjamín Herrera	7
-32	Calimio Norte	19
-33	Granada	1
-34	Aranjuez	13
-35	Mariano Ramos	6
-36	José Manuel Marroquín I	16
-37	Ignacio Rengifo	5
-38	Chipichape	1
-39	El Cortijo	21
-40	Calipso	11
-41	San Pedro	10
-42	Alfonso López I	3
-43	Fátima	5
-44	Mario Correa Rengifo	2
-45	San Benito	8
-46	La Rivera II	19
-47	Arboledas	1
-48	El Bosque	1
-49	Brisas de Mayo	21
-50	Los Naranjos	16
-51	Patio Bonito	9
-52	San Vicente	1
-53	Manuel María Buenaventura	13
-54	El Porvenir	5
-55	Alférez Real	15
-56	La Hacienda	17
-57	Cristóbal Colón	20
-58	Nueva Tequendama	18
-59	Nápoles	2
-60	La Campiña	1
-61	Altos de Menga	1
-62	El Poblado I	11
-63	Vipasa	1
-64	Guayaquil	13
-65	Villablanca	11
-66	Primitivo Crespo	7
-67	El Caney	17
-68	Belalcázar	13
-69	Las Orquídeas	16
-70	Promociones Populares	16
-71	Paso del Comercio	19
-72	Chapinero	7
-73	Los Libertadores	10
-74	Versalles	1
-75	Evaristo García	5
-76	Olaya Herrera	5
-77	Puertas del Sol	16
-78	Las Quintas de Don Simón	17
-79	Pampalinda	18
-80	Bretaña	13
-81	Simón Bolívar	7
-82	Ciudadela Floralia	19
-83	Alto Nápoles	2
-84	Siloé	21
-85	Petecuy II	19
-86	Colinas del Sur	2
-87	Siete de Agosto	3
-88	Tierra Blanca	21
-89	Los Robles	11
-90	José Holguín Garcés	8
-91	Municipal	7
-92	Santa Fe	7
-93	San Antonio	10
-94	Navarro	10
-95	Mayapán	17
-96	Laureano Gómez	14
-97	Bellavista	8
-98	El Limonar	17
-99	El Vergel	11
-100	Industrial	7
-101	Metropolitano del Norte	4
-102	Sector Altos de Aguacatal	9
-103	Las Dalias	12
-104	Horizontes	2
-105	Veinte de Julio	8
-106	El Refugio	18
-107	Jorge Isaacs	5
-108	Bueno Madrid	5
-109	Santa Isabel	20
-110	Urbanización Río Lili	15
-111	Centenario	1
-112	Pizamos III	12
-113	Jorge Zawadsky	20
-114	Barrio Obrero	13
-115	Base Aérea	3
-116	Las Delicias	5
-117	San Juan Bosco	10
-118	Saavedra Galindo	7
-119	Alirio Mora Beltrán	16
-120	Sucre	13
-121	El Poblado II	11
-122	Puente del Comercio	19
-123	Desepaz	12
-124	Santa Rosa	10
-125	La Esmeralda	5
-126	El Gran Limonar	17
-127	Comuneros II	14
-128	Eduardo Santos	22
-129	Ciudad Los Álamos	19
-130	San Pascual	10
-131	Bello Horizonte	22
-132	Villa Colombia	7
-133	Prados del Sur	2
-134	Atanasio Girardot	7
-135	Villa del Lago	12
-136	El Guabal	8
-137	Alfonso Barberena	22
-138	Ciudad 2000	17
-139	La Libertad	8
-140	Torres de Comfandi	4
-141	Villanueva	8
-142	La Floresta	7
-143	Ciudadela Comfandi	4
-144	Unión de Vivienda Popular	6
-145	Brisas del Bosque	14
-146	La Ferroviaria	8
-147	Guillermo Valencia	5
-148	El Dorado	20
-149	El Hoyo	10
-150	Bosques del Limonar	17
-151	Mojica	14
-152	Junín	13
-153	El Vallado	14
-154	Sindical	19
-155	La Flora	1
-156	Santa Rita	1
-157	Las Vegas	17
-158	El Calvario	10
-159	Brisas del Limonar	6
-160	Meléndez	2
-161	Fepicol	3
-162	La Base	7
-163	Salomia	5
-164	Bajo Aguacatal	9
-165	La Sultana Ladera	21
-166	Lleras Restrepo	11
-167	Prados del Norte	1
-168	Camino Real	18
-169	Santa Mónica	1
-170	Nueva Floresta	22
-171	Villa del Sur	22
-172	Doce de Octubre	22
-173	Vista Hermosa	9
-174	Las Granjas	8
-175	Aguacatal	9
-176	El Troncal	7
-177	El Ingenio	18
-178	Ricardo Balcázar	11
-179	Ulpiano Lloreda	11
-180	Colseguros	20
-181	Las Américas	7
-182	Valle Grande	12
-183	Francisco Eladio Ramírez	2
-184	La Alborada	6
-185	Pance	15
-186	Ciudad Jardín	15
-187	Los Alcázares	19
-188	San Judas Tadeo II	22
-189	Los Andes	4
-190	Alfonso López II	3
-191	San Fernando Nuevo	18
-192	Villa del Prado	4
-193	El Lido	18
-194	San Cristóbal	20
-195	Tequendama	18
-196	El Nacional	10
-197	Manzanares	5
-198	Bolivariano	5
-199	Santa Mónica Popular	7
-200	San Cayetano	10
-201	Cuarto de Legua	18
-202	Ciudad Universitaria	17
-203	La Selva	20
-204	Los Pinos	3
-205	Lourdes	2
-206	Cañasgordas	15
-207	Chiminangos Primera Etapa	4
-208	Alfonso López III	3
-209	Puerto Mallarino	3
-210	Pueblo Joven	21
-211	La Isla	5
-212	Parque de la Caña	3
-213	Alameda	13
-214	El Rodeo	22
-215	Primero de Mayo	17
-216	El Piloto	10
-217	Calimio Desepaz	12
-218	El Trébol	7
-219	Terrón Colorado	9
-220	Antonio Nariño	6
-221	José Manuel Marroquín II	16
-222	San Luis	19
-223	Santander	5
-224	Belén	21
-225	Omar Torrijos	11
-226	San Fernando Viejo	18
-227	Champagnat	18
-228	Pizamos II	12
-229	Los Líderes	12
-230	San Pedro Claver	8
-231	Los Chorros	2
-232	Ciudad Campestre	15
-233	Olímpico	20
-234	El Templete	18
-235	Cementerio Carabineros	21
-236	Yira Castro	11
-237	Paseo de los Almendros	4
-238	Ciudadela del Río	12
-239	República de Israel	6
-240	Petecuy I	19
-241	Petecuy III	19
-242	Ciudad Córdoba	14
-243	La Merced	10
-244	Primavera	8
-245	Menga	1
-246	Jorge Eliécer Gaitán	19
-247	Asturias	22
-248	Los Guaduales	19
-249	San Judas Tadeo I	22
-250	Alto Jordán	2
-251	Bosque Municipal	18
-252	Fenalco Kennedy	8
-253	Villa del Sol	4
-254	Parcelaciones de Pance	15
-255	Maracaibo	8
-256	La Rivera I	4
-257	Panamericano	20
-258	Boyacá	8
-259	Berlín	5
-260	Caldas	2
-261	Buenos Aires	2
-262	Remansos de Comfandi	12
-263	Miraflores	18
-264	La Esperanza	8
-265	La Sultana	5
-266	Las Acacias	20
-267	San Marino	3
+COPY public.barrio (id_barrio, id_comuna, nombre) FROM stdin;
+1	11	Rodrigo Lara Bonilla
+2	4	Los Guayacanes
+3	3	Puerto Nuevo
+4	17	Ciudad Capri
+5	22	El Paraíso
+6	14	El Retiro
+7	22	Julio Rincón
+8	12	Pizamos I
+9	2	Polvorines
+10	4	Chiminangos Segunda Etapa
+11	14	Comuneros I
+12	12	Compartir
+13	20	Departamental
+14	5	Calima
+15	12	Potrero Grande
+16	16	Manuela Beltrán
+17	18	El Cedro
+18	14	El Morichal
+19	4	El Sena
+20	17	Lili
+21	1	Normandía
+22	5	Flora Industrial
+23	18	Los Cámbulos
+24	1	Juanambú
+25	15	Jockey Club
+26	11	Charco Azul
+27	20	Pasoancho
+28	16	Alfonso Bonilla Aragón
+29	21	Lleras Camargo
+30	10	San Nicolás
+31	7	Benjamín Herrera
+32	19	Calimio Norte
+33	1	Granada
+34	13	Aranjuez
+35	6	Mariano Ramos
+36	16	José Manuel Marroquín I
+37	5	Ignacio Rengifo
+38	1	Chipichape
+39	21	El Cortijo
+40	11	Calipso
+41	10	San Pedro
+42	3	Alfonso López I
+43	5	Fátima
+44	2	Mario Correa Rengifo
+45	8	San Benito
+46	19	La Rivera II
+47	1	Arboledas
+48	1	El Bosque
+49	21	Brisas de Mayo
+50	16	Los Naranjos
+51	9	Patio Bonito
+52	1	San Vicente
+53	13	Manuel María Buenaventura
+54	5	El Porvenir
+55	15	Alférez Real
+56	17	La Hacienda
+57	20	Cristóbal Colón
+58	18	Nueva Tequendama
+59	2	Nápoles
+60	1	La Campiña
+61	1	Altos de Menga
+62	11	El Poblado I
+63	1	Vipasa
+64	13	Guayaquil
+65	11	Villablanca
+66	7	Primitivo Crespo
+67	17	El Caney
+68	13	Belalcázar
+69	16	Las Orquídeas
+70	16	Promociones Populares
+71	19	Paso del Comercio
+72	7	Chapinero
+73	10	Los Libertadores
+74	1	Versalles
+75	5	Evaristo García
+76	5	Olaya Herrera
+77	16	Puertas del Sol
+78	17	Las Quintas de Don Simón
+79	18	Pampalinda
+80	13	Bretaña
+81	7	Simón Bolívar
+82	19	Ciudadela Floralia
+83	2	Alto Nápoles
+84	21	Siloé
+85	19	Petecuy II
+86	2	Colinas del Sur
+87	3	Siete de Agosto
+88	21	Tierra Blanca
+89	11	Los Robles
+90	8	José Holguín Garcés
+91	7	Municipal
+92	7	Santa Fe
+93	10	San Antonio
+94	10	Navarro
+95	17	Mayapán
+96	14	Laureano Gómez
+97	8	Bellavista
+98	17	El Limonar
+99	11	El Vergel
+100	7	Industrial
+101	4	Metropolitano del Norte
+102	9	Sector Altos de Aguacatal
+103	12	Las Dalias
+104	2	Horizontes
+105	8	Veinte de Julio
+106	18	El Refugio
+107	5	Jorge Isaacs
+108	5	Bueno Madrid
+109	20	Santa Isabel
+110	15	Urbanización Río Lili
+111	1	Centenario
+112	12	Pizamos III
+113	20	Jorge Zawadsky
+114	13	Barrio Obrero
+115	3	Base Aérea
+116	5	Las Delicias
+117	10	San Juan Bosco
+118	7	Saavedra Galindo
+119	16	Alirio Mora Beltrán
+120	13	Sucre
+121	11	El Poblado II
+122	19	Puente del Comercio
+123	12	Desepaz
+124	10	Santa Rosa
+125	5	La Esmeralda
+126	17	El Gran Limonar
+127	14	Comuneros II
+128	22	Eduardo Santos
+129	19	Ciudad Los Álamos
+130	10	San Pascual
+131	22	Bello Horizonte
+132	7	Villa Colombia
+133	2	Prados del Sur
+134	7	Atanasio Girardot
+135	12	Villa del Lago
+136	8	El Guabal
+137	22	Alfonso Barberena
+138	17	Ciudad 2000
+139	8	La Libertad
+140	4	Torres de Comfandi
+141	8	Villanueva
+142	7	La Floresta
+143	4	Ciudadela Comfandi
+144	6	Unión de Vivienda Popular
+145	14	Brisas del Bosque
+146	8	La Ferroviaria
+147	5	Guillermo Valencia
+148	20	El Dorado
+149	10	El Hoyo
+150	17	Bosques del Limonar
+151	14	Mojica
+152	13	Junín
+153	14	El Vallado
+154	19	Sindical
+155	1	La Flora
+156	1	Santa Rita
+157	17	Las Vegas
+158	10	El Calvario
+159	6	Brisas del Limonar
+160	2	Meléndez
+161	3	Fepicol
+162	7	La Base
+163	5	Salomia
+164	9	Bajo Aguacatal
+165	21	La Sultana Ladera
+166	11	Lleras Restrepo
+167	1	Prados del Norte
+168	18	Camino Real
+169	1	Santa Mónica
+170	22	Nueva Floresta
+171	22	Villa del Sur
+172	22	Doce de Octubre
+173	9	Vista Hermosa
+174	8	Las Granjas
+175	9	Aguacatal
+176	7	El Troncal
+177	18	El Ingenio
+178	11	Ricardo Balcázar
+179	11	Ulpiano Lloreda
+180	20	Colseguros
+181	7	Las Américas
+182	12	Valle Grande
+183	2	Francisco Eladio Ramírez
+184	6	La Alborada
+185	15	Pance
+186	15	Ciudad Jardín
+187	19	Los Alcázares
+188	22	San Judas Tadeo II
+189	4	Los Andes
+190	3	Alfonso López II
+191	18	San Fernando Nuevo
+192	4	Villa del Prado
+193	18	El Lido
+194	20	San Cristóbal
+195	18	Tequendama
+196	10	El Nacional
+197	5	Manzanares
+198	5	Bolivariano
+199	7	Santa Mónica Popular
+200	10	San Cayetano
+201	18	Cuarto de Legua
+202	17	Ciudad Universitaria
+203	20	La Selva
+204	3	Los Pinos
+205	2	Lourdes
+206	15	Cañasgordas
+207	4	Chiminangos Primera Etapa
+208	3	Alfonso López III
+209	3	Puerto Mallarino
+210	21	Pueblo Joven
+211	5	La Isla
+212	3	Parque de la Caña
+213	13	Alameda
+214	22	El Rodeo
+215	17	Primero de Mayo
+216	10	El Piloto
+217	12	Calimio Desepaz
+218	7	El Trébol
+219	9	Terrón Colorado
+220	6	Antonio Nariño
+221	16	José Manuel Marroquín II
+222	19	San Luis
+223	5	Santander
+224	21	Belén
+225	11	Omar Torrijos
+226	18	San Fernando Viejo
+227	18	Champagnat
+228	12	Pizamos II
+229	12	Los Líderes
+230	8	San Pedro Claver
+231	2	Los Chorros
+232	15	Ciudad Campestre
+233	20	Olímpico
+234	18	El Templete
+235	21	Cementerio Carabineros
+236	11	Yira Castro
+237	4	Paseo de los Almendros
+238	12	Ciudadela del Río
+239	6	República de Israel
+240	19	Petecuy I
+241	19	Petecuy III
+242	14	Ciudad Córdoba
+243	10	La Merced
+244	8	Primavera
+245	1	Menga
+246	19	Jorge Eliécer Gaitán
+247	22	Asturias
+248	19	Los Guaduales
+249	22	San Judas Tadeo I
+250	2	Alto Jordán
+251	18	Bosque Municipal
+252	8	Fenalco Kennedy
+253	4	Villa del Sol
+254	15	Parcelaciones de Pance
+255	8	Maracaibo
+256	4	La Rivera I
+257	20	Panamericano
+258	8	Boyacá
+259	5	Berlín
+260	2	Caldas
+261	2	Buenos Aires
+262	12	Remansos de Comfandi
+263	18	Miraflores
+264	8	La Esperanza
+265	5	La Sultana
+266	20	Las Acacias
+267	3	San Marino
 \.
 
 
@@ -1301,6 +1402,7 @@ COPY public.barrio (id_barrio, nombre, id_comuna) FROM stdin;
 --
 
 COPY public.ciudad (id_ciudad, id_comuna, nombre) FROM stdin;
+2	1	Cali
 \.
 
 
@@ -1339,8 +1441,6 @@ COPY public.comuna (id_comuna, id_barrio, nombre) FROM stdin;
 --
 
 COPY public.copia_seguridad_historial (id_historial, fecha_hora, tipo_operacion, nombre_archivo, id_usuario, usuario_nombre, estado, detalle) FROM stdin;
-1	2026-09-14 20:02:44.760604	descarga	bd_dengue_siguppy_20260915_010244.sql	\N	Sistema	exito	\N
-2	2026-09-16 13:37:28.1689	descarga	bd_dengue_siguppy_20260916_183727.sql	\N	Sistema	exito	\N
 \.
 
 
@@ -1349,6 +1449,7 @@ COPY public.copia_seguridad_historial (id_historial, fecha_hora, tipo_operacion,
 --
 
 COPY public.departamento (id_departamento, id_ciudad, nombre) FROM stdin;
+2	2	Valle del Cauca
 \.
 
 
@@ -1357,6 +1458,12 @@ COPY public.departamento (id_departamento, id_ciudad, nombre) FROM stdin;
 --
 
 COPY public.direccion (id_direccion, id_departamento, id_comuna, id_ciudad, id_barrio, direccion, id_nomenclatura) FROM stdin;
+7	2	11	2	1	Cra 31 # 22-71	6
+8	2	4	2	2	Calle 13 # 24-05	6
+9	2	3	2	3	Cra 26 # 9-40	6
+10	2	17	2	4	Cra 8 # 45-12	6
+11	2	22	2	5	Calle 70 # 28D-19	6
+12	2	14	2	6	Cra 5 # 12-30	6
 \.
 
 
@@ -1365,13 +1472,13 @@ COPY public.direccion (id_direccion, id_departamento, id_comuna, id_ciudad, id_b
 --
 
 COPY public.modulo (id_modulo, nombre, descripcion) FROM stdin;
-1	Reportes	Reportes y gráficos del sistema
-2	Zoocriaderos	Gestión de zoocriaderos y tanques
-3	Terreno	Depósitos y actividades de terreno
-4	Usuarios	Gestión de usuarios del sistema
-5	Roles	Creación de roles y asignación de permisos
-6	Copia de seguridad	Respaldo de la base de datos
-7	Configuraciones	Parámetros generales del sistema
+1	Terreno	Depósitos y actividades de terreno
+2	Usuarios	Gestión de usuarios del sistema
+3	Configuraciones	Parámetros generales del sistema
+4	Zoocriaderos	Gestión de zoocriaderos y tanques
+5	Copia de seguridad	Respaldo de la base de datos
+6	Reportes	Reportes y gráficos del sistema
+7	Roles	Creación de roles y asignación de permisos
 \.
 
 
@@ -1380,6 +1487,11 @@ COPY public.modulo (id_modulo, nombre, descripcion) FROM stdin;
 --
 
 COPY public.nomenclatura (id_nomenclatura, nomenclatura) FROM stdin;
+6	Calle
+7	Carrera
+8	Avenida
+9	Diagonal
+10	Transversal
 \.
 
 
@@ -1431,39 +1543,39 @@ COPY public.rol_permiso (id_rol, id_modulo, id_accion_permiso) FROM stdin;
 2	4	4
 2	1	3
 2	2	2
-2	5	2
 2	3	2
 2	7	2
 2	4	1
 2	1	1
+2	6	2
 2	4	3
 2	1	4
+2	6	1
 2	1	2
 2	2	3
 2	3	3
 2	7	3
-2	5	3
+2	6	4
 2	3	4
 2	7	4
-2	5	4
+2	6	3
 2	2	1
 2	2	4
-2	5	1
 2	4	2
 2	7	1
 2	3	1
-1	2	2
-1	3	1
+1	1	3
+1	4	4
+1	1	4
+1	4	3
 1	3	3
-1	7	2
-1	3	2
-1	2	3
 1	1	2
-1	2	1
+1	6	3
+1	4	2
 3	1	2
-3	3	2
-3	3	1
-3	2	2
+3	6	3
+3	1	3
+3	4	3
 \.
 
 
@@ -1472,6 +1584,12 @@ COPY public.rol_permiso (id_rol, id_modulo, id_accion_permiso) FROM stdin;
 --
 
 COPY public.seguimiento_terreno (id_seguimiento_terreno, id_sitio, id_usuario, fecha, estado) FROM stdin;
+7	7	1	2026-08-05	1
+8	8	2	2026-08-12	1
+9	9	3	2026-08-19	1
+10	10	4	2026-08-26	1
+11	11	5	2026-09-02	1
+12	12	1	2026-09-09	1
 \.
 
 
@@ -1479,10 +1597,39 @@ COPY public.seguimiento_terreno (id_seguimiento_terreno, id_sitio, id_usuario, f
 -- Data for Name: seguimiento_zoocriadero; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.seguimiento_zoocriadero (id_seguimiento, id_zoocriadero, id_tanque, id_usuario, fecha, ph, temperatura, numero_sembrados, numero_nacidos, numero_muertos, observaciones, estado) FROM stdin;
-1	3	1	1	2026-09-14	\N	\N	0	10	3	Todo esta bien en el tanque de plástico	1
-2	1	13	1	2026-09-14	7.20	\N	0	10	50	\N	1
-3	5	9	1	2026-09-14	\N	\N	0	0	0	Todos están vivos y comiendo correctamente sin afectaciones	1
+COPY public.seguimiento_zoocriadero (id_seguimiento, id_zoocriadero, id_tanque, id_usuario, fecha, ph, temperatura, numero_sembrados, numero_nacidos, numero_muertos, numero_nacidos_hembra, numero_nacidos_macho, numero_muertos_hembra, numero_muertos_macho, observaciones, estado, estado_actividad) FROM stdin;
+1	2	1	5	2026-08-03	7.10	26.50	200	15	2	7	8	1	1	Limpieza y conteo de rutina	1	Completada
+2	2	2	5	2026-08-10	6.90	27.00	0	0	5	0	0	2	3	pH bajo, se ajustó con cal	1	Completada
+3	1	5	3	2026-08-15	7.30	25.80	150	0	0	0	0	0	0	Revisión de rutina, sin novedad	1	En progreso
+4	1	7	3	2026-08-20	7.00	26.10	0	0	3	0	0	1	2	Mortalidad detectada, pendiente tratamiento	1	Retrasada
+5	4	8	4	2026-08-25	6.80	27.50	220	20	1	10	10	0	1	Cosecha parcial realizada	1	Completada
+6	4	9	4	2026-09-01	7.20	26.00	0	0	0	0	0	0	0	Cambio de agua en curso	1	En progreso
+7	3	10	1	2026-09-05	6.50	28.00	100	5	7	2	3	3	4	Filtro sucio, requiere visita adicional	1	Retrasada
+8	5	13	1	2026-09-08	7.15	26.40	300	30	4	15	15	2	2	Siembra de alevinos nueva	1	Completada
+9	2	1	5	2026-08-03	7.10	26.50	200	15	2	7	8	1	1	Limpieza y conteo de rutina	1	Completada
+10	2	2	5	2026-08-10	6.90	27.00	0	0	5	0	0	2	3	pH bajo, se ajustó con cal	1	Completada
+11	1	5	3	2026-08-15	7.30	25.80	150	0	0	0	0	0	0	Revisión de rutina, sin novedad	1	En progreso
+12	1	7	3	2026-08-20	7.00	26.10	0	0	3	0	0	1	2	Mortalidad detectada, pendiente tratamiento	1	Retrasada
+13	4	8	4	2026-08-25	6.80	27.50	220	20	1	10	10	0	1	Cosecha parcial realizada	1	Completada
+14	4	9	4	2026-09-01	7.20	26.00	0	0	0	0	0	0	0	Cambio de agua en curso	1	En progreso
+15	3	10	1	2026-09-05	6.50	28.00	100	5	7	2	3	3	4	Filtro sucio, requiere visita adicional	1	Retrasada
+16	5	13	1	2026-09-08	7.15	26.40	300	30	4	15	15	2	2	Siembra de alevinos nueva	1	Completada
+17	2	1	5	2026-08-03	7.10	26.50	200	15	2	7	8	1	1	Limpieza y conteo de rutina	1	Completada
+18	2	2	5	2026-08-10	6.90	27.00	0	0	5	0	0	2	3	pH bajo, se ajustó con cal	1	Completada
+19	1	5	3	2026-08-15	7.30	25.80	150	0	0	0	0	0	0	Revisión de rutina, sin novedad	1	En progreso
+20	1	7	3	2026-08-20	7.00	26.10	0	0	3	0	0	1	2	Mortalidad detectada, pendiente tratamiento	1	Retrasada
+21	4	8	4	2026-08-25	6.80	27.50	220	20	1	10	10	0	1	Cosecha parcial realizada	1	Completada
+22	4	9	4	2026-09-01	7.20	26.00	0	0	0	0	0	0	0	Cambio de agua en curso	1	En progreso
+23	3	10	1	2026-09-05	6.50	28.00	100	5	7	2	3	3	4	Filtro sucio, requiere visita adicional	1	Retrasada
+24	5	13	1	2026-09-08	7.15	26.40	300	30	4	15	15	2	2	Siembra de alevinos nueva	1	Completada
+25	2	1	5	2026-08-03	7.10	26.50	200	15	2	7	8	1	1	Limpieza y conteo de rutina	1	Completada
+26	2	2	5	2026-08-10	6.90	27.00	0	0	5	0	0	2	3	pH bajo, se ajustó con cal	1	Completada
+27	1	5	3	2026-08-15	7.30	25.80	150	0	0	0	0	0	0	Revisión de rutina, sin novedad	1	En progreso
+28	1	7	3	2026-08-20	7.00	26.10	0	0	3	0	0	1	2	Mortalidad detectada, pendiente tratamiento	1	Retrasada
+29	4	8	4	2026-08-25	6.80	27.50	220	20	1	10	10	0	1	Cosecha parcial realizada	1	Completada
+30	4	9	4	2026-09-01	7.20	26.00	0	0	0	0	0	0	0	Cambio de agua en curso	1	En progreso
+31	3	10	1	2026-09-05	6.50	28.00	100	5	7	2	3	3	4	Filtro sucio, requiere visita adicional	1	Retrasada
+32	5	13	1	2026-09-08	7.15	26.40	300	30	4	15	15	2	2	Siembra de alevinos nueva	1	Completada
 \.
 
 
@@ -1490,7 +1637,13 @@ COPY public.seguimiento_zoocriadero (id_seguimiento, id_zoocriadero, id_tanque, 
 -- Data for Name: sitio; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.sitio (id_sitio, id_tipo_deposito, id_direccion, estado, creado_en) FROM stdin;
+COPY public.sitio (id_sitio, id_tipo_deposito, id_direccion, direccion, comuna, barrio, latitud, longitud, estado, creado_en) FROM stdin;
+7	1	7	Cra 31 # 22-71	Comuna 13	Rodrigo Lara Bonilla	\N	\N	1	2026-09-14 23:45:45.944848
+8	2	8	Calle 13 # 24-05	Comuna 5	Los Guayacanes	\N	\N	1	2026-09-14 23:45:45.944848
+9	4	9	Cra 26 # 9-40	Comuna 7	Puerto Nuevo	\N	\N	1	2026-09-14 23:45:45.944848
+10	5	10	Cra 8 # 45-12	Comuna 17	Ciudad Capri	\N	\N	1	2026-09-14 23:45:45.944848
+11	7	11	Calle 70 # 28D-19	Comuna 12	El Paraíso	\N	\N	0	2026-09-14 23:45:45.944848
+12	8	12	Cra 5 # 12-30	Comuna 15	El Retiro	\N	\N	1	2026-09-14 23:45:45.944848
 \.
 
 
@@ -1499,21 +1652,21 @@ COPY public.sitio (id_sitio, id_tipo_deposito, id_direccion, estado, creado_en) 
 --
 
 COPY public.tanque (id_tanque, id_zoocriadero, id_tipo_tanque, numero_tanque, estado) FROM stdin;
-1	3	5	1	1
-2	3	2	2	1
-3	3	4	3	1
-4	3	6	4	1
-5	2	5	1	1
-6	2	1	2	1
-7	2	2	3	1
-8	5	5	1	1
-9	5	3	2	1
-10	4	5	1	1
-11	4	6	2	1
-12	4	7	3	1
-13	1	5	1	1
-14	1	4	2	1
-15	1	1	3	1
+1	2	5	1	1
+2	2	2	2	1
+3	2	4	3	1
+4	2	6	4	1
+5	1	5	1	1
+6	1	1	2	1
+7	1	2	3	1
+8	4	5	1	1
+9	4	3	2	1
+10	3	5	1	1
+11	3	6	2	1
+12	3	7	3	1
+13	5	5	1	1
+14	5	4	2	1
+15	5	1	3	1
 \.
 
 
@@ -1548,11 +1701,11 @@ COPY public.tipo_deposito (id_tipo_deposito, nombre, descripcion, estado) FROM s
 --
 
 COPY public.tipo_documento (id_tipodocumento, nombre) FROM stdin;
-6	Permiso por Protección Temporal
-7	Cédula de extranjería
-8	Cédula de ciudadanía
-9	Pasaporte
-10	Tarjeta de identidad
+1	Permiso por Protección Temporal
+2	Cédula de extranjería
+3	Cédula de ciudadanía
+4	Pasaporte
+5	Tarjeta de identidad
 \.
 
 
@@ -1575,13 +1728,13 @@ COPY public.tipo_tanque (id_tipo_tanque, nombre, descripcion, estado) FROM stdin
 -- Data for Name: usuario; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.usuario (id_usuario, id_tipodocumento, id_rol, nombre, apellido, correo, contrasena, estado, creado_en) FROM stdin;
-1	8	3	María José	Perlaza	maria.perlaza@cali.gov.co	$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C	1	2026-09-14 06:26:02.453062
-2	8	1	Luisa Fernanda	Ríos	luisa.rios@cali.gov.co	$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C	1	2026-09-14 06:26:02.453062
-3	8	3	Diana Marcela	Ortiz	diana.ortiz@cali.gov.co	$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C	1	2026-09-14 06:26:02.453062
-4	8	3	Jhon Édison	Valencia	jhon.valencia@cali.gov.co	$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C	1	2026-09-14 06:26:02.453062
-5	8	3	Carlos Andrés	Mosquera	carlos.mosquera@cali.gov.co	$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C	1	2026-09-14 06:26:02.453062
-6	8	2	Andrés Felipe	Caicedo	andres.caicedo@cali.gov.co	$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C	1	2026-09-14 06:26:02.453062
+COPY public.usuario (id_usuario, id_tipodocumento, id_rol, nombre, apellido, correo, contrasena, estado, creado_en, intentos_fallidos, bloqueo_hasta, token_recuperacion, token_expira) FROM stdin;
+1	3	3	María José	Perlaza	maria.perlaza@cali.gov.co	$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C	1	2026-09-14 06:42:02.58288	0	\N	\N	\N
+2	3	1	Luisa Fernanda	Ríos	luisa.rios@cali.gov.co	$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C	1	2026-09-14 06:42:02.58288	0	\N	\N	\N
+3	3	3	Diana Marcela	Ortiz	diana.ortiz@cali.gov.co	$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C	1	2026-09-14 06:42:02.58288	0	\N	\N	\N
+4	3	3	Jhon Édison	Valencia	jhon.valencia@cali.gov.co	$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C	1	2026-09-14 06:42:02.58288	0	\N	\N	\N
+5	3	3	Carlos Andrés	Mosquera	carlos.mosquera@cali.gov.co	$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C	1	2026-09-14 06:42:02.58288	0	\N	\N	\N
+6	3	2	Andrés Felipe	Caicedo	andres.caicedo@cali.gov.co	$2y$10$krffGFo.lHLb7KgLEAGf8ubBH5rWyCkSR/fwkaV/okl0xizVuG04C	1	2026-09-14 06:42:02.58288	0	\N	\N	\N
 \.
 
 
@@ -1590,11 +1743,11 @@ COPY public.usuario (id_usuario, id_tipodocumento, id_rol, nombre, apellido, cor
 --
 
 COPY public.zoocriadero (id_zoocriadero, nombre, direccion, comuna, barrio, id_persona_cargo, latitud, longitud, estado, creado_en) FROM stdin;
-1	Zoocriadero Aguablanca	Cra 31 # 22-71	Comuna 15	El ingenio	\N	0.00000000	0.00000000	1	2026-09-14 05:41:11.924639
-2	Zoocriadero Norte	Cra 8 # 45-12	Comuna 2	Granada	5	3.46210000	-76.53120000	1	2026-09-14 06:26:02.453062
-3	Zoocriadero Central	Calle 13 # 24-05	Comuna 11	El Guabal	2	3.42158000	-76.52050000	1	2026-09-14 06:26:02.453062
-5	Zoocriadero Oriente	Calle 70 # 28D-19	Comuna 15	El Retiro	3	3.43980000	-76.49010000	1	2026-09-14 06:26:02.453062
-4	Zoocriadero Ladera	Cra 26 # 9-40	Comuna 18	Meléndez	4	3.38720000	-76.54990000	0	2026-09-14 06:26:02.453062
+1	Zoocriadero Norte	Cra 8 # 45-12	Comuna 2	Granada	5	3.46210000	-76.53120000	1	2026-09-14 06:42:02.58288
+2	Zoocriadero Central	Calle 13 # 24-05	Comuna 11	El Guabal	2	3.42158000	-76.52050000	1	2026-09-14 06:42:02.58288
+3	Zoocriadero Ladera	Cra 26 # 9-40	Comuna 18	Meléndez	4	3.38720000	-76.54990000	0	2026-09-14 06:42:02.58288
+4	Zoocriadero Oriente	Calle 70 # 28D-19	Comuna 15	El Retiro	3	3.43980000	-76.49010000	1	2026-09-14 06:42:02.58288
+5	Zoocriadero Aguablanca	Cra 31 # 22-71	Comuna 15	Mojica	1	3.41050000	-76.47330000	1	2026-09-14 06:42:02.58288
 \.
 
 
@@ -1616,21 +1769,21 @@ SELECT pg_catalog.setval('public.actividad_id_actividad_seq', 23, true);
 -- Name: actividad_terreno_id_actividad_terreno_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.actividad_terreno_id_actividad_terreno_seq', 1, false);
+SELECT pg_catalog.setval('public.actividad_terreno_id_actividad_terreno_seq', 12, true);
 
 
 --
 -- Name: actividad_zoocriadero_id_actividad_zoocriadero_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.actividad_zoocriadero_id_actividad_zoocriadero_seq', 3, true);
+SELECT pg_catalog.setval('public.actividad_zoocriadero_id_actividad_zoocriadero_seq', 87, true);
 
 
 --
 -- Name: auditoria_seguimiento_zoocriadero_id_auditoria_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.auditoria_seguimiento_zoocriadero_id_auditoria_seq', 1, false);
+SELECT pg_catalog.setval('public.auditoria_seguimiento_zoocriadero_id_auditoria_seq', 280, true);
 
 
 --
@@ -1651,7 +1804,7 @@ SELECT pg_catalog.setval('public.barrio_id_barrio_seq', 267, true);
 -- Name: ciudad_id_ciudad_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.ciudad_id_ciudad_seq', 1, false);
+SELECT pg_catalog.setval('public.ciudad_id_ciudad_seq', 2, true);
 
 
 --
@@ -1665,21 +1818,21 @@ SELECT pg_catalog.setval('public.comuna_id_comuna_seq', 22, true);
 -- Name: copia_seguridad_historial_id_historial_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.copia_seguridad_historial_id_historial_seq', 2, true);
+SELECT pg_catalog.setval('public.copia_seguridad_historial_id_historial_seq', 1, false);
 
 
 --
 -- Name: departamento_id_departamento_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.departamento_id_departamento_seq', 1, false);
+SELECT pg_catalog.setval('public.departamento_id_departamento_seq', 2, true);
 
 
 --
 -- Name: direccion_id_direccion_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.direccion_id_direccion_seq', 1, false);
+SELECT pg_catalog.setval('public.direccion_id_direccion_seq', 12, true);
 
 
 --
@@ -1693,7 +1846,7 @@ SELECT pg_catalog.setval('public.modulo_id_modulo_seq', 7, true);
 -- Name: nomenclatura_id_nomenclatura_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.nomenclatura_id_nomenclatura_seq', 1, false);
+SELECT pg_catalog.setval('public.nomenclatura_id_nomenclatura_seq', 10, true);
 
 
 --
@@ -1707,21 +1860,21 @@ SELECT pg_catalog.setval('public.rol_id_rol_seq', 4, true);
 -- Name: seguimiento_terreno_id_seguimiento_terreno_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.seguimiento_terreno_id_seguimiento_terreno_seq', 1, false);
+SELECT pg_catalog.setval('public.seguimiento_terreno_id_seguimiento_terreno_seq', 12, true);
 
 
 --
 -- Name: seguimiento_zoocriadero_id_seguimiento_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.seguimiento_zoocriadero_id_seguimiento_seq', 3, true);
+SELECT pg_catalog.setval('public.seguimiento_zoocriadero_id_seguimiento_seq', 216, true);
 
 
 --
 -- Name: sitio_id_sitio_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.sitio_id_sitio_seq', 1, false);
+SELECT pg_catalog.setval('public.sitio_id_sitio_seq', 12, true);
 
 
 --
@@ -1749,7 +1902,7 @@ SELECT pg_catalog.setval('public.tipo_deposito_id_tipo_deposito_seq', 10, true);
 -- Name: tipo_documento_id_tipodocumento_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.tipo_documento_id_tipodocumento_seq', 10, true);
+SELECT pg_catalog.setval('public.tipo_documento_id_tipodocumento_seq', 5, true);
 
 
 --
@@ -1990,10 +2143,45 @@ ALTER TABLE ONLY public.zoocriadero
 
 
 --
+-- Name: idx_barrio_comuna; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_barrio_comuna ON public.barrio USING btree (id_comuna);
+
+
+--
 -- Name: idx_copia_seguridad_fecha; Type: INDEX; Schema: public; Owner: postgres
 --
 
 CREATE INDEX idx_copia_seguridad_fecha ON public.copia_seguridad_historial USING btree (fecha_hora DESC);
+
+
+--
+-- Name: idx_seg_ter_fecha; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_seg_ter_fecha ON public.seguimiento_terreno USING btree (fecha);
+
+
+--
+-- Name: idx_seg_zoo_fecha; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_seg_zoo_fecha ON public.seguimiento_zoocriadero USING btree (fecha);
+
+
+--
+-- Name: idx_seg_zoo_tanque; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_seg_zoo_tanque ON public.seguimiento_zoocriadero USING btree (id_tanque);
+
+
+--
+-- Name: idx_tanque_zoo; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_tanque_zoo ON public.tanque USING btree (id_zoocriadero);
 
 
 --
@@ -2310,5 +2498,5 @@ ALTER TABLE ONLY public.zoocriadero
 -- PostgreSQL database dump complete
 --
 
-\unrestrict CY2RSzhMtfS9gIyL8WpYzatg6i65M8imbkdBkSz2pVyM1Q4rfdtPzgXdsb270gl
+\unrestrict urWfRkaES5cyP0h1IgQxDNRL1kZsDOzDfgnOgFezM96AoujtEcJGCTfiT48BekD
 

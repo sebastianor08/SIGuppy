@@ -118,6 +118,13 @@
         </li>
 
         <li class="nav-item">
+          <a href="<?php echo $rutaBase; ?>View/Auditoria/AuditoriaView.php" data-page="auditoria">
+            <i class="fas fa-history"></i>
+            <p>Auditoría</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
           <a href="<?php echo $rutaBase; ?>View/Configuraciones/configuraciones.php" data-page="configuraciones">
             <i class="fas fa-cogs"></i>
             <p>Configuraciones</p>

@@ -66,6 +66,35 @@ class Connection
 
         pg_set_client_encoding($conexion, "UTF8");
         self::$link = $conexion;
+
+        $this->avisarUsuarioActual($conexion);
+    }
+
+    // ============================================================
+    // Auditoría: los triggers de la base (fn_auditoria_general,
+    // fn_auditoria_seguimiento_zoocriadero) leen quién hizo el
+    // cambio con fn_usuario_actual(), que a su vez lee el parámetro
+    // de sesión de Postgres "app.usuario_actual". Aquí es donde se
+    // lo informamos, tomando el usuario logueado en PHP, para que
+    // cualquier INSERT/UPDATE/DELETE hecho en esta conexión quede
+    // asociado a la persona correcta en auditoria_sistema y en
+    // auditoria_seguimiento_zoocriadero.
+    // ============================================================
+    private function avisarUsuarioActual($conexion)
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $idUsuario = $_SESSION['id_usuario'] ?? null;
+
+        if ($idUsuario !== null) {
+            pg_query_params(
+                $conexion,
+                "SELECT set_config('app.usuario_actual', $1, false)",
+                [ (string) $idUsuario ]
+            );
+        }
     }
 
     protected function getConnect()
