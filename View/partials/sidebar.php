@@ -1,8 +1,8 @@
 <?php
 
-if (!isset($rutaBase)) {
-  $rutaBase = '../../';
-}
+  if (!isset($rutaBase)) {
+      $rutaBase = '../../';
+  }
 ?>
 <div class="sidebar sidebar-style-2 siguppys-sidebar" data-background-color="white">
   <div class="sidebar-logo">
@@ -88,9 +88,15 @@ if (!isset($rutaBase)) {
           </a>
           <div class="collapse" id="navTerreno">
             <ul class="nav nav-collapse">
+<<<<<<< HEAD
+              <li><a href="<?php echo $rutaBase; ?>View/Deposito/DepositoView.php" data-page="terreno-depositos"><span class="sub-item">Depósitos</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Actividad/ActividadView.php" data-page="terreno-actividades"><span class="sub-item">Actividades</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/TipoDeposito/TipoDepositoView.php" data-page="terreno-tipo-depositos"><span class="sub-item">Tipo Depósitos</span></a></li>
+=======
               <li><a href="#" data-page="terreno-depositos"><span class="sub-item">Depósitos</span></a></li>
               <li><a href="#" data-page="terreno-actividades"><span class="sub-item">Actividades</span></a></li>
               <li><a href="#" data-page="terreno-tipo-depositos"><span class="sub-item">Tipo Depósitos</span></a></li>
+>>>>>>> origin/dev
             </ul>
           </div>
         </li>
@@ -118,6 +124,8 @@ if (!isset($rutaBase)) {
         </li>
 
         <li class="nav-item">
+<<<<<<< HEAD
+=======
           <a href="<?php echo $rutaBase; ?>View/Auditoria/AuditoriaView.php" data-page="auditoria">
             <i class="fas fa-history"></i>
             <p>Auditoría</p>
@@ -125,6 +133,7 @@ if (!isset($rutaBase)) {
         </li>
 
         <li class="nav-item">
+>>>>>>> origin/dev
           <a href="<?php echo $rutaBase; ?>View/Configuraciones/configuraciones.php" data-page="configuraciones">
             <i class="fas fa-cogs"></i>
             <p>Configuraciones</p>
