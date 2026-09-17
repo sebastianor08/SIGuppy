@@ -60,11 +60,11 @@
             </div>
 
             <div class="col-md-3">
-              <label class="form-label" for="ph">pH <span class="text-muted small">(opcional)</span></label>
+              <label class="form-label" for="ph">pH <span class="text-muted small"></span></label>
               <input type="number" min="0" max="14" step="0.01" class="form-control" id="ph" name="ph" placeholder="7.20" />
             </div>
             <div class="col-md-3">
-              <label class="form-label" for="temperatura">Temperatura °C <span class="text-muted small">(opcional)</span></label>
+              <label class="form-label" for="temperatura">Temperatura °C <span class="text-muted small"></span></label>
               <input type="number" step="0.01" class="form-control" id="temperatura" name="temperatura" placeholder="26.50" />
             </div>
             <div class="col-md-2">
