@@ -258,9 +258,10 @@
             </form>
 
         </div>
-
+      </div>
     </div>
 
+<<<<<<< HEAD
 </div>
 
 <?php
@@ -271,5 +272,11 @@
 
 ?>
 
+=======
+<?php
+    $pageScripts = ['Web/assets/js/siguppys-tipos-deposito.js'];
+    include '../partials/footer.php';
+?>
+>>>>>>> origin/dev
 </body>
 </html>

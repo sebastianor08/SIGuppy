@@ -128,17 +128,6 @@ class RolesModel extends MasterModel{
         );
     }
 
-    // ------------------------------------------------------------
-    // Permisos EFECTIVOS de un rol sobre un módulo, buscados por
-    // nombre (no por id): lo usan las vistas de Depósitos, Tipos de
-    // Depósito y Actividades para decidir si el usuario ve habilitados
-    // los botones de Crear / Editar / Inhabilitar, según lo que
-    // realmente se marcó en "Roles y Permisos" (tabla rol_permiso).
-    //
-    // Antes esas 3 vistas traían los permisos "quemados" en el propio
-    // JS (un objeto fijo auxiliar/coordinador), por lo que marcar
-    // casillas aquí no tenía ningún efecto. Con este método sí.
-    // ------------------------------------------------------------
     public function permisosPorNombre($nombreRol, $nombreModulo){
         $filas = $this->selectAll(
             "SELECT a.nombre AS accion
@@ -174,11 +163,6 @@ class RolesModel extends MasterModel{
         );
     }
 
-    // ------------------------------------------------------------
-    // Guarda el rol completo dentro de una transacción:
-    // o se guardan el rol Y todos sus permisos, o no se guarda nada.
-    // $seleccion llega del formulario como ['idModulo-idAccion', ...]
-    // ------------------------------------------------------------
     public function registrarRolConPermisos($nombre, $descripcion, $seleccion){
         $this->beginTransaction();
 
@@ -206,11 +190,6 @@ class RolesModel extends MasterModel{
         return (int) $idRol;
     }
 
-    // ------------------------------------------------------------
-    // Edición: UPDATE del rol y reemplazo completo de sus permisos.
-    // Se borran los permisos viejos y se vuelven a insertar los
-    // marcados, todo dentro de la misma transacción.
-    // ------------------------------------------------------------
     public function actualizarRolConPermisos($idRol, $nombre, $descripcion, $seleccion){
         $this->beginTransaction();
 

@@ -32,11 +32,20 @@
       });
     </script>
 
+<<<<<<< HEAD
     <!-- CSS del template (mismos archivos en todas las vistas) -->
     <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/plugins.min.css">
     <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/kaiadmin.min.css">
 
+=======
+
+    <!-- CSS del template (mismos archivos en todas las vistas) -->
+    <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/plugins.min.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/kaiadmin.min.css">
+
+>>>>>>> origin/dev
     <!-- Estilos propios de SIGuppys: solo AGREGAN reglas encima del kaiadmin.css original -->
     <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/siguppys.css">
     <?php if(!empty($extraStyles)): ?>

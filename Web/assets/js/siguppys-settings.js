@@ -10,18 +10,18 @@
   if (document.body.getAttribute("data-page") !== "configuraciones") return;
 
   var darkSwitch = document.getElementById("switchDarkMode");
-  var daltonismoSwitch = document.getElementById("switchDaltonismo");
+  var daltonismoSelect = document.getElementById("selectDaltonismo");
 
   darkSwitch.checked = window.SIGuppys.getBoolPref("siguppys_dark_mode");
-  daltonismoSwitch.checked = window.SIGuppys.getBoolPref("siguppys_daltonismo");
+  daltonismoSelect.value = window.SIGuppys.getDaltonismoTipo();
 
   darkSwitch.addEventListener("change", function () {
     window.SIGuppys.setBoolPref("siguppys_dark_mode", this.checked);
     window.SIGuppys.applyDarkMode(this.checked);
   });
 
-  daltonismoSwitch.addEventListener("change", function () {
-    window.SIGuppys.setBoolPref("siguppys_daltonismo", this.checked);
-    window.SIGuppys.applyDaltonismo(this.checked);
+  daltonismoSelect.addEventListener("change", function () {
+    window.SIGuppys.setDaltonismoTipo(this.value);
+    window.SIGuppys.applyDaltonismo(this.value);
   });
 })();

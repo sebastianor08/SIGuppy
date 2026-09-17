@@ -54,6 +54,16 @@ class DepositoModel extends MasterModel
         );
     }
 
+    public function barrioPerteneceAComuna($nombreBarrio, $nombreComuna)
+    {
+        return $this->selectValue(
+            "SELECT 1 FROM barrio b
+             INNER JOIN comuna c ON c.id_comuna = b.id_comuna
+             WHERE b.nombre = $1 AND c.nombre = $2",
+            [$nombreBarrio, $nombreComuna]
+        ) !== null;
+    }
+
     public function tipoExiste($idTipo)
     {
         return $this->selectValue(

@@ -58,6 +58,7 @@
               <label class="form-label" for="fecha">Fecha</label>
               <input type="date" class="form-control" id="fecha" name="fecha" required />
             </div>
+<<<<<<< HEAD
           </div>
 
           <div class="card sig-followup-card"><div class="card-body">
@@ -136,6 +137,62 @@
             </form>
           </div></div>
 
+=======
+
+            <div class="col-md-3">
+              <label class="form-label" for="ph">pH <span class="text-muted small">(opcional)</span></label>
+              <input type="number" min="0" max="14" step="0.01" class="form-control" id="ph" name="ph" placeholder="7.20" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label" for="temperatura">Temperatura °C <span class="text-muted small">(opcional)</span></label>
+              <input type="number" step="0.01" class="form-control" id="temperatura" name="temperatura" placeholder="26.50" />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="numero_sembrados">Peces sembrados</label>
+              <input type="number" min="0" step="1" value="0" class="form-control" id="numero_sembrados" name="numero_sembrados" required />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="numero_nacidos_hembra">Hembras nacidas</label>
+              <input type="number" min="0" step="1" value="0" class="form-control" id="numero_nacidos_hembra" name="numero_nacidos_hembra" required />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="numero_nacidos_macho">Machos nacidos</label>
+              <input type="number" min="0" step="1" value="0" class="form-control" id="numero_nacidos_macho" name="numero_nacidos_macho" required />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="numero_muertos_hembra">Hembras muertas</label>
+              <input type="number" min="0" step="1" value="0" class="form-control" id="numero_muertos_hembra" name="numero_muertos_hembra" required />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="numero_muertos_macho">Machos muertos</label>
+              <input type="number" min="0" step="1" value="0" class="form-control" id="numero_muertos_macho" name="numero_muertos_macho" required />
+            </div>
+            <div class="col-md-2">
+              <span class="form-label d-block">Total nacidos / muertos</span>
+              <span class="form-control-plaintext fw-bold" id="totalNacidosMuertos">0 / 0</span>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="id_actividad">Acción</label>
+              <select class="form-select" id="id_actividad" name="id_actividad" required><option value="">Seleccione la acción</option></select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="observaciones">Observaciones</label>
+              <textarea class="form-control" id="observaciones" name="observaciones" rows="4" maxlength="300" placeholder="Escribe aquí las observaciones..."></textarea>
+              <div class="form-text text-end"><span id="observacionesCount">0</span>/300</div>
+            </div>
+          </div>
+
+          <div id="seguimientoMessage" class="alert d-none mt-4 mb-0" role="alert"></div>
+          <div class="d-flex justify-content-end mt-4 gap-2">
+            <button type="button" id="btnCancelarEdicion" class="btn btn-label-secondary d-none">Cancelar edición</button>
+            <a href="../Zoocriadero/zoocriaderos.php" class="btn btn-label-secondary">Volver</a>
+            <button type="submit" class="btn btn-primary" id="btnGuardarSeguimiento"><i class="fas fa-save me-1"></i>Guardar</button>
+          </div>
+        </form>
+      </div></div>
+
+>>>>>>> origin/dev
           <div class="card mt-4">
             <div class="card-header d-flex justify-content-between align-items-center">
               <h4 class="card-title mb-0">Seguimientos registrados</h4>
@@ -157,7 +214,11 @@
                       <th class="text-center">Muertos</th>
                       <th class="text-center">pH</th>
                       <th class="text-center">T °C</th>
+<<<<<<< HEAD
                       <th class="text-center">Editar</th>
+=======
+                      <th class="text-center">Acciones</th>
+>>>>>>> origin/dev
                     </tr>
                   </thead>
                   <tbody id="historialBody">
@@ -167,10 +228,32 @@
               </div>
             </div>
           </div>
+<<<<<<< HEAD
         </div></div>
       </div>
     </div>
 
+=======
+
+          <div class="modal fade" id="seguimientoDetailModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Detalle del seguimiento</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body" id="seguimientoDetailBody"></div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+>>>>>>> origin/dev
 <?php
     $pageScripts = ['Web/assets/js/siguppys-seguimiento-zoocriadero.js'];
     include '../partials/footer.php';
@@ -197,8 +280,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectAccion = document.getElementById('id_actividad');
   const inputPh = document.getElementById('ph');
   const inputTemp = document.getElementById('temperatura');
+<<<<<<< HEAD
   const labelPh = document.querySelector('label[for="ph"]');
   const labelTemp = document.querySelector('label[for="temperatura"]');
+=======
+  const inputSembrados = document.getElementById('numero_sembrados');
+  const labelPh = document.querySelector('label[for="ph"]');
+  const labelTemp = document.querySelector('label[for="temperatura"]');
+  const labelSembrados = document.querySelector('label[for="numero_sembrados"]');
+>>>>>>> origin/dev
 
   // Acciones que exigen medir pH
   const accionesPH = [
@@ -217,12 +307,21 @@ document.addEventListener('DOMContentLoaded', () => {
     'Medir temperatura'
   ];
 
+<<<<<<< HEAD
+=======
+  // Acciones que exigen registrar peces sembrados
+  const accionesSembrados = [
+    'Sembrar alevinos'
+  ];
+
+>>>>>>> origin/dev
   function gestionarReglasNegocio() {
     if (!selectAccion) return;
 
     // Obtener el texto visible de la opción seleccionada
     const accionSeleccionada = selectAccion.options[selectAccion.selectedIndex]?.text.trim();
 
+<<<<<<< HEAD
     // 1. Evaluar campo pH
     const requierePh = accionesPH.includes(accionSeleccionada);
     aplicarEstadoCampo(inputPh, labelPh, requierePh);
@@ -233,6 +332,22 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function aplicarEstadoCampo(input, label, esObligatorio) {
+=======
+    // Evaluar campo pH
+    const requierePh = accionesPH.includes(accionSeleccionada);
+    aplicarEstadoCampo(inputPh, labelPh, requierePh);
+
+    //Evaluar campo Temperatura
+    const requiereTemp = accionesTemperatura.includes(accionSeleccionada);
+    aplicarEstadoCampo(inputTemp, labelTemp, requiereTemp);
+
+    //Evaluar campo Peces sembrados: solo tiene sentido si la acción es "Sembrar alevinos"
+    const requiereSembrados = accionesSembrados.includes(accionSeleccionada);
+    aplicarEstadoCampo(inputSembrados, labelSembrados, requiereSembrados, '0');
+  }
+
+  function aplicarEstadoCampo(input, label, esObligatorio, valorInactivo = '') {
+>>>>>>> origin/dev
     if (!input) return;
 
     if (esObligatorio) {
@@ -240,7 +355,11 @@ document.addEventListener('DOMContentLoaded', () => {
       input.required = true;
       actualizarAsterisco(label, true);
     } else {
+<<<<<<< HEAD
       input.value = '';        // Limpia cualquier valor previo
+=======
+      input.value = valorInactivo; // Limpia (u opcionalmente resetea) el valor previo
+>>>>>>> origin/dev
       input.disabled = true;   // Bloquea el campo si la acción no lo requiere
       input.required = false;
       actualizarAsterisco(label, false);
@@ -268,8 +387,14 @@ document.addEventListener('DOMContentLoaded', () => {
     selectAccion.addEventListener('change', gestionarReglasNegocio);
   }
 
+<<<<<<< HEAD
   // Ejecutar al cargar la página por si hay alguna opción seleccionada
   gestionarReglasNegocio();
+=======
+
+  gestionarReglasNegocio();
+  window.sigRecalcularReglasSeguimiento = gestionarReglasNegocio;
+>>>>>>> origin/dev
 });
 </script>
 </body>
