@@ -93,6 +93,7 @@
 
 .siguppys-sidebar.sidebar.sidebar-style-2 .nav.nav-secondary>.nav-item.active>a,
 .siguppys-sidebar .nav>.nav-item>a[aria-expanded="true"] {
+
   background: var(--sig-blue-soft) !important;
   box-shadow: none !important;
   border-radius: 10px;
@@ -133,888 +134,965 @@
   line-height: 1.4;
 }
 
-.sidebar-wrapper {
-  padding-bottom: 90px;
-  /* espacio para que el menú no quede tapado detrás del botón fijo */
-}
-
+/* ---- Pie del sidebar: botón Cerrar Sesión ---- */
 .sidebar-footer {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100%;
+  flex: none;
   padding: 16px 20px 22px;
   border-top: 1px solid #f1f1f1;
-  background: #fff;
-  z-index: 6;
-}
 
-.btn-logout {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid var(--sig-red);
-  border-radius: 8px;
-  color: var(--sig-red);
-  font-weight: 600;
-  font-size: 14px;
-  text-decoration: none;
-  transition: background 0.2s, color 0.2s;
-}
+  .sidebar-wrapper {
+    padding-bottom: 90px;
+    /* espacio para que el menú no quede tapado detrás del botón fijo */
+  }
 
-.btn-logout:hover {
-  background: var(--sig-red);
-  color: #fff;
-  text-decoration: none;
-}
+  .sidebar-footer {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    padding: 16px 20px 22px;
+    border-top: 1px solid #f1f1f1;
+    background: #fff;
+    z-index: 6;
+  }
 
-/* ---- Selector de rol (barra superior, solo demo) ---- */
-.sig-role-switcher {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border: 1px dashed #d8dbe3;
-  border-radius: 20px;
-  margin-right: 10px;
-  background: #fbfbfd;
-}
+  .btn-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--sig-red);
+    border-radius: 8px;
+    color: var(--sig-red);
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+  }
 
-.sig-role-switcher label {
-  font-size: 11px;
-  text-transform: none;
-  color: var(--sig-muted);
-  margin: 0;
-  white-space: nowrap;
-}
+  .btn-logout:hover {
+    background: var(--sig-red);
+    color: #fff;
+    text-decoration: none;
+  }
 
-.sig-role-switcher select {
-  border: none;
-  background: transparent;
-  color: var(--sig-ink);
-  font-weight: 600;
-  font-size: 13px;
-  padding: 0 20px 0 0;
-}
+  /* ---- Selector de rol (barra superior, solo demo) ---- */
+  .sig-role-switcher {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px dashed #d8dbe3;
+    border-radius: 20px;
+    margin-right: 10px;
+    background: #fbfbfd;
+  }
 
-.sig-role-switcher select:focus {
-  outline: none;
-  box-shadow: none;
-}
+  .sig-role-switcher label {
+    font-size: 11px;
+    text-transform: none;
+    color: var(--sig-muted);
+    margin: 0;
+    white-space: nowrap;
+  }
 
-/* ---- Badges de estado ---- */
-.badge-estado {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 5px 10px;
-  border-radius: 20px;
-}
+  .sig-role-switcher select {
+    border: none;
+    background: transparent;
+    color: var(--sig-ink);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 0 20px 0 0;
+  }
 
-.badge-estado.activo {
-  background: rgba(29, 201, 183, 0.12);
-  color: #0f9c8c;
-}
+  .sig-role-switcher select:focus {
+    outline: none;
+    box-shadow: none;
+  }
 
-.badge-estado.inactivo {
-  background: rgba(243, 84, 93, 0.12);
-  color: var(--sig-red);
-}
+  /* ---- Badges de estado ---- */
+  .badge-estado {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 20px;
+  }
 
-/* ---- Botón bloqueado (sin permiso) ---- */
-.btn-locked {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #eef0f4;
-  color: #9aa0ab;
-  border: 1px solid #e2e5ec;
-  cursor: not-allowed;
-}
+  .badge-estado.activo {
+    background: rgba(29, 201, 183, 0.12);
+    color: #0f9c8c;
+  }
 
-.btn-locked:hover,
-.btn-locked:focus {
-  background: #eef0f4;
-  color: #9aa0ab;
-}
+  .badge-estado.inactivo {
+    background: rgba(243, 84, 93, 0.12);
+    color: var(--sig-red);
+  }
 
-/* ---- Botones de acción en tablas ---- */
-.table-actions {
-  display: flex;
-  gap: 6px;
-  justify-content: center;
-}
+  /* ---- Botón bloqueado (sin permiso) ---- */
+  .btn-locked {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #eef0f4;
+    color: #9aa0ab;
+    border: 1px solid #e2e5ec;
+    cursor: not-allowed;
+  }
 
-.table-actions .btn-icon {
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  border: 1px solid #e5e7ee;
-  background: #fff;
-  color: #6a6f78;
-  transition: all 0.15s;
-}
+  .btn-locked:hover,
+  .btn-locked:focus {
+    background: #eef0f4;
+    color: #9aa0ab;
+  }
 
-.table-actions .btn-icon:hover {
-  border-color: var(--sig-blue);
-  color: var(--sig-blue);
-}
+  /* ---- Botones de acción en tablas ---- */
+  .table-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+  }
 
-.table-actions .btn-icon.text-danger:hover {
-  border-color: var(--sig-red);
-  color: var(--sig-red);
-}
+  .table-actions .btn-icon {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid #e5e7ee;
+    background: #fff;
+    color: #6a6f78;
+    transition: all 0.15s;
+  }
 
-.table-actions .btn-icon.text-success:hover {
-  border-color: #0f9c8c;
-  color: #0f9c8c;
-}
+  .table-actions .btn-icon:hover {
+    border-color: var(--sig-blue);
+    color: var(--sig-blue);
+  }
 
-/* ---- Utilidades por rol (JS agrega data-role al <body>) ---- */
-[data-role] .only-auxiliar,
-[data-role] .only-coordinador {
-  display: none !important;
-}
+  .table-actions .btn-icon.text-danger:hover {
+    border-color: var(--sig-red);
+    color: var(--sig-red);
+  }
 
-body[data-role="auxiliar"] .only-auxiliar {
-  display: revert !important;
-}
+  .table-actions .btn-icon.text-success:hover {
+    border-color: #0f9c8c;
+    color: #0f9c8c;
+  }
 
-body[data-role="coordinador"] .only-coordinador {
-  display: revert !important;
-}
+  /* ---- Utilidades por rol (JS agrega data-role al <body>) ---- */
+  [data-role] .only-auxiliar,
+  [data-role] .only-coordinador {
+    display: none !important;
+  }
 
-.table-actions.only-auxiliar,
-.table-actions.only-coordinador {
-  display: none !important;
-}
+  body[data-role="auxiliar"] .only-auxiliar {
+    display: revert !important;
+  }
 
-body[data-role="auxiliar"] .table-actions.only-auxiliar {
-  display: flex !important;
-}
+  body[data-role="coordinador"] .only-coordinador {
+    display: revert !important;
+  }
 
-body[data-role="coordinador"] .table-actions.only-coordinador {
-  display: flex !important;
-}
+  .table-actions.only-auxiliar,
+  .table-actions.only-coordinador {
+    display: none !important;
+  }
 
-/* ---- Placeholders de módulos aún no construidos ---- */
-.content-placeholder {
-  border: 1px dashed #e3e3e3;
-  border-radius: 12px;
-  padding: 60px 20px;
-  text-align: center;
-  color: var(--sig-muted);
-}
+  body[data-role="auxiliar"] .table-actions.only-auxiliar {
+    display: flex !important;
+  }
 
-.content-placeholder i {
-  font-size: 28px;
-  display: block;
-  margin-bottom: 10px;
-  color: #c8cbd3;
-}
+  body[data-role="coordinador"] .table-actions.only-coordinador {
+    display: flex !important;
+  }
 
-/* ---- Toolbar de tabla (buscar + filtro estado) ---- */
-.sig-table-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
+  /* ---- Placeholders de módulos aún no construidos ---- */
+  .content-placeholder {
+    border: 1px dashed #e3e3e3;
+    border-radius: 12px;
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--sig-muted);
+  }
 
-.sig-table-toolbar .sig-search {
-  position: relative;
-  flex: 1 1 260px;
-  max-width: 320px;
-}
+  .content-placeholder i {
+    font-size: 28px;
+    display: block;
+    margin-bottom: 10px;
+    color: #c8cbd3;
+  }
 
-.sig-table-toolbar .sig-search i {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #b7bac2;
-  font-size: 13px;
-}
+  /* ---- Toolbar de tabla (buscar + filtro estado) ---- */
+  .sig-table-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
 
-.sig-table-toolbar .sig-search input {
-  padding-left: 32px;
-}
+  .sig-table-toolbar .sig-search {
+    position: relative;
+    flex: 1 1 260px;
+    max-width: 320px;
+  }
 
-.sig-empty-row td {
-  text-align: center;
-  padding: 40px 0;
-  color: var(--sig-muted);
-}
+  .sig-table-toolbar .sig-search i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #b7bac2;
+    font-size: 13px;
+  }
 
-body[data-background-color="dark"] .siguppys-logo-header {
-  border-bottom-color: rgba(255, 255, 255, 0.08);
-}
+  .sig-table-toolbar .sig-search input {
+    padding-left: 32px;
+  }
 
-body[data-background-color="dark"] .siguppys-brand strong {
-  color: #fff;
-}
+  .sig-empty-row td {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--sig-muted);
+  }
 
-body[data-background-color="dark"] .siguppys-brand small {
-  color: #b9babf;
-}
+  /* =========================================================
+  Modo oscuro — ajustes para los elementos propios de SIGuppys
+  =========================================================
+  El esqueleto del modo oscuro (fondos, texto, tarjetas) ya lo
+  trae kaiadmin.css activando data-background-color="dark" en el
+  body / sidebar / logo-header / navbar; assets/js/siguppys-nav.js
+  se encarga de poner y quitar ese atributo. Aquí solo adaptamos
+  las piezas que agregamos nosotros (marca, selector de rol,
+   placeholders, tabla de acciones). */
+  body[data-background-color="dark"] .siguppys-logo-header {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
 
-body[data-background-color="dark"] .sidebar-footer {
-  border-top-color: rgba(255, 255, 255, 0.08);
-  background: #1a2035;
-}
+  body[data-background-color="dark"] .siguppys-brand strong {
+    color: #fff;
+  }
 
-body[data-background-color="dark"] .sig-role-switcher {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.16);
-}
+  body[data-background-color="dark"] .siguppys-brand small {
+    color: #b9babf;
+  }
 
-body[data-background-color="dark"] .sig-role-switcher label {
-  color: #b9babf;
-}
+  body[data-background-color="dark"] .sidebar-footer {
+    border-top-color: rgba(255, 255, 255, 0.08);
+    background: #1a2035;
+  }
 
-body[data-background-color="dark"] .sig-role-switcher select {
-  color: #fff;
-}
+  body[data-background-color="dark"] .sig-role-switcher {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.16);
+  }
 
-body[data-background-color="dark"] .sig-role-switcher select option {
-  color: #1a2035;
-}
+  body[data-background-color="dark"] .sig-role-switcher label {
+    color: #b9babf;
+  }
 
-body[data-background-color="dark"] .siguppys-sidebar.sidebar.sidebar-style-2 .nav.nav-secondary>.nav-item.active>a,
-body[data-background-color="dark"] .siguppys-sidebar .nav>.nav-item>a[aria-expanded="true"] {
-  background: rgba(29, 122, 243, 0.22) !important;
-}
+  body[data-background-color="dark"] .sig-role-switcher select {
+    color: #fff;
+  }
 
-body[data-background-color="dark"] .siguppys-empty-submenu {
-  color: #8d9498;
-}
+  body[data-background-color="dark"] .sig-role-switcher select option {
+    color: #1a2035;
+  }
 
-body[data-background-color="dark"] .content-placeholder {
-  border-color: rgba(255, 255, 255, 0.12);
-  color: #8d9498;
-}
+  body[data-background-color="dark"] .siguppys-sidebar.sidebar.sidebar-style-2 .nav.nav-secondary>.nav-item.active>a,
+  body[data-background-color="dark"] .siguppys-sidebar .nav>.nav-item>a[aria-expanded="true"] {
+    background: rgba(29, 122, 243, 0.22) !important;
+  }
 
-body[data-background-color="dark"] .content-placeholder i {
-  color: #4a5170;
-}
+  body[data-background-color="dark"] .siguppys-empty-submenu {
+    color: #8d9498;
+  }
 
-body[data-background-color="dark"] .sig-empty-row td {
-  color: #8d9498;
-}
+  body[data-background-color="dark"] .content-placeholder {
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #8d9498;
+  }
 
-body[data-background-color="dark"] .table-actions .btn-icon {
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.14);
-  color: #b9babf;
-}
+  body[data-background-color="dark"] .content-placeholder i {
+    color: #4a5170;
+  }
 
-body[data-background-color="dark"] .btn-locked {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.12);
-  color: #6d7385;
-}
+  body[data-background-color="dark"] .sig-empty-row td {
+    color: #8d9498;
+  }
 
-body[data-background-color="dark"] .settings-option {
-  border-color: rgba(255, 255, 255, 0.1);
-}
+  body[data-background-color="dark"] .table-actions .btn-icon {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #b9babf;
+  }
 
-body[data-background-color="dark"] .settings-option strong {
-  color: #fff;
-}
+  body[data-background-color="dark"] .btn-locked {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #6d7385;
+  }
 
-body[data-daltonismo="protanopia"],
-body[data-daltonismo="deuteranopia"] {
-  --sig-activo-color: #0072b2;
-  --sig-activo-bg: rgba(0, 114, 178, 0.14);
-  --sig-inactivo-color: #966400;
-  --sig-inactivo-bg: rgba(230, 159, 0, 0.18);
-  --sig-inactivo-border: #e69f00;
-  --sig-warning-color: #a3005c;
-  --sig-warning-bg: rgba(204, 121, 167, 0.2);
-  --sig-warning-border: #cc79a7;
-}
+  body[data-background-color="dark"] .settings-option {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
 
-/* Tritanopia (azul-amarillo): verde azulado / rojo ladrillo / púrpura
+  body[data-background-color="dark"] .settings-option strong {
+    color: #fff;
+  }
+
+  /* =========================================================
+  Modo daltonismo — paleta segura azul / naranja
+  =========================================================
+  Sustituye el par rojo/verde (que muchas personas con daltonismo
+  rojo-verde no distinguen bien) por azul/naranja, manteniendo
+  además el texto ("Activo" / "Inhabilitado") como apoyo, no solo
+   el color. */
+  body.daltonismo-mode {
+    --sig-green: #0072b2;
+    --sig-red: #e69f00;
+  }
+
+  body.daltonismo-mode .badge-estado.activo {
+    background: rgba(0, 114, 178, 0.14);
+    color: #0072b2;
+  }
+
+  body.daltonismo-mode .badge-estado.inactivo {
+    background: rgba(230, 159, 0, 0.18);
+    color: #966400;
+  }
+
+  body.daltonismo-mode .card-stats .icon-big.icon-success {
+    background: #0072b2 !important;
+  }
+
+  body.daltonismo-mode .card-stats .icon-big.icon-danger {
+    background: #e69f00 !important;
+  }
+
+  body.daltonismo-mode .table-actions .btn-icon.text-danger {
+    color: #966400;
+    border-color: #e69f00;
+  }
+
+  body.daltonismo-mode .table-actions .btn-icon.text-danger:hover {
+    color: #966400;
+    border-color: #e69f00;
+  }
+
+  body.daltonismo-mode .table-actions .btn-icon.text-success {
+    color: #0072b2;
+  }
+
+  body.daltonismo-mode .table-actions .btn-icon.text-success:hover {
+    color: #0072b2;
+    border-color: #0072b2;
+  }
+
+  body.daltonismo-mode .btn-logout {
+    border-color: #e69f00;
+    color: #966400;
+  }
+
+  body.daltonismo-mode .btn-logout:hover {
+    background: #e69f00;
+    color: #fff;
+  }
+
+  body[data-daltonismo="protanopia"],
+  body[data-daltonismo="deuteranopia"] {
+    --sig-activo-color: #0072b2;
+    --sig-activo-bg: rgba(0, 114, 178, 0.14);
+    --sig-inactivo-color: #966400;
+    --sig-inactivo-bg: rgba(230, 159, 0, 0.18);
+    --sig-inactivo-border: #e69f00;
+    --sig-warning-color: #a3005c;
+    --sig-warning-bg: rgba(204, 121, 167, 0.2);
+    --sig-warning-border: #cc79a7;
+  }
+
+  /* Tritanopia (azul-amarillo): verde azulado / rojo ladrillo / púrpura
    rojizo, un trío que no depende de distinguir azul de amarillo. */
-body[data-daltonismo="tritanopia"] {
-  --sig-activo-color: #009e73;
-  --sig-activo-bg: rgba(0, 158, 115, 0.14);
-  --sig-inactivo-color: #a83c00;
-  --sig-inactivo-bg: rgba(213, 94, 0, 0.18);
-  --sig-inactivo-border: #d55e00;
-  --sig-warning-color: #a3005c;
-  --sig-warning-bg: rgba(204, 121, 167, 0.2);
-  --sig-warning-border: #cc79a7;
-}
+  body[data-daltonismo="tritanopia"] {
+    --sig-activo-color: #009e73;
+    --sig-activo-bg: rgba(0, 158, 115, 0.14);
+    --sig-inactivo-color: #a83c00;
+    --sig-inactivo-bg: rgba(213, 94, 0, 0.18);
+    --sig-inactivo-border: #d55e00;
+    --sig-warning-color: #a3005c;
+    --sig-warning-bg: rgba(204, 121, 167, 0.2);
+    --sig-warning-border: #cc79a7;
+  }
 
-/* Acromatopsia (sin percepción de color, solo grises): el color no
+  /* Acromatopsia (sin percepción de color, solo grises): el color no
    sirve de nada, así que se apoya en contraste de brillo + ícono. */
-body[data-daltonismo="acromatopsia"] {
-  --sig-activo-color: #1a1a1a;
-  --sig-activo-bg: rgba(26, 26, 26, 0.06);
-  --sig-inactivo-color: #1a1a1a;
-  --sig-inactivo-bg: rgba(26, 26, 26, 0.18);
-  --sig-inactivo-border: #1a1a1a;
-  --sig-warning-color: #1a1a1a;
-  --sig-warning-bg: rgba(26, 26, 26, 0.35);
-  --sig-warning-border: #1a1a1a;
-}
+  body[data-daltonismo="acromatopsia"] {
+    --sig-activo-color: #1a1a1a;
+    --sig-activo-bg: rgba(26, 26, 26, 0.06);
+    --sig-inactivo-color: #1a1a1a;
+    --sig-inactivo-bg: rgba(26, 26, 26, 0.18);
+    --sig-inactivo-border: #1a1a1a;
+    --sig-warning-color: #1a1a1a;
+    --sig-warning-bg: rgba(26, 26, 26, 0.35);
+    --sig-warning-border: #1a1a1a;
+  }
 
-/* ---- Etiquetas de estado (badge-estado) ---- */
-body[data-daltonismo] .badge-estado.activo {
-  background: var(--sig-activo-bg);
-  color: var(--sig-activo-color);
-}
+  /* ---- Etiquetas de estado (badge-estado) ---- */
+  body[data-daltonismo] .badge-estado.activo {
+    background: var(--sig-activo-bg);
+    color: var(--sig-activo-color);
+  }
 
-body[data-daltonismo] .badge-estado.inactivo {
-  background: var(--sig-inactivo-bg);
-  color: var(--sig-inactivo-color);
-}
+  body[data-daltonismo] .badge-estado.inactivo {
+    background: var(--sig-inactivo-bg);
+    color: var(--sig-inactivo-color);
+  }
 
-body[data-daltonismo="acromatopsia"] .badge-estado.activo::before {
-  content: "✓ ";
-}
+  body[data-daltonismo="acromatopsia"] .badge-estado.activo::before {
+    content: "✓ ";
+  }
 
-body[data-daltonismo="acromatopsia"] .badge-estado.inactivo::before {
-  content: "✕ ";
-}
+  body[data-daltonismo="acromatopsia"] .badge-estado.inactivo::before {
+    content: "✕ ";
+  }
 
-/* ---- Íconos de tarjetas de resumen ---- */
-body[data-daltonismo] .card-stats .icon-big.icon-success {
-  background: var(--sig-activo-color) !important;
-}
+  /* ---- Íconos de tarjetas de resumen ---- */
+  body[data-daltonismo] .card-stats .icon-big.icon-success {
+    background: var(--sig-activo-color) !important;
+  }
 
-body[data-daltonismo] .card-stats .icon-big.icon-danger {
-  background: var(--sig-inactivo-border) !important;
-}
+  body[data-daltonismo] .card-stats .icon-big.icon-danger {
+    background: var(--sig-inactivo-border) !important;
+  }
 
-/* ---- Íconos de acciones en tablas (Habilitar / Inhabilitar) ---- */
-body[data-daltonismo] .table-actions .btn-icon.text-danger {
-  color: var(--sig-inactivo-color);
-  border-color: var(--sig-inactivo-border);
-}
+  /* ---- Íconos de acciones en tablas (Habilitar / Inhabilitar) ---- */
+  body[data-daltonismo] .table-actions .btn-icon.text-danger {
+    color: var(--sig-inactivo-color);
+    border-color: var(--sig-inactivo-border);
+  }
 
-body[data-daltonismo] .table-actions .btn-icon.text-danger:hover {
-  color: var(--sig-inactivo-color);
-  border-color: var(--sig-inactivo-border);
-}
+  body[data-daltonismo] .table-actions .btn-icon.text-danger:hover {
+    color: var(--sig-inactivo-color);
+    border-color: var(--sig-inactivo-border);
+  }
 
-body[data-daltonismo] .table-actions .btn-icon.text-success {
-  color: var(--sig-activo-color);
-}
+  body[data-daltonismo] .table-actions .btn-icon.text-success {
+    color: var(--sig-activo-color);
+  }
 
-body[data-daltonismo] .table-actions .btn-icon.text-success:hover {
-  color: var(--sig-activo-color);
-  border-color: var(--sig-activo-color);
-}
+  body[data-daltonismo] .table-actions .btn-icon.text-success:hover {
+    color: var(--sig-activo-color);
+    border-color: var(--sig-activo-color);
+  }
 
-/* ---- Botón de cerrar sesión ---- */
-body[data-daltonismo] .btn-logout {
-  border-color: var(--sig-inactivo-border);
-  color: var(--sig-inactivo-color);
-}
+  /* ---- Botón de cerrar sesión ---- */
+  body[data-daltonismo] .btn-logout {
+    border-color: var(--sig-inactivo-border);
+    color: var(--sig-inactivo-color);
+  }
 
-body[data-daltonismo] .btn-logout:hover {
-  background: var(--sig-inactivo-border);
-  color: #fff;
-}
+  body[data-daltonismo] .btn-logout:hover {
+    background: var(--sig-inactivo-border);
+    color: #fff;
+  }
 
-/* ---- Botones normales de acción (Guardar, Eliminar, Restaurar...) ----
-   El azul (btn-primary) no se toca a propósito: solo se remapean los
+  /* ---- Botones normales de acción (Guardar, Eliminar, Restaurar...) ----
+  El azul (btn-primary) no se toca a propósito: solo se remapean los
    colores que forman el par/trío problemático rojo-verde-naranja. */
-body[data-daltonismo] .btn-success,
-body[data-daltonismo] .btn-success:hover,
-body[data-daltonismo] .btn-success:focus {
-  background: var(--sig-activo-color) !important;
-  border-color: var(--sig-activo-color) !important;
-}
+  body[data-daltonismo] .btn-success,
+  body[data-daltonismo] .btn-success:hover,
+  body[data-daltonismo] .btn-success:focus {
+    background: var(--sig-activo-color) !important;
+    border-color: var(--sig-activo-color) !important;
+  }
 
-body[data-daltonismo] .btn-outline-success {
-  --bs-btn-color: var(--sig-activo-color);
-  --bs-btn-border-color: var(--sig-activo-color);
-  --bs-btn-hover-bg: var(--sig-activo-color);
-  --bs-btn-hover-border-color: var(--sig-activo-color);
-  --bs-btn-active-bg: var(--sig-activo-color);
-  --bs-btn-active-border-color: var(--sig-activo-color);
-}
+  body[data-daltonismo] .btn-outline-success {
+    --bs-btn-color: var(--sig-activo-color);
+    --bs-btn-border-color: var(--sig-activo-color);
+    --bs-btn-hover-bg: var(--sig-activo-color);
+    --bs-btn-hover-border-color: var(--sig-activo-color);
+    --bs-btn-active-bg: var(--sig-activo-color);
+    --bs-btn-active-border-color: var(--sig-activo-color);
+  }
 
-body[data-daltonismo] .btn-danger,
-body[data-daltonismo] .btn-danger:hover,
-body[data-daltonismo] .btn-danger:focus {
-  background: var(--sig-inactivo-border) !important;
-  border-color: var(--sig-inactivo-border) !important;
-}
+  body[data-daltonismo] .btn-danger,
+  body[data-daltonismo] .btn-danger:hover,
+  body[data-daltonismo] .btn-danger:focus {
+    background: var(--sig-inactivo-border) !important;
+    border-color: var(--sig-inactivo-border) !important;
+  }
 
-body[data-daltonismo] .btn-outline-danger {
-  --bs-btn-color: var(--sig-inactivo-border);
-  --bs-btn-border-color: var(--sig-inactivo-border);
-  --bs-btn-hover-bg: var(--sig-inactivo-border);
-  --bs-btn-hover-border-color: var(--sig-inactivo-border);
-  --bs-btn-active-bg: var(--sig-inactivo-border);
-  --bs-btn-active-border-color: var(--sig-inactivo-border);
-}
+  body[data-daltonismo] .btn-outline-danger {
+    --bs-btn-color: var(--sig-inactivo-border);
+    --bs-btn-border-color: var(--sig-inactivo-border);
+    --bs-btn-hover-bg: var(--sig-inactivo-border);
+    --bs-btn-hover-border-color: var(--sig-inactivo-border);
+    --bs-btn-active-bg: var(--sig-inactivo-border);
+    --bs-btn-active-border-color: var(--sig-inactivo-border);
+  }
 
-body[data-daltonismo] .btn-warning,
-body[data-daltonismo] .btn-warning:hover,
-body[data-daltonismo] .btn-warning:focus {
-  background: var(--sig-warning-border) !important;
-  border-color: var(--sig-warning-border) !important;
-  color: #fff !important;
-}
+  body[data-daltonismo] .btn-warning,
+  body[data-daltonismo] .btn-warning:hover,
+  body[data-daltonismo] .btn-warning:focus {
+    background: var(--sig-warning-border) !important;
+    border-color: var(--sig-warning-border) !important;
+    color: #fff !important;
+  }
 
-body[data-daltonismo] .btn-outline-warning {
-  --bs-btn-color: var(--sig-warning-border);
-  --bs-btn-border-color: var(--sig-warning-border);
-  --bs-btn-hover-bg: var(--sig-warning-border);
-  --bs-btn-hover-border-color: var(--sig-warning-border);
-  --bs-btn-hover-color: #fff;
-  --bs-btn-active-bg: var(--sig-warning-border);
-  --bs-btn-active-border-color: var(--sig-warning-border);
-}
+  body[data-daltonismo] .btn-outline-warning {
+    --bs-btn-color: var(--sig-warning-border);
+    --bs-btn-border-color: var(--sig-warning-border);
+    --bs-btn-hover-bg: var(--sig-warning-border);
+    --bs-btn-hover-border-color: var(--sig-warning-border);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-bg: var(--sig-warning-border);
+    --bs-btn-active-border-color: var(--sig-warning-border);
+  }
 
-/* ---- Badges sueltos bg-success / bg-danger / bg-warning (por si
+  /* ---- Badges sueltos bg-success / bg-danger / bg-warning (por si
    algún módulo futuro los usa en vez de .badge-estado) ---- */
-body[data-daltonismo] .badge.bg-success {
-  background-color: var(--sig-activo-color) !important;
-}
+  body[data-daltonismo] .badge.bg-success {
+    background-color: var(--sig-activo-color) !important;
+  }
 
-body[data-daltonismo] .badge.bg-danger {
-  background-color: var(--sig-inactivo-border) !important;
-}
+  body[data-daltonismo] .badge.bg-danger {
+    background-color: var(--sig-inactivo-border) !important;
+  }
 
-body[data-daltonismo] .badge.bg-warning {
-  background-color: var(--sig-warning-border) !important;
-  color: #fff !important;
-}
+  body[data-daltonismo] .badge.bg-warning {
+    background-color: var(--sig-warning-border) !important;
+    color: #fff !important;
+  }
 
-/* ---- Acromatopsia: refuerzo con ícono en botones de acción, porque
+  /* ---- Acromatopsia: refuerzo con ícono en botones de acción, porque
    ahí el color por sí solo no comunica nada ---- */
-body[data-daltonismo="acromatopsia"] .btn-success::before {
-  content: "✓ ";
-}
+  body[data-daltonismo="acromatopsia"] .btn-success::before {
+    content: "✓ ";
+  }
 
-body[data-daltonismo="acromatopsia"] .btn-outline-success::before {
-  content: "✓ ";
-}
+  body[data-daltonismo="acromatopsia"] .btn-outline-success::before {
+    content: "✓ ";
+  }
 
-body[data-daltonismo="acromatopsia"] .btn-danger::before,
-body[data-daltonismo="acromatopsia"] .btn-outline-danger::before {
-  content: "✕ ";
-}
+  body[data-daltonismo="acromatopsia"] .btn-danger::before,
+  body[data-daltonismo="acromatopsia"] .btn-outline-danger::before {
+    content: "✕ ";
+  }
 
-body[data-daltonismo="acromatopsia"] .btn-warning::before,
-body[data-daltonismo="acromatopsia"] .btn-outline-warning::before {
-  content: "! ";
-}
+  body[data-daltonismo="acromatopsia"] .btn-warning::before,
+  body[data-daltonismo="acromatopsia"] .btn-outline-warning::before {
+    content: "! ";
+  }
 
-/* ---- Página Configuraciones: tarjetas de preferencia ---- */
-.settings-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 18px 20px;
-  border: 1px solid #eef0f4;
-  border-radius: 12px;
-}
+  /* ---- Página Configuraciones: tarjetas de preferencia ---- */
+  .settings-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 20px;
+    border: 1px solid #eef0f4;
+    border-radius: 12px;
+  }
 
-.settings-option+.settings-option {
-  margin-top: 12px;
-}
+  .settings-option+.settings-option {
+    margin-top: 12px;
+  }
 
-.settings-option strong {
-  display: block;
-  color: var(--sig-ink);
-  margin-bottom: 2px;
-}
+  .settings-option strong {
+    display: block;
+    color: var(--sig-ink);
+    margin-bottom: 2px;
+  }
 
-.settings-option p {
-  margin: 0;
-  font-size: 13px;
-  color: var(--sig-muted);
-  max-width: 480px;
-}
+  .settings-option p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--sig-muted);
+    max-width: 480px;
+  }
 
-.settings-option .form-check-input {
-  width: 42px;
-  height: 24px;
-  cursor: pointer;
-  flex: none;
-}
+  .settings-option .form-check-input {
+    width: 42px;
+    height: 24px;
+    cursor: pointer;
+    flex: none;
+  }
 
+  .sig-followup-card {
+    border-radius: 14px;
+  }
 
-.sig-followup-card {
-  border-radius: 14px;
-}
+  .sig-followup-card .form-label {
+    font-weight: 600;
+  }
 
-.sig-followup-card .form-label {
-  font-weight: 600;
-}
+  .sig-followup-card input[readonly] {
+    background: #f7f9fc;
+    color: #6b7280;
+  }
 
-.sig-followup-card input[readonly] {
-  background: #f7f9fc;
-  color: #6b7280;
-}
+  /* =========================================================
+  Modo oscuro — Modales, formularios y componentes flotantes
+   ========================================================= */
+  body[data-background-color="dark"] .modal-content,
+  body[data-background-color="dark2"] .modal-content {
+    background-color: #202940;
+    color: #e8eaf0;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+  }
 
-body[data-background-color="dark"] .modal-content,
-body[data-background-color="dark2"] .modal-content {
-  background-color: #202940;
-  color: #e8eaf0;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
-}
+  body[data-background-color="dark"] .modal-header,
+  body[data-background-color="dark"] .modal-footer,
+  body[data-background-color="dark2"] .modal-header,
+  body[data-background-color="dark2"] .modal-footer {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
 
-body[data-background-color="dark"] .modal-header,
-body[data-background-color="dark"] .modal-footer,
-body[data-background-color="dark2"] .modal-header,
-body[data-background-color="dark2"] .modal-footer {
-  border-color: rgba(255, 255, 255, 0.08) !important;
-}
+  body[data-background-color="dark"] .modal-title,
+  body[data-background-color="dark2"] .modal-title {
+    color: #ffffff !important;
+  }
 
-body[data-background-color="dark"] .modal-title,
-body[data-background-color="dark2"] .modal-title {
-  color: #ffffff !important;
-}
+  body[data-background-color="dark"] .modal-body,
+  body[data-background-color="dark2"] .modal-body {
+    color: #d5d8e0;
+  }
 
-body[data-background-color="dark"] .modal-body,
-body[data-background-color="dark2"] .modal-body {
-  color: #d5d8e0;
-}
+  body[data-background-color="dark"] .modal .form-label,
+  body[data-background-color="dark2"] .modal .form-label {
+    color: #e8eaf0;
+  }
 
-body[data-background-color="dark"] .modal .form-label,
-body[data-background-color="dark2"] .modal .form-label {
-  color: #e8eaf0;
-}
+  body[data-background-color="dark"] .modal .form-text,
+  body[data-background-color="dark2"] .modal .form-text {
+    color: #9ea5b5 !important;
+  }
 
-body[data-background-color="dark"] .modal .form-text,
-body[data-background-color="dark2"] .modal .form-text {
-  color: #9ea5b5 !important;
-}
+  body[data-background-color="dark"] .modal .form-control,
+  body[data-background-color="dark"] .modal .form-select,
+  body[data-background-color="dark"] .modal textarea,
+  body[data-background-color="dark2"] .modal .form-control,
+  body[data-background-color="dark2"] .modal .form-select,
+  body[data-background-color="dark2"] .modal textarea {
+    background-color: #1a2035 !important;
+    color: #ffffff !important;
+    border-color: #36405a !important;
+  }
 
-body[data-background-color="dark"] .modal .form-control,
-body[data-background-color="dark"] .modal .form-select,
-body[data-background-color="dark"] .modal textarea,
-body[data-background-color="dark2"] .modal .form-control,
-body[data-background-color="dark2"] .modal .form-select,
-body[data-background-color="dark2"] .modal textarea {
-  background-color: #1a2035 !important;
-  color: #ffffff !important;
-  border-color: #36405a !important;
-}
+  body[data-background-color="dark"] .modal .form-control::placeholder,
+  body[data-background-color="dark"] .modal textarea::placeholder,
+  body[data-background-color="dark2"] .modal .form-control::placeholder,
+  body[data-background-color="dark2"] .modal textarea::placeholder {
+    color: #7f8799 !important;
+    opacity: 1;
+  }
 
-body[data-background-color="dark"] .modal .form-control::placeholder,
-body[data-background-color="dark"] .modal textarea::placeholder,
-body[data-background-color="dark2"] .modal .form-control::placeholder,
-body[data-background-color="dark2"] .modal textarea::placeholder {
-  color: #7f8799 !important;
-  opacity: 1;
-}
+  body[data-background-color="dark"] .modal .form-control:focus,
+  body[data-background-color="dark"] .modal .form-select:focus,
+  body[data-background-color="dark"] .modal textarea:focus,
+  body[data-background-color="dark2"] .modal .form-control:focus,
+  body[data-background-color="dark2"] .modal .form-select:focus,
+  body[data-background-color="dark2"] .modal textarea:focus {
+    background-color: #1a2035 !important;
+    color: #ffffff !important;
+    border-color: #1572e8 !important;
+    box-shadow: 0 0 0 0.2rem rgba(21, 114, 232, 0.18) !important;
+  }
 
-body[data-background-color="dark"] .modal .form-control:focus,
-body[data-background-color="dark"] .modal .form-select:focus,
-body[data-background-color="dark"] .modal textarea:focus,
-body[data-background-color="dark2"] .modal .form-control:focus,
-body[data-background-color="dark2"] .modal .form-select:focus,
-body[data-background-color="dark2"] .modal textarea:focus {
-  background-color: #1a2035 !important;
-  color: #ffffff !important;
-  border-color: #1572e8 !important;
-  box-shadow: 0 0 0 0.2rem rgba(21, 114, 232, 0.18) !important;
-}
+  body[data-background-color="dark"] .modal .form-control[readonly],
+  body[data-background-color="dark"] .modal .form-control:disabled,
+  body[data-background-color="dark"] .modal .form-select:disabled,
+  body[data-background-color="dark2"] .modal .form-control[readonly],
+  body[data-background-color="dark2"] .modal .form-control:disabled,
+  body[data-background-color="dark2"] .modal .form-select:disabled {
+    background-color: #151b2e !important;
+    color: #9ea5b5 !important;
+  }
 
-body[data-background-color="dark"] .modal .form-control[readonly],
-body[data-background-color="dark"] .modal .form-control:disabled,
-body[data-background-color="dark"] .modal .form-select:disabled,
-body[data-background-color="dark2"] .modal .form-control[readonly],
-body[data-background-color="dark2"] .modal .form-control:disabled,
-body[data-background-color="dark2"] .modal .form-select:disabled {
-  background-color: #151b2e !important;
-  color: #9ea5b5 !important;
-}
+  body[data-background-color="dark"] .modal select option,
+  body[data-background-color="dark2"] .modal select option {
+    background-color: #1a2035 !important;
+    color: #ffffff !important;
+  }
 
-body[data-background-color="dark"] .modal select option,
-body[data-background-color="dark2"] .modal select option {
-  background-color: #1a2035 !important;
-  color: #ffffff !important;
-}
+  /* Selector de fecha: conserva legibilidad del control nativo. */
+  body[data-background-color="dark"] .modal input[type="date"],
+  body[data-background-color="dark2"] .modal input[type="date"] {
+    color-scheme: dark;
+  }
 
-/* Selector de fecha: conserva legibilidad del control nativo. */
-body[data-background-color="dark"] .modal input[type="date"],
-body[data-background-color="dark2"] .modal input[type="date"] {
-  color-scheme: dark;
-}
+  body[data-background-color="dark"] .modal .btn-close,
+  body[data-background-color="dark2"] .modal .btn-close {
+    filter: invert(1) grayscale(1);
+    opacity: 0.8;
+  }
 
-body[data-background-color="dark"] .modal .btn-close,
-body[data-background-color="dark2"] .modal .btn-close {
-  filter: invert(1) grayscale(1);
-  opacity: 0.8;
-}
+  body[data-background-color="dark"] .modal .btn-close:hover,
+  body[data-background-color="dark2"] .modal .btn-close:hover {
+    opacity: 1;
+  }
 
-body[data-background-color="dark"] .modal .btn-close:hover,
-body[data-background-color="dark2"] .modal .btn-close:hover {
-  opacity: 1;
-}
+  body[data-background-color="dark"] .modal .btn-label-secondary,
+  body[data-background-color="dark2"] .modal .btn-label-secondary {
+    background: rgba(255, 255, 255, 0.07) !important;
+    color: #d7dbe5 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
 
-body[data-background-color="dark"] .modal .btn-label-secondary,
-body[data-background-color="dark2"] .modal .btn-label-secondary {
-  background: rgba(255, 255, 255, 0.07) !important;
-  color: #d7dbe5 !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-}
+  body[data-background-color="dark"] .modal .btn-label-secondary:hover,
+  body[data-background-color="dark2"] .modal .btn-label-secondary:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+  }
 
-body[data-background-color="dark"] .modal .btn-label-secondary:hover,
-body[data-background-color="dark2"] .modal .btn-label-secondary:hover {
-  background: rgba(255, 255, 255, 0.12) !important;
-  color: #ffffff !important;
-}
+  /* Textos generados dinámicamente dentro del modal de detalle. */
+  body[data-background-color="dark"] .modal .text-muted,
+  body[data-background-color="dark2"] .modal .text-muted {
+    color: #9ea5b5 !important;
+  }
 
-/* Textos generados dinámicamente dentro del modal de detalle. */
-body[data-background-color="dark"] .modal .text-muted,
-body[data-background-color="dark2"] .modal .text-muted {
-  color: #9ea5b5 !important;
-}
+  body[data-background-color="dark"] .modal hr,
+  body[data-background-color="dark2"] .modal hr {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    opacity: 1;
+  }
 
-body[data-background-color="dark"] .modal hr,
-body[data-background-color="dark2"] .modal hr {
-  border-color: rgba(255, 255, 255, 0.08) !important;
-  opacity: 1;
-}
+  body[data-background-color="dark"] .modal .alert,
+  body[data-background-color="dark2"] .modal .alert {
+    color: #e8eaf0;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
 
-body[data-background-color="dark"] .modal .alert,
-body[data-background-color="dark2"] .modal .alert {
-  color: #e8eaf0;
-  border-color: rgba(255, 255, 255, 0.08);
-}
+  /* Evita que el campo readonly propio del seguimiento vuelva a blanco. */
+  body[data-background-color="dark"] .sig-followup-card input[readonly],
+  body[data-background-color="dark2"] .sig-followup-card input[readonly] {
+    background: #151b2e !important;
+    color: #9ea5b5 !important;
+    border-color: #36405a !important;
+  }
 
-/* Evita que el campo readonly propio del seguimiento vuelva a blanco. */
-body[data-background-color="dark"] .sig-followup-card input[readonly],
-body[data-background-color="dark2"] .sig-followup-card input[readonly] {
-  background: #151b2e !important;
-  color: #9ea5b5 !important;
-  border-color: #36405a !important;
-}
+  .sidebar_minimize_hover .sidebar,
+  .sidebar_minimize.sidebar_minimize_hover .sidebar {
+    width: 75px;
+  }
 
-.sidebar_minimize_hover .sidebar,
-.sidebar_minimize.sidebar_minimize_hover .sidebar {
-  width: 75px;
-}
+  .sidebar_minimize_hover .sidebar .logo-header,
+  .sidebar_minimize.sidebar_minimize_hover .sidebar .logo-header {
+    width: 75px;
+    padding: 0;
+    text-align: center;
+  }
 
-.sidebar_minimize_hover .sidebar .logo-header,
-.sidebar_minimize.sidebar_minimize_hover .sidebar .logo-header {
-  width: 75px;
-  padding: 0;
-  text-align: center;
-}
+  .sidebar_minimize_hover .sidebar .logo-header .logo,
+  .sidebar_minimize.sidebar_minimize_hover .sidebar .logo-header .logo {
+    position: absolute !important;
+    transform: translate3d(25px, 0, 0) !important;
+    opacity: 0 !important;
+  }
 
-.sidebar_minimize_hover .sidebar .logo-header .logo,
-.sidebar_minimize.sidebar_minimize_hover .sidebar .logo-header .logo {
-  position: absolute !important;
-  transform: translate3d(25px, 0, 0) !important;
-  opacity: 0 !important;
-}
+  .sidebar_minimize_hover .sidebar .logo-header .logo img,
+  .sidebar_minimize.sidebar_minimize_hover .sidebar .logo-header .logo img {
+    display: none !important;
+  }
 
-.sidebar_minimize_hover .sidebar .logo-header .logo img,
-.sidebar_minimize.sidebar_minimize_hover .sidebar .logo-header .logo img {
-  display: none !important;
-}
+  .sidebar_minimize_hover .sidebar .sidebar-wrapper,
+  .sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper {
+    width: 75px;
+  }
 
-.sidebar_minimize_hover .sidebar .sidebar-wrapper,
-.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper {
-  width: 75px;
-}
+  .sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a i,
+  .sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a i {
+    margin-right: unset;
+  }
 
-.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a i,
-.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a i {
-  margin-right: unset;
-}
+  .sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .badge,
+  .sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .caret,
+  .sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a p,
+  .sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a span,
+  .sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .badge,
+  .sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .caret,
+  .sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a p,
+  .sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a span {
+    display: none;
+  }
 
-.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .badge,
-.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .caret,
-.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a p,
-.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a span,
-.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .badge,
-.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .caret,
-.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a p,
-.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a span {
-  display: none;
-}
+  .sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .sidebar-mini-icon,
+  .sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .sidebar-mini-icon {
+    display: block !important;
+    margin-right: 0;
+  }
 
-.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .sidebar-mini-icon,
-.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .sidebar-mini-icon {
-  display: block !important;
-  margin-right: 0;
-}
+  .sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.active .nav-collapse,
+  .sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.submenu .nav-collapse,
+  .sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.active .nav-collapse,
+  .sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.submenu .nav-collapse {
+    display: none;
+  }
 
-.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.active .nav-collapse,
-.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.submenu .nav-collapse,
-.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.active .nav-collapse,
-.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.submenu .nav-collapse {
-  display: none;
-}
+  .sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .sidebar-mini-icon,
+  .sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .sidebar-mini-icon {
+    display: block;
+  }
 
-.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .sidebar-mini-icon,
-.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .sidebar-mini-icon {
-  display: block;
-}
+  .sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .text-section,
+  .sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .text-section {
+    display: none;
+  }
 
-.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .text-section,
-.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .text-section {
-  display: none;
-}
-
-/* ============================================================
-   Por debajo de 991.5px (el mismo punto que usa kaiadmin para
-   su menú móvil), el sidebar SIEMPRE debe comportarse como
-   menú móvil: oculto por defecto, visible solo con el botón
-   que agrega "nav_open" a <html>. Sin esto, si el sidebar
-   quedó en modo "iconos" (sidebar_minimize) o en la vista
-   previa de hover a un ancho de pantalla más grande, esas
-   clases quedan pegadas y el menú no se adapta al redimensionar
-   la ventana del navegador: se queda empujando el contenido en
-   vez de esconderse. Esta regla ignora esas clases por completo
-   y deja que solo mande el tamaño real de la pantalla.
+  /* ============================================================
+  Por debajo de 991.5px (el mismo punto que usa kaiadmin para
+  su menú móvil), el sidebar SIEMPRE debe comportarse como
+  menú móvil: oculto por defecto, visible solo con el botón
+  que agrega "nav_open" a <html>. Sin esto, si el sidebar
+  quedó en modo "iconos" (sidebar_minimize) o en la vista
+  previa de hover a un ancho de pantalla más grande, esas
+  clases quedan pegadas y el menú no se adapta al redimensionar
+  la ventana del navegador: se queda empujando el contenido en
+  vez de esconderse. Esta regla ignora esas clases por completo
+  y deja que solo mande el tamaño real de la pantalla.
    ============================================================ */
-@media (max-width: 991.5px) {
-  .sidebar {
-    transform: translate3d(-270px, 0, 0) !important;
+  @media (max-width: 991.5px) {
+    .sidebar {
+      transform: translate3d(-270px, 0, 0) !important;
+    }
+
+    html.nav_open .sidebar {
+      transform: translate3d(0, 0, 0) !important;
+    }
+
+    .main-panel,
+    .main-header {
+      width: 100% !important;
+    }
+
+    html.nav_open .main-panel {
+      transform: translate3d(265px, 0, 0) !important;
+    }
   }
 
-  html.nav_open .sidebar {
-    transform: translate3d(0, 0, 0) !important;
-  }
 
-  .main-panel,
-  .main-header {
-    width: 100% !important;
-  }
-
-  html.nav_open .main-panel {
-    transform: translate3d(265px, 0, 0) !important;
-  }
-}
-
-
-/* ============================================================
-   Módulo Reportes: modo oscuro
-   Los 6 reportes (View/Reportes/*.php) traen su propio <style>
-   con clases propias (.caja, .tarjeta, .numero, tablas, badges,
-   donuts, barras...) en vez de las .card nativas de kaiadmin, así
-   que no heredan el modo oscuro solas. Estas reglas les agregan
-   la versión oscura usando los mismos colores que ya usa kaiadmin
-   para .card (#202940) y para el texto atenuado (#8d9498/#b9babf).
+  /* ============================================================
+  Módulo Reportes: modo oscuro
+  Los 6 reportes (View/Reportes/*.php) traen su propio <style>
+  con clases propias (.caja, .tarjeta, .numero, tablas, badges,
+  donuts, barras...) en vez de las .card nativas de kaiadmin, así
+  que no heredan el modo oscuro solas. Estas reglas les agregan
+  la versión oscura usando los mismos colores que ya usa kaiadmin
+  para .card (#202940) y para el texto atenuado (#8d9498/#b9babf).
    ============================================================ */
-body[data-background-color="dark"] .caja {
-  background-color: #202940;
-  color: rgba(169, 175, 187, 0.82);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-}
+  body[data-background-color="dark"] .caja {
+    background-color: #202940;
+    color: rgba(169, 175, 187, 0.82);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  }
 
-body[data-background-color="dark"] .caja-gris {
-  background-color: rgba(255, 255, 255, 0.04);
-}
+  body[data-background-color="dark"] .caja-gris {
+    background-color: rgba(255, 255, 255, 0.04);
+  }
 
-/* Filtros: los <select>/<input type="date"> sin clase de Bootstrap
-   se quedan blancos en modo oscuro porque kaiadmin solo teoriza
+  /* Filtros: los <select>/<input type="date"> sin clase de Bootstrap
+  se quedan blancos en modo oscuro porque kaiadmin solo teoriza
    dark mode para .form-control/.form-select. */
-body[data-background-color="dark"] .fila-filtros select,
-body[data-background-color="dark"] .fila-filtros input[type="date"] {
-  background-color: #1a2035;
-  color: #fff;
-  border-color: #2f374b;
-}
+  body[data-background-color="dark"] .fila-filtros select,
+  body[data-background-color="dark"] .fila-filtros input[type="date"] {
+    background-color: #1a2035;
+    color: #fff;
+    border-color: #2f374b;
+  }
 
-body[data-background-color="dark"] .fila-filtros select option {
-  background: #1a2035;
-}
+  body[data-background-color="dark"] .fila-filtros select option {
+    background: #1a2035;
+  }
 
-body[data-background-color="dark"] .fila-filtros input[type="date"] {
-  color-scheme: dark;
-}
+  body[data-background-color="dark"] .fila-filtros input[type="date"] {
+    color-scheme: dark;
+  }
 
-body[data-background-color="dark"] .btn-reportes {
-  background-color: transparent;
-  border-color: #2f7dfa;
-}
+  body[data-background-color="dark"] .btn-reportes {
+    background-color: transparent;
+    border-color: #2f7dfa;
+  }
 
-body[data-background-color="dark"] .btn-reportes:hover {
-  background-color: rgba(47, 125, 243, 0.15);
-}
+  body[data-background-color="dark"] .btn-reportes:hover {
+    background-color: rgba(47, 125, 243, 0.15);
+  }
 
-/* Textos secundarios (encabezados de tarjeta, pies de tabla, notas
-   de gráficas, descripciones) que venían en gris fijo (#555/#666/
-   #777/#888/#999/#444/#333) y quedaban casi invisibles sobre fondo
+  /* Textos secundarios (encabezados de tarjeta, pies de tabla, notas
+  de gráficas, descripciones) que venían en gris fijo (#555/#666/
+  #777/#888/#999/#444/#333) y quedaban casi invisibles sobre fondo
    oscuro. */
-body[data-background-color="dark"] .caja .tarjeta p,
-body[data-background-color="dark"] .caja .cabecera-tarjeta p,
-body[data-background-color="dark"] .caja .pie-tabla,
-body[data-background-color="dark"] .caja .nota-grafica,
-body[data-background-color="dark"] .caja .nota-donut,
-body[data-background-color="dark"] .caja .nota-inferior,
-body[data-background-color="dark"] .caja .descripcion,
-body[data-background-color="dark"] .caja .donut-centro span,
-body[data-background-color="dark"] .caja th {
-  color: #8d9498;
-}
+  body[data-background-color="dark"] .caja .tarjeta p,
+  body[data-background-color="dark"] .caja .cabecera-tarjeta p,
+  body[data-background-color="dark"] .caja .pie-tabla,
+  body[data-background-color="dark"] .caja .nota-grafica,
+  body[data-background-color="dark"] .caja .nota-donut,
+  body[data-background-color="dark"] .caja .nota-inferior,
+  body[data-background-color="dark"] .caja .descripcion,
+  body[data-background-color="dark"] .caja .donut-centro span,
+  body[data-background-color="dark"] .caja th {
+    color: #8d9498;
+  }
 
-body[data-background-color="dark"] .caja .boton-pagina {
-  border-color: rgba(255, 255, 255, 0.16);
-  color: #b9babf;
-}
+  body[data-background-color="dark"] .caja .boton-pagina {
+    border-color: rgba(255, 255, 255, 0.16);
+    color: #b9babf;
+  }
 
-body[data-background-color="dark"] .caja th,
-body[data-background-color="dark"] .caja td {
-  border-bottom-color: rgba(181, 181, 181, 0.14);
-}
+  body[data-background-color="dark"] .caja th,
+  body[data-background-color="dark"] .caja td {
+    border-bottom-color: rgba(181, 181, 181, 0.14);
+  }
 
-/* Iconos redondos de las tarjetas resumen: el fondo pastel claro
+  /* Iconos redondos de las tarjetas resumen: el fondo pastel claro
    pasa a una versión translúcida del mismo color de acento. */
-body[data-background-color="dark"] .caja .icono-azul {
-  background-color: rgba(47, 125, 250, 0.18);
-}
+  body[data-background-color="dark"] .caja .icono-azul {
+    background-color: rgba(47, 125, 250, 0.18);
+  }
 
-body[data-background-color="dark"] .caja .icono-verde {
-  background-color: rgba(33, 166, 102, 0.18);
-}
+  body[data-background-color="dark"] .caja .icono-verde {
+    background-color: rgba(33, 166, 102, 0.18);
+  }
 
-body[data-background-color="dark"] .caja .icono-naranja {
-  background-color: rgba(224, 149, 45, 0.2);
-}
+  body[data-background-color="dark"] .caja .icono-naranja {
+    background-color: rgba(224, 149, 45, 0.2);
+  }
 
-body[data-background-color="dark"] .caja .icono-rojo {
-  background-color: rgba(230, 69, 69, 0.18);
-}
+  body[data-background-color="dark"] .caja .icono-rojo {
+    background-color: rgba(230, 69, 69, 0.18);
+  }
 
-body[data-background-color="dark"] .caja .icono-morado {
-  background-color: rgba(108, 92, 231, 0.2);
-}
+  body[data-background-color="dark"] .caja .icono-morado {
+    background-color: rgba(108, 92, 231, 0.2);
+  }
 
-/* Gráfica de dona: el círculo del centro debe verse del mismo
+  /* Gráfica de dona: el círculo del centro debe verse del mismo
    color que la tarjeta que lo contiene, no blanco/gris claro. */
-body[data-background-color="dark"] .caja .donut-centro {
-  background-color: #202940;
-}
+  body[data-background-color="dark"] .caja .donut-centro {
+    background-color: #202940;
+  }
 
-/* Barra de progreso de cumplimiento y ejes de las gráficas hechas
+  /* Barra de progreso de cumplimiento y ejes de las gráficas hechas
    solo con CSS/SVG. */
-body[data-background-color="dark"] .caja .barra-fondo {
-  background-color: rgba(255, 255, 255, 0.12);
-}
+  body[data-background-color="dark"] .caja .barra-fondo {
+    background-color: rgba(255, 255, 255, 0.12);
+  }
 
-body[data-background-color="dark"] .caja .grafica-barras {
-  border-bottom-color: rgba(255, 255, 255, 0.16);
-}
+  body[data-background-color="dark"] .caja .grafica-barras {
+    border-bottom-color: rgba(255, 255, 255, 0.16);
+  }
 
-body[data-background-color="dark"] .caja .linea-eje {
-  stroke: rgba(255, 255, 255, 0.16);
-}
+  body[data-background-color="dark"] .caja .linea-eje {
+    stroke: rgba(255, 255, 255, 0.16);
+  }
 
-body[data-background-color="dark"] .caja .texto-eje {
-  fill: #8d9498;
+  body[data-background-color="dark"] .caja .texto-eje {
+    fill: #8d9498;
+  }
 }
