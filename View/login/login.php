@@ -51,7 +51,18 @@
             <img src="../../assets/img/mas profundoo.png" class="logo-siguppy mb-2" alt="SIGuppy" style="max-height: 80px;">
         </div>
 
-        <!-- FORMULARIO CORREGIDO -->
+        <!-- Alertas PHP -->
+        <?php if (isset($_GET['error'])): ?>
+            <div class="alert alert-danger py-2 small text-center mb-3">
+                <?php 
+                    if ($_GET['error'] == 'vacio') echo "Por favor, complete todos los campos.";
+                    elseif ($_GET['error'] == 'invalid') echo "Correo o contraseña incorrectos.";
+                    elseif ($_GET['error'] == 'inactivo') echo "Tu usuario se encuentra inactivo.";
+                ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Formulario -->
         <form action="../../Controller/login/login_process.php" method="POST" id="formLogin">
             
             <div class="form-group mb-3 px-0">

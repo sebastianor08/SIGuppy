@@ -135,9 +135,9 @@
   </div>
 
   <div class="sidebar-footer">
-    <a href="#" class="btn-logout">
-      <i class="fas fa-sign-out-alt"></i>
-      Cerrar Sesión
-    </a>
-  </div>
+  <a href="<?php echo $rutaBase; ?>Controller/login/logout.php" class="btn-logout">
+    <i class="fas fa-sign-out-alt"></i>
+    Cerrar Sesión
+  </a>
+</div>
 </div>
