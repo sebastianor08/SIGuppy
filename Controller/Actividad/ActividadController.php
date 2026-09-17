@@ -2,11 +2,6 @@
 
 include_once '../Model/Actividad/ActividadModel.php';
 
-// ============================================================
-// Controlador del módulo Actividades (Terreno). Responde solo
-// JSON, así que se llama siempre por Web/ajax.php:
-//   Web/ajax.php?modulo=Actividad&controlador=Actividad&funcion=lista
-// ============================================================
 class ActividadController{
 
     public function lista(){

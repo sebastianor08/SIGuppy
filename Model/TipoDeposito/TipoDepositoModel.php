@@ -8,11 +8,14 @@ include_once __DIR__ . '/../MasterModel.php';
 // ============================================================
 class TipoDepositoModel extends MasterModel
 {
+    // NOTA: la tabla tipo_deposito no tiene columna creado_en (nunca la tuvo).
+    // La consulta anterior la pedía igual, así que fallaba en silencio
+    // (MasterModel::selectAll atrapa el error de SQL y devuelve []),
+    // y por eso el listado siempre aparecía vacío.
     public function listar()
     {
         return $this->selectAll(
-            "SELECT id_tipo_deposito, nombre, descripcion, estado,
-                    TO_CHAR(creado_en, 'YYYY-MM-DD') AS creado_en
+            "SELECT id_tipo_deposito, nombre, descripcion, estado
              FROM tipo_deposito
              ORDER BY id_tipo_deposito"
         );

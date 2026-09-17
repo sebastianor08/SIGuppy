@@ -23,7 +23,7 @@ include '../partials/head.php';
                         <div class="fila-filtros">
                             <div>
                                 <label>Zoocriadero</label>
-                                <select name="zoocriadero">
+                                <select name="zoocriadero" class="form-select">
                                     <option value="">Todos</option>
                                     <?php foreach ($listaZoocriaderos as $zoo): ?>
                                         <option value="<?= $zoo ?>" <?= $filtroZoocriadero === $zoo ? 'selected' : '' ?>><?= $zoo ?></option>
@@ -32,7 +32,7 @@ include '../partials/head.php';
                             </div>
                             <div>
                                 <label>Estado del sitio</label>
-                                <select name="estado">
+                                <select name="estado" class="form-select">
                                     <option value="">Todos</option>
                                     <?php foreach ($listaEstados as $est): ?>
                                         <option value="<?= $est ?>" <?= $filtroEstado === $est ? 'selected' : '' ?>><?= $est ?></option>
@@ -41,7 +41,7 @@ include '../partials/head.php';
                             </div>
                             <div>
                                 <label>Tipo de depósito</label>
-                                <select name="tipo_deposito">
+                                <select name="tipo_deposito" class="form-select">
                                     <option value="">Todos</option>
                                     <?php foreach ($listaTipos as $tipo): ?>
                                         <option value="<?= $tipo ?>" <?= $filtroTipo === $tipo ? 'selected' : '' ?>><?= $tipo ?></option>
@@ -50,11 +50,11 @@ include '../partials/head.php';
                             </div>
                             <div>
                                 <label>Fecha inicio</label>
-                                <input type="date" name="fecha_inicio" value="<?= $filtroFechaInicio ?>">
+                                <input type="date" name="fecha_inicio" class="form-control" value="<?= $filtroFechaInicio ?>">
                             </div>
                             <div>
                                 <label>Fecha fin</label>
-                                <input type="date" name="fecha_fin" value="<?= $filtroFechaFin ?>">
+                                <input type="date" name="fecha_fin" class="form-control" value="<?= $filtroFechaFin ?>">
                             </div>
                             <div>
                                 <button type="button" class="btn-reportes">Generar Reportes</button>
@@ -188,9 +188,9 @@ include '../partials/head.php';
                             </thead>
                             <tbody>
                                 <?php if (count($sitiosPagina) === 0): ?>
-                                    <tr>
-                                        <td colspan="7" style="text-align:center; color:#888;">No hay sitios con esos filtros</td>
-                                    </tr>
+                                    <tr class="sig-empty-row">
+                                        <td colspan="7">No hay sitios con esos filtros</td>
+                                    
                                 <?php endif; ?>
                                 <?php foreach ($sitiosPagina as $sitio): ?>
                                     <tr>
