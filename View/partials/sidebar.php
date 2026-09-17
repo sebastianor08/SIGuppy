@@ -1,8 +1,8 @@
 <?php
 
-  if (!isset($rutaBase)) {
-      $rutaBase = '../../';
-  }
+if (!isset($rutaBase)) {
+  $rutaBase = '../../';
+}
 ?>
 <div class="sidebar sidebar-style-2 siguppys-sidebar" data-background-color="white">
   <div class="sidebar-logo">

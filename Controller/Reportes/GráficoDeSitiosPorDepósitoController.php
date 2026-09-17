@@ -2,9 +2,8 @@
 
 function obtenerDatosSitiosPorDeposito()
 {
-    // ---------------------------------------------------------
-    // 1. NOS CONECTAMOS A LA BASE DE DATOS
-    // ---------------------------------------------------------
+    
+    // AQUI CONECTAMOS A LA BASE DE DATOS
     require __DIR__ . '/../../lib/conf/conf.php';
 
 $conexion = pg_connect("host=$host port=$port dbname=$database user=$user password=$password");
@@ -13,9 +12,8 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
         die("No se pudo conectar a la base de datos");
     }
 
-    // ---------------------------------------------------------
-    // 2. TRAEMOS LOS SITIOS CON SU TIPO DE DEPÓSITO
-    // ---------------------------------------------------------
+    // TRAEMOS LOS SITIOS CON SU TIPO DE DEPÓSITO
+
     // OJO con dos nombres que se dejaron igual para no cambiar la vista:
     //   'zoocriadero' -> en realidad guarda el BARRIO del sitio
     //   'tanques'     -> en realidad guarda cuántas VISITAS tiene el sitio
