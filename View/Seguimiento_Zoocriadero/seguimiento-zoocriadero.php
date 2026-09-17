@@ -60,11 +60,11 @@
             </div>
 
             <div class="col-md-3">
-              <label class="form-label" for="ph">pH <span class="text-muted small"></span></label>
+              <label class="form-label" for="ph">pH <span class="text-muted small">(opcional)</span></label>
               <input type="number" min="0" max="14" step="0.01" class="form-control" id="ph" name="ph" placeholder="7.20" />
             </div>
             <div class="col-md-3">
-              <label class="form-label" for="temperatura">Temperatura °C <span class="text-muted small"></span></label>
+              <label class="form-label" for="temperatura">Temperatura °C <span class="text-muted small">(opcional)</span></label>
               <input type="number" step="0.01" class="form-control" id="temperatura" name="temperatura" placeholder="26.50" />
             </div>
             <div class="col-md-2">
@@ -188,8 +188,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectAccion = document.getElementById('id_actividad');
   const inputPh = document.getElementById('ph');
   const inputTemp = document.getElementById('temperatura');
+  const inputSembrados = document.getElementById('numero_sembrados');
   const labelPh = document.querySelector('label[for="ph"]');
   const labelTemp = document.querySelector('label[for="temperatura"]');
+  const labelSembrados = document.querySelector('label[for="numero_sembrados"]');
 
   // Acciones que exigen medir pH
   const accionesPH = [
@@ -208,22 +210,31 @@ document.addEventListener('DOMContentLoaded', () => {
     'Medir temperatura'
   ];
 
+  // Acciones que exigen registrar peces sembrados
+  const accionesSembrados = [
+    'Sembrar alevinos'
+  ];
+
   function gestionarReglasNegocio() {
     if (!selectAccion) return;
 
     // Obtener el texto visible de la opción seleccionada
     const accionSeleccionada = selectAccion.options[selectAccion.selectedIndex]?.text.trim();
 
-    // 1. Evaluar campo pH
+    // Evaluar campo pH
     const requierePh = accionesPH.includes(accionSeleccionada);
     aplicarEstadoCampo(inputPh, labelPh, requierePh);
 
-    // 2. Evaluar campo Temperatura
+    //Evaluar campo Temperatura
     const requiereTemp = accionesTemperatura.includes(accionSeleccionada);
     aplicarEstadoCampo(inputTemp, labelTemp, requiereTemp);
+
+    //Evaluar campo Peces sembrados: solo tiene sentido si la acción es "Sembrar alevinos"
+    const requiereSembrados = accionesSembrados.includes(accionSeleccionada);
+    aplicarEstadoCampo(inputSembrados, labelSembrados, requiereSembrados, '0');
   }
 
-  function aplicarEstadoCampo(input, label, esObligatorio) {
+  function aplicarEstadoCampo(input, label, esObligatorio, valorInactivo = '') {
     if (!input) return;
 
     if (esObligatorio) {
@@ -231,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
       input.required = true;
       actualizarAsterisco(label, true);
     } else {
-      input.value = '';        // Limpia cualquier valor previo
+      input.value = valorInactivo; // Limpia (u opcionalmente resetea) el valor previo
       input.disabled = true;   // Bloquea el campo si la acción no lo requiere
       input.required = false;
       actualizarAsterisco(label, false);
@@ -259,8 +270,9 @@ document.addEventListener('DOMContentLoaded', () => {
     selectAccion.addEventListener('change', gestionarReglasNegocio);
   }
 
-  // Ejecutar al cargar la página por si hay alguna opción seleccionada
+
   gestionarReglasNegocio();
+  window.sigRecalcularReglasSeguimiento = gestionarReglasNegocio;
 });
 </script>
 </body>

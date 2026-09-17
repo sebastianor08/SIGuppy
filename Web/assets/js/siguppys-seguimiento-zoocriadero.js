@@ -1,16 +1,4 @@
-/* =========================================================
-  SIGuppys — Seguimiento de Zoocriadero
-  =========================================================
-  Todo sale de PostgreSQL a través del router MVC:
-  Web/ajax.php?modulo=SeguimientoZoocriadero&controlador=SeguimientoZoocriadero&funcion=...
 
-    zoocriaderos -> GET  llena el select "Zoocriadero"
-    tanques      -> GET  llena el select "Tanque" del zoocriadero elegido
-    acciones     -> GET  llena el select "Acción" (tabla actividad)
-    historial    -> GET  tabla de seguimientos registrados
-    postCreate   -> POST INSERT en seguimiento_zoocriadero
-    postUpdate   -> POST UPDATE del seguimiento que se está editando
-   ========================================================= */
 (function () {
   "use strict";
 
@@ -240,6 +228,15 @@
     obsCount.textContent = obsInput.value.length;
     accionSelect.value = s.id_actividad || "";
 
+    // El cambio de accionSelect.value de arriba no dispara 'change', así que
+    // las reglas de pH/Temperatura/Sembrados no se recalculan solas: se pide
+    // explícitamente (ver seguimiento-zoocriadero.php). Se hace DESPUÉS de
+    // fijar ph/temperatura/sembrados para que, si la acción cargada los
+    // requiere, queden habilitados con el valor que trae el registro.
+    if (typeof window.sigRecalcularReglasSeguimiento === "function") {
+      window.sigRecalcularReglasSeguimiento();
+    }
+
     tituloEl.textContent = "Editar Seguimiento de Zoocriadero";
     saveButton.innerHTML = '<i class="fas fa-save me-1"></i>Guardar cambios';
     btnCancelarEdicion.classList.remove("d-none");
@@ -257,6 +254,13 @@
     tituloEl.textContent = "Registrar Seguimiento de Zoocriadero";
     saveButton.innerHTML = '<i class="fas fa-save me-1"></i>Guardar';
     btnCancelarEdicion.classList.add("d-none");
+
+    // form.reset() no dispara 'change' en id_actividad: sin esto, pH,
+    // Temperatura y Peces sembrados podían quedar habilitados/deshabilitados
+    // con el estado de la edición anterior en vez de con el select ya vacío.
+    if (typeof window.sigRecalcularReglasSeguimiento === "function") {
+      window.sigRecalcularReglasSeguimiento();
+    }
   }
 
   // ---------- Eventos ----------
