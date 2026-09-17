@@ -5,20 +5,20 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Registrar Seguimiento · SIGuppys</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
-  <link rel="icon" href="../../assets/img/siguppys/favicon-32.png" type="image/png" />
-  <link rel="apple-touch-icon" href="../../assets/img/siguppys/favicon-180.png" />
-  <script src="../../assets/js/plugin/webfont/webfont.min.js"></script>
+  <link rel="icon" href="../../Web/assets/img/siguppys/favicon-32.png" type="image/png" />
+  <link rel="apple-touch-icon" href="../../Web/assets/img/siguppys/favicon-180.png" />
+  <script src="../../Web/assets/js/plugin/webfont/webfont.min.js"></script>
   <script>
     WebFont.load({
       google: { families: ["Public Sans:300,400,500,600,700"] },
-      custom: { families: ["Font Awesome 5 Solid","Font Awesome 5 Regular","Font Awesome 5 Brands","simple-line-icons"], urls: ["../../assets/css/fonts.min.css"] },
+      custom: { families: ["Font Awesome 5 Solid","Font Awesome 5 Regular","Font Awesome 5 Brands","simple-line-icons"], urls: ["../../Web/assets/css/fonts.min.css"] },
       active: function () { sessionStorage.fonts = true; }
     });
   </script>
-  <link rel="stylesheet" href="../../assets/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="../../assets/css/plugins.min.css" />
-  <link rel="stylesheet" href="../../assets/css/kaiadmin.min.css" />
-  <link rel="stylesheet" href="../../assets/css/siguppys.css" />
+  <link rel="stylesheet" href="../../Web/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="../../Web/assets/css/plugins.min.css" />
+  <link rel="stylesheet" href="../../Web/assets/css/kaiadmin.min.css" />
+  <link rel="stylesheet" href="../../Web/assets/css/siguppys.css" />
 </head>
 <body data-page="seguimiento-zoocriadero">
 <div class="wrapper">
@@ -58,71 +58,59 @@
               <label class="form-label" for="fecha">Fecha</label>
               <input type="date" class="form-control" id="fecha" name="fecha" required />
             </div>
+
+            <div class="col-md-3">
+              <label class="form-label" for="ph">pH <span class="text-muted small"></span></label>
+              <input type="number" min="0" max="14" step="0.01" class="form-control" id="ph" name="ph" placeholder="7.20" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label" for="temperatura">Temperatura °C <span class="text-muted small"></span></label>
+              <input type="number" step="0.01" class="form-control" id="temperatura" name="temperatura" placeholder="26.50" />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="numero_sembrados">Peces sembrados</label>
+              <input type="number" min="0" step="1" value="0" class="form-control" id="numero_sembrados" name="numero_sembrados" required />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="numero_nacidos_hembra">Hembras nacidas</label>
+              <input type="number" min="0" step="1" value="0" class="form-control" id="numero_nacidos_hembra" name="numero_nacidos_hembra" required />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="numero_nacidos_macho">Machos nacidos</label>
+              <input type="number" min="0" step="1" value="0" class="form-control" id="numero_nacidos_macho" name="numero_nacidos_macho" required />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="numero_muertos_hembra">Hembras muertas</label>
+              <input type="number" min="0" step="1" value="0" class="form-control" id="numero_muertos_hembra" name="numero_muertos_hembra" required />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="numero_muertos_macho">Machos muertos</label>
+              <input type="number" min="0" step="1" value="0" class="form-control" id="numero_muertos_macho" name="numero_muertos_macho" required />
+            </div>
+            <div class="col-md-2">
+              <span class="form-label d-block">Total nacidos / muertos</span>
+              <span class="form-control-plaintext fw-bold" id="totalNacidosMuertos">0 / 0</span>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="id_actividad">Acción</label>
+              <select class="form-select" id="id_actividad" name="id_actividad" required><option value="">Seleccione la acción</option></select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="observaciones">Observaciones</label>
+              <textarea class="form-control" id="observaciones" name="observaciones" rows="4" maxlength="300" placeholder="Escribe aquí las observaciones..."></textarea>
+              <div class="form-text text-end"><span id="observacionesCount">0</span>/300</div>
+            </div>
           </div>
 
-          <div class="card sig-followup-card"><div class="card-body">
-            <form id="seguimientoZoocriaderoForm" novalidate>
-              <input type="hidden" id="id_seguimiento" name="id_seguimiento" value="" />
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label" for="id_zoocriadero">Zoocriadero</label>
-                  <select class="form-select" id="id_zoocriadero" name="id_zoocriadero" required><option value="">Seleccione un zoocriadero</option></select>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label" for="id_tanque">Tanque</label>
-                  <select class="form-select" id="id_tanque" name="id_tanque" disabled required><option value="">Seleccione primero un zoocriadero</option></select>
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label" for="direccion">Dirección</label>
-                  <input type="text" class="form-control" id="direccion" readonly placeholder="Se cargará desde el zoocriadero" />
-                  <div class="form-text">La dirección pertenece al zoocriadero y no se puede modificar en este registro.</div>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label" for="fecha">Fecha</label>
-                  <input type="date" class="form-control" id="fecha" name="fecha" required />
-                </div>
-
-                <div class="col-md-3">
-                  <label class="form-label" for="ph">pH <span class="text-muted small">(opcional)</span></label>
-                  <input type="number" min="0" max="14" step="0.01" class="form-control" id="ph" name="ph" placeholder="7.20" />
-                </div>
-                <div class="col-md-3">
-                  <label class="form-label" for="temperatura">Temperatura °C <span class="text-muted small">(opcional)</span></label>
-                  <input type="number" step="0.01" class="form-control" id="temperatura" name="temperatura" placeholder="26.50" />
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label" for="numero_sembrados">Peces sembrados</label>
-                  <input type="number" min="0" step="1" value="0" class="form-control" id="numero_sembrados" name="numero_sembrados" required />
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label" for="numero_nacidos">Peces nacidos</label>
-                  <input type="number" min="0" step="1" value="0" class="form-control" id="numero_nacidos" name="numero_nacidos" required />
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label" for="numero_muertos">Peces muertos</label>
-                  <input type="number" min="0" step="1" value="0" class="form-control" id="numero_muertos" name="numero_muertos" required />
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label" for="id_actividad">Acción</label>
-                  <select class="form-select" id="id_actividad" name="id_actividad" required><option value="">Seleccione la acción</option></select>
-                </div>
-
-                <div class="col-12">
-                  <label class="form-label" for="observaciones">Observaciones</label>
-                  <textarea class="form-control" id="observaciones" name="observaciones" rows="4" maxlength="300" placeholder="Escribe aquí las observaciones..."></textarea>
-                  <div class="form-text text-end"><span id="observacionesCount">0</span>/300</div>
-                </div>
-              </div>
-
-              <div id="seguimientoMessage" class="alert d-none mt-4 mb-0" role="alert"></div>
-              <div class="d-flex justify-content-end mt-4 gap-2">
-                <button type="button" id="btnCancelarEdicion" class="btn btn-label-secondary d-none">Cancelar edición</button>
-                <a href="../Zoocriadero/zoocriaderos.php" class="btn btn-label-secondary">Volver</a>
-                <button type="submit" class="btn btn-primary" id="btnGuardarSeguimiento"><i class="fas fa-save me-1"></i>Guardar</button>
-              </div>
-            </form>
-          </div></div>
+          <div id="seguimientoMessage" class="alert d-none mt-4 mb-0" role="alert"></div>
+          <div class="d-flex justify-content-end mt-4 gap-2">
+            <button type="button" id="btnCancelarEdicion" class="btn btn-label-secondary d-none">Cancelar edición</button>
+            <a href="../Zoocriadero/zoocriaderos.php" class="btn btn-label-secondary">Volver</a>
+            <button type="submit" class="btn btn-primary" id="btnGuardarSeguimiento"><i class="fas fa-save me-1"></i>Guardar</button>
+          </div>
+        </form>
+      </div></div>
 
           <div class="card mt-4">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -145,7 +133,7 @@
                       <th class="text-center">Muertos</th>
                       <th class="text-center">pH</th>
                       <th class="text-center">T °C</th>
-                      <th class="text-center">Editar</th>
+                      <th class="text-center">Acciones</th>
                     </tr>
                   </thead>
                   <tbody id="historialBody">
@@ -155,12 +143,27 @@
               </div>
             </div>
           </div>
+
+          <div class="modal fade" id="seguimientoDetailModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Detalle del seguimiento</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body" id="seguimientoDetailBody"></div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div></div>
       </div>
     </div>
 
 <?php
-    $pageScripts = ['assets/js/siguppys-seguimiento-zoocriadero.js'];
+    $pageScripts = ['Web/assets/js/siguppys-seguimiento-zoocriadero.js'];
     include '../partials/footer.php';
 ?>
 
