@@ -53,11 +53,7 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 <label>Auxiliar</label>
 
                                 <!--select crea una lista desplegable.-->
-<<<<<<< HEAD
-                                <select name="auxiliar">
-=======
                                 <select name="auxiliar" class="form-select">
->>>>>>> origin/dev
 
                                     <!--value="" esta para que no envíe ningún auxiliar en específico.-->
                                     <option value="">Todos</option>
@@ -76,11 +72,7 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 <label>Fecha Inicio</label>
 
                                 <!--input de tipo date permite seleccionar una fecha mediante el calendario del navegador. -->
-<<<<<<< HEAD
-                                <input type="date" name="fecha_inicio" value="<?= $filtroFechaInicio ?>">
-=======
                                 <input type="date" name="fecha_inicio" class="form-control" value="<?= $filtroFechaInicio ?>">
->>>>>>> origin/dev
                             </div>
 
                             <!--Tercer bloque de filtro de seleccionar un fecha.-->
@@ -90,11 +82,7 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 <label>Fecha Fin</label>
 
                                 <!--input de tipo date permite seleccionar una fecha mediante el calendario del navegador. -->
-<<<<<<< HEAD
-                                <input type="date" name="fecha_fin" value="<?= $filtroFechaFin ?>">
-=======
                                 <input type="date" name="fecha_fin" class="form-control" value="<?= $filtroFechaFin ?>">
->>>>>>> origin/dev
                             </div>
 
                             <!--Botones para aplicar filtros y generar reportes.-->
@@ -180,15 +168,9 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 </thead>
                                 <tbody>
                                     <?php if (count($auxiliaresPagina) === 0): ?>
-<<<<<<< HEAD
-                                        <tr>
-                                            <td colspan="5" style="text-align:center; color:#888;">No hay auxiliares con esos filtros</td>
-                                        </tr>
-=======
                                         <tr class="sig-empty-row">
-                                        <td colspan="5">No hay auxiliares con esos filtros</td>
+                                        <td colspan="5">No hay auxiliares con esos filtros</td></tr>
                                     
->>>>>>> origin/dev
                                     <?php endif; ?>
                                     <?php foreach ($auxiliaresPagina as $fila): ?>
                                         <tr>

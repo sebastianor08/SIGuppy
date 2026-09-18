@@ -34,11 +34,7 @@ include '../partials/head.php';
                         <div class="fila-filtros">
                             <div>
                                 <label>Zoocriadero</label>
-<<<<<<< HEAD
-                                <select name="zoocriadero">
-=======
                                 <select name="zoocriadero" class="form-select">
->>>>>>> origin/dev
                                     <option value="">Todos</option>
                                     <?php foreach ($listaZoocriaderos as $zoo): ?>
                                         <option value="<?= $zoo ?>" <?= $filtroZoocriadero === $zoo ? 'selected' : '' ?>><?= $zoo ?></option>
@@ -49,11 +45,7 @@ include '../partials/head.php';
                             <!-- filtro de Tipo de tanque-->
                             <div>
                                 <label>Tanque</label>
-<<<<<<< HEAD
-                                <select name="tanque">
-=======
                                 <select name="tanque" class="form-select">
->>>>>>> origin/dev
                                     <option value="">Todos</option>
                                     <?php foreach ($listaTipos as $tipo): ?>
                                         <option value="<?= $tipo ?>" <?= $filtroTipo === $tipo ? 'selected' : '' ?>><?= $tipo ?></option>
@@ -119,15 +111,9 @@ include '../partials/head.php';
                                 </thead>
                                 <tbody>
                                     <?php if (count($registrosFiltrados) === 0): ?>
-<<<<<<< HEAD
-                                        <tr>
-                                            <td colspan="5" style="text-align:center; color:#888;">No hay registros con esos filtros</td>
-                                        </tr>
-=======
                                         <tr class="sig-empty-row">
-                                        <td colspan="5">No hay registros con esos filtros</td>
+                                        <td colspan="5">No hay registros con esos filtros</td></tr>
                                     
->>>>>>> origin/dev
                                     <?php endif; ?>
                                     <?php foreach ($registrosFiltrados as $registro): ?>
                                         <tr>
