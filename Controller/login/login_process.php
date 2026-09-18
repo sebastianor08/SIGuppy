@@ -4,6 +4,7 @@ session_start();
 
 // Carga el MasterModel (conexión nativa pgsql, sin PDO)
 require_once '../../Model/MasterModel.php';
+require_once '../../lib/Mailer.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $correo = trim($_POST['correo'] ?? '');
@@ -62,11 +63,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sqlReset = "UPDATE usuario SET intentos_fallidos = 0, bloqueo_hasta = NULL WHERE id_usuario = $1";
             $masterModel->update($sqlReset, [$usuario['id_usuario']]);
 
-            $_SESSION['id_usuario'] = $usuario['id_usuario'];
-            $_SESSION['usuario']    = $usuario['nombre'] . ' ' . $usuario['apellido'];
-            $_SESSION['id_rol']     = $usuario['id_rol'];
+            // ---- Código de verificación por correo (2FA) ----
+            $codigo = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $codigoExpira = date('Y-m-d H:i:s', strtotime('+10 minutes'));
 
-            header("Location: ../../Web/index.php");
+            $sqlCodigo = "UPDATE usuario SET codigo_verificacion = $1, codigo_verificacion_expira = $2 WHERE id_usuario = $3";
+            $masterModel->update($sqlCodigo, [$codigo, $codigoExpira, $usuario['id_usuario']]);
+
+            $nombreCompleto = $usuario['nombre'] . ' ' . $usuario['apellido'];
+            $enviado = enviarCodigoVerificacion($usuario['correo'], $nombreCompleto, $codigo);
+
+            if (!$enviado) {
+                // No se pudo enviar el correo: no dejamos al usuario a medias
+                // con un código que nunca le va a llegar.
+                header("Location: ../../View/login/login.php?error=system");
+                exit();
+            }
+
+            // Ojo: todavía NO se inicia sesión. Solo queda "pendiente de
+            // verificar" hasta que ingrese el código correcto.
+            $_SESSION['pendiente_verificacion'] = $usuario['id_usuario'];
+            $_SESSION['pendiente_intentos'] = 0;
+
+            header("Location: ../../View/login/verificar_codigo.php");
             exit();
         } else {
             $intentos = (int)$usuario['intentos_fallidos'] + 1;

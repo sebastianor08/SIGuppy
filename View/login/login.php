@@ -1,4 +1,9 @@
 <!-- Mensajes de Excepciones según requerimientos -->
+<?php if (isset($_GET['status']) && $_GET['status'] === 'changed'): ?>
+    <div class="alert alert-success py-2 small text-center mb-3">
+        Contraseña actualizada. Ya puedes iniciar sesión con ella.
+    </div>
+<?php endif; ?>
 <?php if (isset($_GET['error'])): ?>
     <?php if ($_GET['error'] === 'inactive'): ?>
         <div class="alert alert-warning py-2 small text-center mb-3">

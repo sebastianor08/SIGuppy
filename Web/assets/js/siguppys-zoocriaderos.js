@@ -1,25 +1,3 @@
-/* =========================================================
-   SIGuppys — Módulo Zoocriaderos
-   =========================================================
-   Los datos YA NO están quemados en este archivo: se leen de
-   PostgreSQL a través del router MVC:
-
-     Web/ajax.php?modulo=Zoocriadero&controlador=Zoocriadero&funcion=...
-
-   Endpoints usados:
-     lista        -> GET   zoocriaderos + nº de tanques
-     comunas      -> GET   para el select "Comuna"
-     barrios      -> GET   barrios de la comuna elegida
-     tiposTanque  -> GET   para el select "Tipo de tanque"
-     tanques      -> GET   tanques de un zoocriadero (modal detalle)
-     postCreate   -> POST  INSERT en zoocriadero
-     postUpdate   -> POST  UPDATE en zoocriadero
-     postEstado   -> POST  UPDATE del campo estado (habilitar/inhabilitar)
-     postTanque   -> POST  INSERT en tanque
-
-   El diseño de la tabla, los filtros y los permisos por rol
-   quedaron igual que antes.
-   ========================================================= */
 
 (function () {
   "use strict";
@@ -34,12 +12,11 @@
     coordinador: { crear: true, editar: true, inhabilitar: true },
   };
 
-  var data = [];       // zoocriaderos traídos de la base
-  var comunas = [];    // comunas de Cali
+  var data = [];       
+  var comunas = [];    
   var tiposTanque = [];
   var state = { q: "", estado: "todos" };
 
-  // ---------- Utilidades ----------
   function escapeHtml(str) {
     return String(str == null ? "" : str).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -82,7 +59,7 @@ function permisos() {
     box.textContent = "";
   }
 
-  // ---------- Llamadas al backend ----------
+
   async function getJson(funcion, extra) {
     var url = AJAX_URL + "?" + MODULO + "&funcion=" + funcion + (extra || "");
     var response = await fetch(url, { headers: { Accept: "application/json" } });
