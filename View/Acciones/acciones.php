@@ -39,9 +39,6 @@
                     </select>
                   </div>
                   <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary" id="accionSubmitBtn">
-                      <i class="fas fa-plus me-1"></i> <span id="accionSubmitLabel">Nueva Acción</span>
-                    </button>
                     <button type="button" class="btn btn-success" id="accionGuardarBtn">
                       <i class="fas fa-save me-1"></i> Guardar Cambios
                     </button>
@@ -72,7 +69,6 @@
                         <th>Nombre</th>
                         <th>Descripción</th>
                         <th class="text-center">Estado</th>
-                        <th>Fecha de Creación</th>
                         <th class="text-center">Acciones</th>
                       </tr>
                     </thead>

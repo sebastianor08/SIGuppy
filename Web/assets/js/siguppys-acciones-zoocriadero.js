@@ -20,13 +20,6 @@
     });
   }
 
-  function fmtFechaHora(iso) {
-    if (!iso) return "";
-    var d = new Date(iso.replace(" ", "T"));
-    if (isNaN(d)) return iso;
-    return d.toLocaleString("es-CO", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-  }
-
   function role() {
     return (window.SIGuppys && window.SIGuppys.getRole()) || "auxiliar";
   }
@@ -85,29 +78,23 @@
       nombre: a.nombre || "",
       descripcion: a.descripcion || "",
       estado: Number(a.estado),
-      creado_en: a.creado_en || "",
     };
   }
 
   
   function renderCrearBtn() {
+    // El módulo ya no permite crear acciones nuevas desde la interfaz;
+    // solo editar las existentes. Se deja este contenedor vacío.
     var wrap = document.getElementById("crearAccionWrap");
-    if (!permisos().crear) {
-      wrap.innerHTML = "";
-      return;
-    }
-    wrap.innerHTML =
-      '<button type="button" class="btn btn-primary btn-round" id="btnAbrirCrear">' +
-      '<i class="fas fa-plus me-1"></i> Crear Acción</button>';
+    if (wrap) wrap.innerHTML = "";
   }
 
  
   function renderAcciones(a) {
     var p = permisos();
     var btns =
-      '<button type="button" class="btn-icon" data-action="editar" data-id="' + a.id + '" title="' +
-      (p.editar ? "Editar" : lockedTitle("editar acciones")) + '"' +
-      (p.editar ? "" : " disabled") + '><i class="fas fa-pen"></i></button>' +
+      '<button type="button" class="btn-icon" data-action="editar" data-id="' + a.id + '" title="Editar">' +
+      '<i class="fas fa-pen"></i></button>' +
       '<button type="button" class="btn-icon" data-action="ver" data-id="' + a.id +
       '" title="Ver detalle"><i class="fas fa-eye"></i></button>';
 
@@ -136,7 +123,6 @@
       '<td><span class="fw-bold">' + escapeHtml(a.nombre) + "</span></td>" +
       "<td>" + escapeHtml(a.descripcion) + "</td>" +
       '<td class="text-center">' + estadoBadge + "</td>" +
-      "<td>" + fmtFechaHora(a.creado_en) + "</td>" +
       '<td class="text-center">' + renderAcciones(a) + "</td>" +
       "</tr>"
     );
@@ -145,7 +131,7 @@
   function render() {
     var body = document.getElementById("accionesTableBody");
     if (!data.length) {
-      body.innerHTML = '<tr class="sig-empty-row"><td colspan="6">No hay acciones registradas todavía.</td></tr>';
+      body.innerHTML = '<tr class="sig-empty-row"><td colspan="5">No hay acciones registradas todavía.</td></tr>';
       return;
     }
     body.innerHTML = data.map(renderRow).join("");
@@ -154,8 +140,6 @@
 
 
   var form = document.getElementById("accionForm");
-  var submitBtn = document.getElementById("accionSubmitBtn");
-  var submitLabel = document.getElementById("accionSubmitLabel");
   var guardarBtn = document.getElementById("accionGuardarBtn");
   var limpiarBtn = document.getElementById("accionLimpiarBtn");
 
@@ -163,8 +147,6 @@
     form.reset();
     form.elements["id_actividad"].value = "";
     form.elements["estado"].value = "1";
-    submitLabel.textContent = "Nueva Acción";
-    submitBtn.classList.remove("d-none");
     guardarBtn.classList.add("d-none");
   }
 
@@ -175,8 +157,6 @@
     form.elements["nombre"].value = a.nombre;
     form.elements["descripcion"].value = a.descripcion;
     form.elements["estado"].value = String(a.estado);
-    submitLabel.textContent = "Editando acción";
-    submitBtn.classList.add("d-none");
     guardarBtn.classList.remove("d-none");
     form.scrollIntoView({ behavior: "smooth", block: "start" });
   }
@@ -190,8 +170,6 @@
   }
 
   async function handleGuardar() {
-    if (!permisos().crear && !permisos().editar) return;
-
     var payload = leerPayload();
     if (!payload.nombre) {
       showMessage("El nombre de la acción es obligatorio.", "danger");
@@ -230,7 +208,6 @@
         ? '<span class="badge-estado activo">Activo</span>'
         : '<span class="badge-estado inactivo">Inhabilitado</span>') +
       "</dd>" +
-      '<dt class="col-5">Fecha de creación</dt><dd class="col-7">' + fmtFechaHora(a.creado_en) + "</dd>" +
       "</dl>";
     bootstrap.Modal.getOrCreateInstance(document.getElementById("accionDetailModal")).show();
   }
@@ -265,7 +242,7 @@
     var id = Number(btn.getAttribute("data-id"));
     var action = btn.getAttribute("data-action");
     if (action === "ver") openDetailModal(id);
-    if (action === "editar" && permisos().editar) fillFormFor(id);
+    if (action === "editar") fillFormFor(id);
     if (action === "inhabilitar") toggleEstado(id, 0);
     if (action === "habilitar") toggleEstado(id, 1);
   });
@@ -288,17 +265,15 @@
  
   (async function init() {
     document.getElementById("accionesTableBody").innerHTML =
-      '<tr class="sig-empty-row"><td colspan="6">Cargando acciones...</td></tr>';
-    if (!permisos().crear) {
-      submitBtn.disabled = true;
-      guardarBtn.disabled = true;
-    }
+      '<tr class="sig-empty-row"><td colspan="5">Cargando acciones...</td></tr>';
+    // El botón "Guardar Cambios" siempre queda habilitado: este módulo
+    // ya no depende del rol para poder editar.
     try {
       await recargar();
       clearMessage();
     } catch (error) {
       document.getElementById("accionesTableBody").innerHTML =
-        '<tr class="sig-empty-row"><td colspan="6">No se pudieron cargar los datos.</td></tr>';
+        '<tr class="sig-empty-row"><td colspan="5">No se pudieron cargar los datos.</td></tr>';
       showMessage(error.message + " Verifica que PHP pueda conectarse a PostgreSQL.", "danger");
     }
   })();
