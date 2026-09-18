@@ -88,9 +88,9 @@
           </a>
           <div class="collapse" id="navTerreno">
             <ul class="nav nav-collapse">
-              <li><a href="#" data-page="terreno-depositos"><span class="sub-item">Depósitos</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Deposito/DepositoView.php" data-page="terreno-depositos"><span class="sub-item">Depósitos</span></a></li>
               <li><a href="#" data-page="terreno-actividades"><span class="sub-item">Actividades</span></a></li>
-              <li><a href="#" data-page="terreno-tipo-depositos"><span class="sub-item">Tipo Depósitos</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/TipoDeposito/TipoDepositoView.php" data-page="terreno-tipo-depositos"><span class="sub-item">Tipo Depósitos</span></a></li>
             </ul>
           </div>
         </li>
