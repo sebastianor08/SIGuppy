@@ -1,10 +1,4 @@
-/* =========================================================
-   SIGuppys — Página Configuraciones
-   Conecta los interruptores de Modo oscuro y Modo daltonismo con
-   las funciones compartidas de assets/js/siguppys-nav.js, para que
-   el cambio se vea de inmediato y quede guardado para las demás
-   páginas.
-   ========================================================= */
+
 (function () {
   "use strict";
   if (document.body.getAttribute("data-page") !== "configuraciones") return;

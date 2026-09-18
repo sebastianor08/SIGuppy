@@ -1,23 +1,4 @@
-/* =========================================================
-   SIGuppys — Módulo Tanques
-   =========================================================
-   Listado de TODOS los tanques (de todos los zoocriaderos),
-   con edición y habilitar/inhabilitar. La creación de tanques
-   se sigue haciendo desde el módulo Zoocriadero.
 
-   Web/ajax.php?modulo=Tanque&controlador=Tanque&funcion=...
-
-   Endpoints usados:
-     lista        -> GET   tanques + zoocriadero + tipo ya resueltos
-     zoocriaderos -> GET   para el select "Zoocriadero" del modal
-     tiposTanque  -> GET   para el select "Tipo de tanque" del modal
-     postUpdate   -> POST  UPDATE en tanque
-     postEstado   -> POST  UPDATE del campo estado (habilitar/inhabilitar)
-
-   Un tanque inhabilitado deja de aparecer como opción al
-   registrar un seguimiento de zoocriadero (el backend también
-   lo bloquea aunque alguien intente forzarlo).
-   ========================================================= */
 
 (function () {
   "use strict";

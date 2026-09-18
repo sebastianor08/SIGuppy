@@ -37,9 +37,13 @@
             <div class="alert alert-danger py-2 small text-center mb-3">
                 El correo electrónico no se encuentra registrado.
             </div>
+        <?php elseif (isset($_GET['status']) && $_GET['status'] == 'system'): ?>
+            <div class="alert alert-danger py-2 small text-center mb-3">
+                No se pudo enviar el correo. Intenta de nuevo más tarde.
+            </div>
         <?php endif; ?>
 
-        <form action="controller/recuperar_process.php" method="POST">
+        <form action="../../Controller/login/recuperar_process.php" method="POST">
             <div class="form-group mb-4 px-0">
                 <label for="correo" class="form-label fw-bold small text-secondary">Correo electrónico</label>
                 <div class="input-group">
