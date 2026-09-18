@@ -1,22 +1,3 @@
-/* =========================================================
-   SIGuppys — Módulo Gestión de Usuarios
-   =========================================================
-   Los datos se leen de PostgreSQL a través del router MVC:
-
-     Web/ajax.php?modulo=Usuarios&controlador=Usuarios&funcion=...
-
-   Endpoints usados:
-     lista           -> GET   usuarios + rol + tipo de documento
-     roles           -> GET   roles activos, para el <select> del form/filtro
-     tiposDocumento  -> GET   para el <select> "Tipo de documento"
-     postCreate      -> POST  INSERT en usuario (pide contraseña)
-     postUpdate      -> POST  UPDATE de los datos del usuario (sin tocar contraseña)
-     postEstado      -> POST  UPDATE del campo estado (habilitar/inhabilitar)
-
-   Nota: la acción "Restablecer contraseña" se eliminó del módulo.
-   La contraseña se define solo al registrar el usuario; si se olvida,
-   se recupera desde "¿Olvidó su contraseña?" en el login.
-   ========================================================= */
 
 (function () {
   "use strict";
@@ -106,6 +87,24 @@
     }
     if (doc.length < 5) return "El número de documento debe tener al menos 5 caracteres.";
     if (doc.length > 20) return "El número de documento no puede superar 20 caracteres.";
+    return null;
+  }
+
+  // Solo se aceptan correos de estos dominios (debe ser la misma lista
+  // que DOMINIOS_CORREO_PERMITIDOS en lib/validaciones.php: esta copia
+  // solo avisa antes de tiempo, la que manda de verdad es la de PHP).
+  var DOMINIOS_CORREO_PERMITIDOS = ["cali.gov.co", "gmail.com"];
+
+  function validarCorreo(valor) {
+    var correo = String(valor || "").trim().toLowerCase();
+    if (!correo) return "El correo electrónico es obligatorio.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+      return "El correo electrónico no es válido.";
+    }
+    var dominio = correo.split("@").pop();
+    if (DOMINIOS_CORREO_PERMITIDOS.indexOf(dominio) === -1) {
+      return "El correo debe ser de uno de estos dominios: " + DOMINIOS_CORREO_PERMITIDOS.join(", ") + ".";
+    }
     return null;
   }
 
@@ -355,6 +354,12 @@
       form.elements["documento"].focus();
       return;
     }
+    var errorCorreo = validarCorreo(payload.correo);
+    if (errorCorreo) {
+      alert(errorCorreo);
+      form.elements["correo"].focus();
+      return;
+    }
     if (!payload.id_tipodocumento) { alert("Debe seleccionar el tipo de documento."); return; }
     if (!payload.id_rol) { alert("Debe seleccionar el rol."); return; }
 
@@ -441,7 +446,6 @@
     render();
   });
 
-  // ---------- Arranque ----------
   (async function init() {
     document.getElementById("usuariosTableBody").innerHTML =
       '<tr class="sig-empty-row"><td colspan="6">Cargando usuarios...</td></tr>';

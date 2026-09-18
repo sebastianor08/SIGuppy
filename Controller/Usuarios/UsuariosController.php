@@ -2,15 +2,6 @@
 
 include_once '../Model/Usuarios/UsuarioModel.php';
 
-// ============================================================
-// Controlador del módulo Gestión de Usuarios. Responde solo JSON,
-// así que se llama siempre por Web/ajax.php:
-//   Web/ajax.php?modulo=Usuarios&controlador=Usuarios&funcion=lista
-//
-// Nota: la función postPassword ("Restablecer contraseña") se
-// eliminó. La contraseña solo se define al registrar el usuario;
-// para cambiarla se usa "¿Olvidó su contraseña?" en el login.
-// ============================================================
 class UsuariosController
 {
 
@@ -34,7 +25,6 @@ class UsuariosController
         jsonResponse(['ok' => true, 'data' => $obj->tiposDocumento()]);
     }
 
-    // ---------- Escrituras ----------
 
     public function postCreate()
     {
@@ -42,8 +32,6 @@ class UsuariosController
         $body = requestJsonBody();
         $datos = $this->validarUsuario($body, $obj, null);
 
-        // Contraseña: mínimo 8 caracteres, una minúscula, una mayúscula
-        // y un carácter especial (ver validarContrasena en lib/validaciones.php).
         $contrasena = (string) ($body['contrasena'] ?? '');
         $errorClave = validarContrasena($contrasena);
         if ($errorClave !== null) {
@@ -125,18 +113,13 @@ class UsuariosController
             validarTexto($nombre, 'Nombres', 2, 80),
             validarTexto($apellido, 'Apellidos', 2, 80),
             validarDocumento($documento, 'Número de documento'),
+            validarCorreo($correo),
         ] as $error) {
             if ($error !== null) {
                 jsonResponse(['ok' => false, 'message' => $error], 422);
             }
         }
 
-        if ($correo === '' || !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-            jsonResponse(['ok' => false, 'message' => 'El correo no es válido.'], 422);
-        }
-        if (mb_strlen($correo) > 120) {
-            jsonResponse(['ok' => false, 'message' => 'El correo no puede superar 120 caracteres.'], 422);
-        }
         if ($obj->existeCorreo($correo, $idExcluir)) {
             jsonResponse(['ok' => false, 'message' => 'Ya existe un usuario registrado con ese correo.'], 422);
         }
