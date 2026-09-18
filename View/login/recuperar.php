@@ -71,7 +71,7 @@
         </div>
     </div>
 
-    <script src="Web/assets/js/core/bootstrap.min.js"></script>
+    <script src="../../Web/assets/js/core/bootstrap.min.js"></script>
 
     <?php if (isset($_GET['status']) && $_GET['status'] == 'enviado'): ?>
     <script>
