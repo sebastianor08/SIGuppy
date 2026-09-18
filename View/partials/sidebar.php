@@ -1,28 +1,15 @@
 <?php
-// =========================================================
-// Sidebar de SIGuppys (menú lateral + logo)
-// =========================================================
-// Cada vista declara $rutaBase ANTES de este include, según su
-// profundidad respecto a la raíz del proyecto (SIGuppy/):
-//   Web/index.php                -> $rutaBase = '../';
-//   View/<Modulo>/archivo.php    -> $rutaBase = '../../';
-//
-// El link activo (y el submenú que corresponde abrir) NO se marca
-// aquí a mano: lo hace highlightActiveNav() en siguppys-nav.js
-// leyendo el data-page del <body> de cada vista. Así no hay que
-// tocar este archivo cuando cambia cuál página está activa.
-if (!isset($rutaBase)) {
-  $rutaBase = '../../';
-}
+
+  if (!isset($rutaBase)) {
+      $rutaBase = '../../';
+  }
 ?>
-<!-- Sidebar -->
 <div class="sidebar sidebar-style-2 siguppys-sidebar" data-background-color="white">
   <div class="sidebar-logo">
-    <!-- Logo Header -->
     <div class="logo-header siguppys-logo-header">
       <a href="<?php echo $rutaBase; ?>Web/index.php" class="logo siguppys-logo">
         <span class="siguppys-pin">
-          <img src="<?php echo $rutaBase; ?>assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
+          <img src="<?php echo $rutaBase; ?>Web/assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
         </span>
         <span class="siguppys-brand">
           <strong>SIGuppys</strong>
@@ -76,12 +63,22 @@ if (!isset($rutaBase)) {
           </div>
         </li>
 
-        <li class="nav-item">
-          <a href="<?php echo $rutaBase; ?>View/Zoocriadero/zoocriaderos.php" data-page="zoocriaderos">
+        <li class="nav-item submenu">
+          <a data-bs-toggle="collapse" href="#navZoocriaderos" aria-expanded="false">
             <i class="fas fa-warehouse"></i>
             <p>Zoocriaderos</p>
+            <span class="caret"></span>
           </a>
+          <div class="collapse" id="navZoocriaderos">
+            <ul class="nav nav-collapse">
+              <li><a href="<?php echo $rutaBase; ?>View/Zoocriadero/zoocriaderos.php" data-page="zoocriaderos"><span
+                    class="sub-item">Zoocriaderos</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Acciones/acciones.php" data-page="acciones-zoocriadero"><span
+                    class="sub-item">Acciones</span></a></li>
+            </ul>
+          </div>
         </li>
+
 
         <li class="nav-item submenu">
           <a data-bs-toggle="collapse" href="#navTerreno" aria-expanded="false">
@@ -106,7 +103,9 @@ if (!isset($rutaBase)) {
           </a>
           <div class="collapse" id="navUsuarios">
             <ul class="nav nav-collapse">
-             <li><a href="<?php echo $rutaBase; ?>View/Usuario/usuarios.php" data-page="usuarios"><span class="sub-item">Gestionar Usuarios</span></a></li>
+
+             <li><a href="#" data-page="usuarios-registrar"><span class="sub-item">Gestión De Usuarios</span></a></li>
+
               <li><a href="<?php echo $rutaBase; ?>View/Roles/registro-roles.php" data-page="roles-registrar"><span class="sub-item">Roles y Permisos</span></a></li>
               <li><a href="<?php echo $rutaBase; ?>View/Roles/consultar-roles.php" data-page="roles-consultar"><span class="sub-item">Consultar Roles</span></a></li>
             </ul>
@@ -121,6 +120,13 @@ if (!isset($rutaBase)) {
         </li>
 
         <li class="nav-item">
+          <a href="<?php echo $rutaBase; ?>View/Auditoria/AuditoriaView.php" data-page="auditoria">
+            <i class="fas fa-history"></i>
+            <p>Auditoría</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
           <a href="<?php echo $rutaBase; ?>View/Configuraciones/configuraciones.php" data-page="configuraciones">
             <i class="fas fa-cogs"></i>
             <p>Configuraciones</p>
@@ -128,13 +134,12 @@ if (!isset($rutaBase)) {
         </li>
       </ul>
     </div>
+  </div>
 
-    <div class="sidebar-footer">
-      <a href="#" class="btn-logout">
-        <i class="fas fa-sign-out-alt"></i>
-        Cerrar Sesión
-      </a>
-    </div>
+  <div class="sidebar-footer">
+    <a href="#" class="btn-logout">
+      <i class="fas fa-sign-out-alt"></i>
+      Cerrar Sesión
+    </a>
   </div>
 </div>
-<!-- End Sidebar -->

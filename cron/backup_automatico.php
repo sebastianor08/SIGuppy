@@ -1,24 +1,5 @@
 <?php
 
-// ============================================================
-// Respaldo automático diario de BD_Dengue_SIGuppy.
-//
-// Este script NO se abre desde el navegador: lo ejecuta el
-// Programador de tareas de Windows una vez al día, llamando a
-// php.exe directamente (ver backup_automatico.bat en esta misma
-// carpeta y las instrucciones en LEEME_COPIA_SEGURIDAD.md).
-//
-// Qué hace, en orden:
-//   1) Genera un .sql nuevo con pg_dump en BACKUP_DIR.
-//   2) Dependiendo del resultado, lo copia a BACKUP_CLOUD_DIR
-//      (la carpeta sincronizada con la nube gratuita), si ya
-//      está configurada en lib/conf/backup_conf.php.
-//   3) Registra la operación en copia_seguridad_historial, para
-//      que aparezca en el módulo web como tipo "Automática".
-//   4) Borra del disco local los .sql más viejos que
-//      BACKUP_RETENTION_DIAS (el historial de auditoría NO se borra).
-// ============================================================
-
 if (php_sapi_name() !== 'cli') {
     http_response_code(403);
     die('Este script solo puede ejecutarse desde la línea de comandos (Programador de tareas), no desde el navegador.');

@@ -3,7 +3,7 @@ ob_start();
 session_start();
 
 // Carga el UsuariosModel (este ya incluye a MasterModel)
-require_once '../../Model/UsuariosModel.php'; 
+require_once __DIR__ . '/../../Model/Usuario/UsuariosModel.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $correo = trim($_POST['correo'] ?? '');

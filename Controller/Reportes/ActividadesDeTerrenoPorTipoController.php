@@ -41,9 +41,9 @@ function obtenerDatosActividadesDeTerrenoPorTipo()
     // $listaZoocriaderos aquí trae COMUNAS (el nombre se dejó igual
     // para no tener que cambiar toda la vista).
     $sql = "SELECT a.nombre AS tipo,
-                   c.nombre AS zoocriadero,
-                   TO_CHAR(st.fecha, 'DD/MM/YYYY') AS fecha,
-                   st.estado AS estado
+                c.nombre AS zoocriadero,
+                TO_CHAR(st.fecha, 'DD/MM/YYYY') AS fecha,
+                st.estado AS estado
             FROM seguimiento_terreno st
             INNER JOIN actividad_terreno act ON act.id_seguimiento_terreno = st.id_seguimiento_terreno
             INNER JOIN actividad a ON a.id_actividad = act.id_actividad

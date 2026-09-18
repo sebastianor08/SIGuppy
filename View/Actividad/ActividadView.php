@@ -192,7 +192,7 @@ CSS;
     </div>
 
 <?php
-    $pageScripts = ['assets/js/siguppys-actividades.js'];
+    $pageScripts = ['Web/assets/js/siguppys-actividades.js'];
     include '../partials/footer.php';
 ?>
 </body>

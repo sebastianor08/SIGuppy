@@ -1,7 +1,4 @@
-/* =========================================================
-   SIGuppys — estilos propios
-   Se agregan sobre kaiadmin.min.css, sin tocar el archivo base.
-   ========================================================= */
+
 
 :root {
   --sig-blue: #1d7af3;
@@ -85,13 +82,6 @@
   font-size: 11px;
 }
 
-/* ---- Estado activo estilo "pastilla" ----
-   Kaiadmin trae, para .sidebar-style-2 + .nav-secondary, un relleno sólido
-   de color con más especificidad; aquí lo reemplazamos por un tono suave.
-   IMPORTANTE: la clase "active" ya NO se escribe a mano en el HTML — la
-   agrega assets/js/siguppys-nav.js según la página actual (data-page),
-   así que un módulo o submódulo solo se ve azul cuando realmente estás
-   dentro de él. */
 .siguppys-sidebar.sidebar.sidebar-style-2 .nav.nav-secondary > .nav-item.active > a,
 .siguppys-sidebar .nav > .nav-item > a[aria-expanded="true"] {
   background: var(--sig-blue-soft) !important;
@@ -129,11 +119,18 @@
   line-height: 1.4;
 }
 
-/* ---- Pie del sidebar: botón Cerrar Sesión ---- */
+.sidebar-wrapper {
+  padding-bottom: 90px; /* espacio para que el menú no quede tapado detrás del botón fijo */
+}
 .sidebar-footer {
-  flex: none;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
   padding: 16px 20px 22px;
   border-top: 1px solid #f1f1f1;
+  background: #fff;
+  z-index: 6;
 }
 .btn-logout {
   display: flex;
@@ -318,15 +315,6 @@ body[data-role="coordinador"] .table-actions.only-coordinador {
   color: var(--sig-muted);
 }
 
-/* =========================================================
-   Modo oscuro — ajustes para los elementos propios de SIGuppys
-   =========================================================
-   El esqueleto del modo oscuro (fondos, texto, tarjetas) ya lo
-   trae kaiadmin.css activando data-background-color="dark" en el
-   body / sidebar / logo-header / navbar; assets/js/siguppys-nav.js
-   se encarga de poner y quitar ese atributo. Aquí solo adaptamos
-   las piezas que agregamos nosotros (marca, selector de rol,
-   placeholders, tabla de acciones). */
 body[data-background-color="dark"] .siguppys-logo-header {
   border-bottom-color: rgba(255, 255, 255, 0.08);
 }
@@ -338,6 +326,7 @@ body[data-background-color="dark"] .siguppys-brand small {
 }
 body[data-background-color="dark"] .sidebar-footer {
   border-top-color: rgba(255, 255, 255, 0.08);
+  background: #1a2035;
 }
 body[data-background-color="dark"] .sig-role-switcher {
   background: rgba(255, 255, 255, 0.04);
@@ -386,17 +375,6 @@ body[data-background-color="dark"] .settings-option strong {
   color: #fff;
 }
 
-/* =========================================================
-   Modo daltonismo — 4 paletas según el tipo elegido
-   =========================================================
-   Sustituye el par rojo/verde de los estados (Activo/Inhabilitado,
-   iconos de éxito/peligro) por una paleta adecuada al tipo de
-   daltonismo activo (body[data-daltonismo="..."]), manteniendo
-   siempre el texto como apoyo, no solo el color. Acromatopsia además
-   suma un ícono (✓ / ✕), porque ahí el color no ayuda en nada. */
-
-/* Protanopia y deuteranopia (rojo-verde, las más comunes):
-   azul / naranja. */
 body[data-daltonismo="protanopia"],
 body[data-daltonismo="deuteranopia"] {
   --sig-activo-color: #0072b2;
@@ -404,16 +382,22 @@ body[data-daltonismo="deuteranopia"] {
   --sig-inactivo-color: #966400;
   --sig-inactivo-bg: rgba(230, 159, 0, 0.18);
   --sig-inactivo-border: #e69f00;
+  --sig-warning-color: #a3005c;
+  --sig-warning-bg: rgba(204, 121, 167, 0.2);
+  --sig-warning-border: #cc79a7;
 }
 
-/* Tritanopia (azul-amarillo): verde azulado / rojo ladrillo, un
-   par que no depende de distinguir azul de amarillo. */
+/* Tritanopia (azul-amarillo): verde azulado / rojo ladrillo / púrpura
+   rojizo, un trío que no depende de distinguir azul de amarillo. */
 body[data-daltonismo="tritanopia"] {
   --sig-activo-color: #009e73;
   --sig-activo-bg: rgba(0, 158, 115, 0.14);
   --sig-inactivo-color: #a83c00;
   --sig-inactivo-bg: rgba(213, 94, 0, 0.18);
   --sig-inactivo-border: #d55e00;
+  --sig-warning-color: #a3005c;
+  --sig-warning-bg: rgba(204, 121, 167, 0.2);
+  --sig-warning-border: #cc79a7;
 }
 
 /* Acromatopsia (sin percepción de color, solo grises): el color no
@@ -424,8 +408,12 @@ body[data-daltonismo="acromatopsia"] {
   --sig-inactivo-color: #1a1a1a;
   --sig-inactivo-bg: rgba(26, 26, 26, 0.18);
   --sig-inactivo-border: #1a1a1a;
+  --sig-warning-color: #1a1a1a;
+  --sig-warning-bg: rgba(26, 26, 26, 0.35);
+  --sig-warning-border: #1a1a1a;
 }
 
+/* ---- Etiquetas de estado (badge-estado) ---- */
 body[data-daltonismo] .badge-estado.activo {
   background: var(--sig-activo-bg);
   color: var(--sig-activo-color);
@@ -440,12 +428,16 @@ body[data-daltonismo="acromatopsia"] .badge-estado.activo::before {
 body[data-daltonismo="acromatopsia"] .badge-estado.inactivo::before {
   content: "✕ ";
 }
+
+/* ---- Íconos de tarjetas de resumen ---- */
 body[data-daltonismo] .card-stats .icon-big.icon-success {
   background: var(--sig-activo-color) !important;
 }
 body[data-daltonismo] .card-stats .icon-big.icon-danger {
   background: var(--sig-inactivo-border) !important;
 }
+
+/* ---- Íconos de acciones en tablas (Habilitar / Inhabilitar) ---- */
 body[data-daltonismo] .table-actions .btn-icon.text-danger {
   color: var(--sig-inactivo-color);
   border-color: var(--sig-inactivo-border);
@@ -461,6 +453,8 @@ body[data-daltonismo] .table-actions .btn-icon.text-success:hover {
   color: var(--sig-activo-color);
   border-color: var(--sig-activo-color);
 }
+
+/* ---- Botón de cerrar sesión ---- */
 body[data-daltonismo] .btn-logout {
   border-color: var(--sig-inactivo-border);
   color: var(--sig-inactivo-color);
@@ -468,6 +462,84 @@ body[data-daltonismo] .btn-logout {
 body[data-daltonismo] .btn-logout:hover {
   background: var(--sig-inactivo-border);
   color: #fff;
+}
+
+/* ---- Botones normales de acción (Guardar, Eliminar, Restaurar...) ----
+   El azul (btn-primary) no se toca a propósito: solo se remapean los
+   colores que forman el par/trío problemático rojo-verde-naranja. */
+body[data-daltonismo] .btn-success,
+body[data-daltonismo] .btn-success:hover,
+body[data-daltonismo] .btn-success:focus {
+  background: var(--sig-activo-color) !important;
+  border-color: var(--sig-activo-color) !important;
+}
+body[data-daltonismo] .btn-outline-success {
+  --bs-btn-color: var(--sig-activo-color);
+  --bs-btn-border-color: var(--sig-activo-color);
+  --bs-btn-hover-bg: var(--sig-activo-color);
+  --bs-btn-hover-border-color: var(--sig-activo-color);
+  --bs-btn-active-bg: var(--sig-activo-color);
+  --bs-btn-active-border-color: var(--sig-activo-color);
+}
+body[data-daltonismo] .btn-danger,
+body[data-daltonismo] .btn-danger:hover,
+body[data-daltonismo] .btn-danger:focus {
+  background: var(--sig-inactivo-border) !important;
+  border-color: var(--sig-inactivo-border) !important;
+}
+body[data-daltonismo] .btn-outline-danger {
+  --bs-btn-color: var(--sig-inactivo-border);
+  --bs-btn-border-color: var(--sig-inactivo-border);
+  --bs-btn-hover-bg: var(--sig-inactivo-border);
+  --bs-btn-hover-border-color: var(--sig-inactivo-border);
+  --bs-btn-active-bg: var(--sig-inactivo-border);
+  --bs-btn-active-border-color: var(--sig-inactivo-border);
+}
+body[data-daltonismo] .btn-warning,
+body[data-daltonismo] .btn-warning:hover,
+body[data-daltonismo] .btn-warning:focus {
+  background: var(--sig-warning-border) !important;
+  border-color: var(--sig-warning-border) !important;
+  color: #fff !important;
+}
+body[data-daltonismo] .btn-outline-warning {
+  --bs-btn-color: var(--sig-warning-border);
+  --bs-btn-border-color: var(--sig-warning-border);
+  --bs-btn-hover-bg: var(--sig-warning-border);
+  --bs-btn-hover-border-color: var(--sig-warning-border);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: var(--sig-warning-border);
+  --bs-btn-active-border-color: var(--sig-warning-border);
+}
+
+/* ---- Badges sueltos bg-success / bg-danger / bg-warning (por si
+   algún módulo futuro los usa en vez de .badge-estado) ---- */
+body[data-daltonismo] .badge.bg-success {
+  background-color: var(--sig-activo-color) !important;
+}
+body[data-daltonismo] .badge.bg-danger {
+  background-color: var(--sig-inactivo-border) !important;
+}
+body[data-daltonismo] .badge.bg-warning {
+  background-color: var(--sig-warning-border) !important;
+  color: #fff !important;
+}
+
+/* ---- Acromatopsia: refuerzo con ícono en botones de acción, porque
+   ahí el color por sí solo no comunica nada ---- */
+body[data-daltonismo="acromatopsia"] .btn-success::before {
+  content: "✓ ";
+}
+body[data-daltonismo="acromatopsia"] .btn-outline-success::before {
+  content: "✓ ";
+}
+body[data-daltonismo="acromatopsia"] .btn-danger::before,
+body[data-daltonismo="acromatopsia"] .btn-outline-danger::before {
+  content: "✕ ";
+}
+body[data-daltonismo="acromatopsia"] .btn-warning::before,
+body[data-daltonismo="acromatopsia"] .btn-outline-warning::before {
+  content: "! ";
 }
 
 /* ---- Página Configuraciones: tarjetas de preferencia ---- */
@@ -502,10 +574,6 @@ body[data-daltonismo] .btn-logout:hover {
 }
 
 
-
-/* =========================================================
-   Formulario de Seguimiento de Zoocriadero
-   ========================================================= */
 .sig-followup-card {
   border-radius: 14px;
 }
@@ -517,9 +585,6 @@ body[data-daltonismo] .btn-logout:hover {
   color: #6b7280;
 }
 
-/* =========================================================
-   Modo oscuro — Modales, formularios y componentes flotantes
-   ========================================================= */
 body[data-background-color="dark"] .modal-content,
 body[data-background-color="dark2"] .modal-content {
   background-color: #202940;
@@ -656,4 +721,219 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
   background: #151b2e !important;
   color: #9ea5b5 !important;
   border-color: #36405a !important;
+}
+
+/* ============================================================
+   Anula el "flyout" de kaiadmin: al pasar el mouse sobre el
+   sidebar colapsado (icono), el template lo expande flotando
+   ENCIMA del contenido (sidebar_minimize_hover) en vez de
+   empujarlo. Si esa clase queda pegada tras un segundo clic,
+   se ve como si el sidebar tapara los reportes. Con esto, el
+   sidebar colapsado se queda colapsado (75px) siempre, y solo
+   cambia de tamaño con el clic del botón de colapsar/expandir,
+   nunca por hover.
+   ============================================================ */
+.sidebar_minimize_hover .sidebar,
+.sidebar_minimize.sidebar_minimize_hover .sidebar {
+  width: 75px;
+  position: relative;
+}
+
+.sidebar_minimize_hover .sidebar .logo-header,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .logo-header {
+  width: 75px;
+  padding: 0;
+  text-align: center;
+}
+
+.sidebar_minimize_hover .sidebar .logo-header .logo,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .logo-header .logo {
+  position: absolute !important;
+  transform: translate3d(25px, 0, 0) !important;
+  opacity: 0 !important;
+}
+
+.sidebar_minimize_hover .sidebar .logo-header .logo img,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .logo-header .logo img {
+  display: none !important;
+}
+
+.sidebar_minimize_hover .sidebar .sidebar-wrapper,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper {
+  width: 75px;
+}
+
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a i,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a i {
+  margin-right: unset;
+}
+
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .badge,
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .caret,
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a p,
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a span,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .badge,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .caret,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a p,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a span {
+  display: none;
+}
+
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .sidebar-mini-icon,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item a .sidebar-mini-icon {
+  display: block !important;
+  margin-right: 0;
+}
+
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.active .nav-collapse,
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.submenu .nav-collapse,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.active .nav-collapse,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-item.submenu .nav-collapse {
+  display: none;
+}
+
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .sidebar-mini-icon,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .sidebar-mini-icon {
+  display: block;
+}
+
+.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .text-section,
+.sidebar_minimize.sidebar_minimize_hover .sidebar .sidebar-wrapper .nav-section .text-section {
+  display: none;
+}
+
+/* ============================================================
+   Por debajo de 991.5px (el mismo punto que usa kaiadmin para
+   su menú móvil), el sidebar SIEMPRE debe comportarse como
+   menú móvil: oculto por defecto, visible solo con el botón
+   que agrega "nav_open" a <html>. Sin esto, si el sidebar
+   quedó en modo "iconos" (sidebar_minimize) o en la vista
+   previa de hover a un ancho de pantalla más grande, esas
+   clases quedan pegadas y el menú no se adapta al redimensionar
+   la ventana del navegador: se queda empujando el contenido en
+   vez de esconderse. Esta regla ignora esas clases por completo
+   y deja que solo mande el tamaño real de la pantalla.
+   ============================================================ */
+@media (max-width: 991.5px) {
+  .sidebar {
+    transform: translate3d(-270px, 0, 0) !important;
+  }
+
+  html.nav_open .sidebar {
+    transform: translate3d(0, 0, 0) !important;
+  }
+
+  .main-panel,
+  .main-header {
+    width: 100% !important;
+  }
+
+  html.nav_open .main-panel {
+    transform: translate3d(265px, 0, 0) !important;
+  }
+}
+
+
+/* ============================================================
+   Módulo Reportes: modo oscuro
+   Los 6 reportes (View/Reportes/*.php) traen su propio <style>
+   con clases propias (.caja, .tarjeta, .numero, tablas, badges,
+   donuts, barras...) en vez de las .card nativas de kaiadmin, así
+   que no heredan el modo oscuro solas. Estas reglas les agregan
+   la versión oscura usando los mismos colores que ya usa kaiadmin
+   para .card (#202940) y para el texto atenuado (#8d9498/#b9babf).
+   ============================================================ */
+body[data-background-color="dark"] .caja {
+  background-color: #202940;
+  color: rgba(169, 175, 187, 0.82);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+body[data-background-color="dark"] .caja-gris {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* Filtros: los <select>/<input type="date"> sin clase de Bootstrap
+   se quedan blancos en modo oscuro porque kaiadmin solo teoriza
+   dark mode para .form-control/.form-select. */
+body[data-background-color="dark"] .fila-filtros select,
+body[data-background-color="dark"] .fila-filtros input[type="date"] {
+  background-color: #1a2035;
+  color: #fff;
+  border-color: #2f374b;
+}
+body[data-background-color="dark"] .fila-filtros select option {
+  background: #1a2035;
+}
+body[data-background-color="dark"] .fila-filtros input[type="date"] {
+  color-scheme: dark;
+}
+body[data-background-color="dark"] .btn-reportes {
+  background-color: transparent;
+  border-color: #2f7dfa;
+}
+body[data-background-color="dark"] .btn-reportes:hover {
+  background-color: rgba(47, 125, 243, 0.15);
+}
+
+/* Textos secundarios (encabezados de tarjeta, pies de tabla, notas
+   de gráficas, descripciones) que venían en gris fijo (#555/#666/
+   #777/#888/#999/#444/#333) y quedaban casi invisibles sobre fondo
+   oscuro. */
+body[data-background-color="dark"] .caja .tarjeta p,
+body[data-background-color="dark"] .caja .cabecera-tarjeta p,
+body[data-background-color="dark"] .caja .pie-tabla,
+body[data-background-color="dark"] .caja .nota-grafica,
+body[data-background-color="dark"] .caja .nota-donut,
+body[data-background-color="dark"] .caja .nota-inferior,
+body[data-background-color="dark"] .caja .descripcion,
+body[data-background-color="dark"] .caja .donut-centro span,
+body[data-background-color="dark"] .caja th {
+  color: #8d9498;
+}
+body[data-background-color="dark"] .caja .boton-pagina {
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #b9babf;
+}
+body[data-background-color="dark"] .caja th,
+body[data-background-color="dark"] .caja td {
+  border-bottom-color: rgba(181, 181, 181, 0.14);
+}
+
+/* Iconos redondos de las tarjetas resumen: el fondo pastel claro
+   pasa a una versión translúcida del mismo color de acento. */
+body[data-background-color="dark"] .caja .icono-azul {
+  background-color: rgba(47, 125, 250, 0.18);
+}
+body[data-background-color="dark"] .caja .icono-verde {
+  background-color: rgba(33, 166, 102, 0.18);
+}
+body[data-background-color="dark"] .caja .icono-naranja {
+  background-color: rgba(224, 149, 45, 0.2);
+}
+body[data-background-color="dark"] .caja .icono-rojo {
+  background-color: rgba(230, 69, 69, 0.18);
+}
+body[data-background-color="dark"] .caja .icono-morado {
+  background-color: rgba(108, 92, 231, 0.2);
+}
+
+/* Gráfica de dona: el círculo del centro debe verse del mismo
+   color que la tarjeta que lo contiene, no blanco/gris claro. */
+body[data-background-color="dark"] .caja .donut-centro {
+  background-color: #202940;
+}
+
+/* Barra de progreso de cumplimiento y ejes de las gráficas hechas
+   solo con CSS/SVG. */
+body[data-background-color="dark"] .caja .barra-fondo {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+body[data-background-color="dark"] .caja .grafica-barras {
+  border-bottom-color: rgba(255, 255, 255, 0.16);
+}
+body[data-background-color="dark"] .caja .linea-eje {
+  stroke: rgba(255, 255, 255, 0.16);
+}
+body[data-background-color="dark"] .caja .texto-eje {
+  fill: #8d9498;
 }
