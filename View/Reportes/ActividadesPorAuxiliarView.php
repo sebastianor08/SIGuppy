@@ -72,7 +72,7 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 <label>Fecha Inicio</label>
 
                                 <!--input de tipo date permite seleccionar una fecha mediante el calendario del navegador. -->
-                                <input type="date" name="fecha_inicio" class="form-control" value="<?= $filtroFechaInicio ?>">
+                                <input type="date" name="fecha_inicio" value="<?= $filtroFechaInicio ?>">
                             </div>
 
                             <!--Tercer bloque de filtro de seleccionar un fecha.-->
@@ -168,9 +168,9 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 </thead>
                                 <tbody>
                                     <?php if (count($auxiliaresPagina) === 0): ?>
-                                        <tr class="sig-empty-row">
-                                        <td colspan="5">No hay auxiliares con esos filtros</td></tr>
-                                    
+                                        <tr>
+                                            <td colspan="5" style="text-align:center; color:#888;">No hay auxiliares con esos filtros</td>
+                                        </tr>
                                     <?php endif; ?>
                                     <?php foreach ($auxiliaresPagina as $fila): ?>
                                         <tr>
