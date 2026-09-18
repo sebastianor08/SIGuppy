@@ -105,9 +105,6 @@
           </div>
         </li>
 
-        <!-- Estos dos módulos aún no tienen Controller/Model propios,
-             se dejan como referencia visual igual que en las vistas de
-             demostración (index.php, zoocriaderos.php) -->
         <li class="nav-item">
           <a href="#">
             <i class="fas fa-warehouse"></i>

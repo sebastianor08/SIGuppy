@@ -1,14 +1,5 @@
 <?php
 
-// ============================================================
-// Conexión a PostgreSQL SIN PDO.
-// Usa la extensión nativa "pgsql" de PHP: pg_connect, pg_query,
-// pg_query_params, pg_fetch_assoc...
-//
-// Requisito: en php.ini debe estar activa la línea
-//     extension=pgsql
-// (NO hace falta pdo_pgsql)
-// ============================================================
 class Connection
 {
 

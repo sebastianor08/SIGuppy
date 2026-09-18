@@ -2,16 +2,6 @@
 
     include_once __DIR__ . '/../lib/conf/connection.php';
 
-    // ============================================================
-    // MasterModel con la extensión nativa pgsql (SIN PDO).
-    //
-    // Cada método acepta un segundo parámetro opcional con los
-    // valores de la consulta. Si se envía, se usa pg_query_params y
-    // los datos viajan APARTE del SQL ($1, $2, $3...), que es como
-    // PostgreSQL evita la inyección SQL:
-    //
-    //   $this->selectAll("SELECT * FROM rol WHERE id_rol = $1", [$id]);
-    // ============================================================
     class MasterModel extends Connection{
 
         protected function ejecutar($sql, $parametros = []){
