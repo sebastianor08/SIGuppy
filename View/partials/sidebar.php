@@ -88,6 +88,8 @@
           </a>
           <div class="collapse" id="navTerreno">
             <ul class="nav nav-collapse">
+              <li><a href="<?php echo $rutaBase; ?>View/Sitio/SitioView.php"" date-page="terreno-sitio"><span class="sub-item">Sitio</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/TerritorioPriorizado/TerritorioPriorizadoView.php"" date-page="terreno-territorio-priorizado"><span class="sub-item">Territorio Priorizado</span></a></li>
               <li><a href="<?php echo $rutaBase; ?>View/Deposito/DepositoView.php" data-page="terreno-depositos"><span class="sub-item">Depósitos</span></a></li>
               <li><a href="<?php echo $rutaBase; ?>View/Actividad/ActividadView.php" data-page="terreno-actividades"><span class="sub-item">Actividades</span></a></li>
               <li><a href="<?php echo $rutaBase; ?>View/TipoDeposito/TipoDepositoView.php" data-page="terreno-tipo-depositos"><span class="sub-item">Tipo Depósitos</span></a></li>

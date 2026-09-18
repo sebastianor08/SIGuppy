@@ -270,6 +270,17 @@ include '../partials/head.php';
                         min-width: 140px;
                     }
 
+                    .btn-reportes {
+                        background-color: #ffffff;
+                        color: #2f7dfa;
+                        border: 1px solid #2f7dfa;
+                        padding: 10px 18px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: bold;
+                        margin-right: 8px;
+                    }
+
                     .btn-aplicar {
                         background-color: #2f7dfa;
                         color: #ffffff;
