@@ -46,27 +46,20 @@
 <body>
 
     <div class="login-card">
-        <!-- Logo institucional a la izquierda -->
+        <!-- Único logo institucional: Secretaría de Salud, centrado arriba -->
         <div class="top-header">
-            <img src="../../Web/assets/img/logo-secretaria-salud.png" class="logo-secretaria" alt="">
+            <img src="../../Web/assets/img/logo-secretaria-salud.png" class="logo-secretaria" alt="Secretaría de Salud Pública - Alcaldía de Santiago de Cali">
         </div>
 
-        <!-- Logo SIGuppy centrado y más visible -->
-        <div class="text-center mb-3">
-            <img src="../../Web/assets/img/SIGUPPY.png" class="logo-siguppy" alt="SIGuppy">
-            <h3 class="fw-bold text-dark mt-2 mb-1"></h3>
-            <p class="text-muted small"></p>
-            <img src="../../Web/assets/img/mas profundoo.png" class="logo-siguppy mb-2" alt="SIGuppy" style="max-height: 80px;">
 
-        </div>
 
         <!-- Formulario -->
         <form action="../../Controller/login/login_process.php" method="POST" id="formLogin">
             
             <div class="form-group mb-3 px-0">
-                <label for="correo" class="form-label fw-bold small text-secondary">Usuario o correo electrónico</label>
+                <label for="correo" class="form-label fw-bold small text-secondary">Correo electrónico</label>
                 <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-user text-muted"></i></span>
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-envelope text-muted"></i></span>
                     <input type="text" class="form-control border-start-0 bg-light" id="correo" name="correo" placeholder="ejemplo@siguppy.gov.co">
                 </div>
             </div>
@@ -87,10 +80,6 @@
             </div>
 
             <button type="submit" class="btn btn-primary btn-info-custom w-100">Iniciar sesión</button>
-
-            <div class="text-center mt-3">
-                <p class="small text-muted mb-0">¿No tienes una cuenta? <a href="registro.php" class="text-info fw-bold text-decoration-none">Regístrate aquí</a></p>
-            </div>
         </form>
     </div>
 
