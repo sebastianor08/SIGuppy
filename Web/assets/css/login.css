@@ -1,0 +1,107 @@
+body {
+    background: linear-gradient(135deg, #e9ecef 0%, #dbe2ef 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Public Sans', sans-serif;
+    margin: 0;
+}
+
+/* Tarjeta amplia y centrada */
+.login-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0px 15px 35px rgba(0, 0, 0, 0.1);
+    padding: 40px 45px;
+    width: 100%;
+    max-width: 480px;
+    position: relative;
+}
+
+/* Único logo institucional, centrado arriba */
+.top-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+/* Logo de la Secretaría, ya sin un segundo escudo repetido más abajo */
+.logo-secretaria {
+    height: 100px;
+    max-width: 220px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* Logo de SIGuppy, algo más discreto ahora que es el único acento visual del medio */
+.logo-siguppy {
+    height: 120px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* Estilos de inputs */
+.form-control {
+    height: 48px;
+    font-size: 14px;
+}
+
+.form-control:focus {
+    box-shadow: none;
+    border-color: #17a2b8;
+}
+
+/* Botón azul original */
+.btn-info-custom {
+    background-color: #17a2b8 !important;
+    border: none;
+    color: #ffffff;
+    font-weight: 700;
+    padding: 13px;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.btn-info-custom:hover {
+    background-color: #138496 !important;
+    color: #ffffff;
+    box-shadow: 0px 5px 15px rgba(23, 162, 184, 0.4);
+}
+/* Slogan SIGuppy */
+.slogan-text {
+    color: #17a2b8;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Botón Volver secundario */
+.btn-volver {
+    background-color: #8c98a4;
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 13px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.btn-volver:hover {
+    background-color: #727e8a;
+    color: #ffffff;
+}
+
+/* Icono del Modal de Confirmación */
+.party-icon {
+    width: 75px;
+    height: 75px;
+    background-color: #fef08a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    margin: 0 auto 15px auto;
+}

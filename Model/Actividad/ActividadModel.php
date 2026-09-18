@@ -1,0 +1,75 @@
+<?php
+
+include_once __DIR__ . '/../MasterModel.php';
+
+// ============================================================
+// Modelo del módulo Actividades (Terreno).
+// Reutiliza la misma tabla "actividad" que el módulo Acciones,
+// pero delimitada por ambito = 'terreno'.
+// ============================================================
+class ActividadModel extends MasterModel
+{
+    const AMBITO = 'terreno';
+
+    public function listar()
+    {
+        return $this->selectAll(
+            "SELECT id_actividad, nombre, descripcion, estado
+             FROM actividad
+             WHERE ambito = $1
+             ORDER BY id_actividad",
+            [self::AMBITO]
+        );
+    }
+
+    public function buscar($idActividad)
+    {
+        return $this->selectOne(
+            "SELECT * FROM actividad WHERE id_actividad = $1 AND ambito = $2",
+            [$idActividad, self::AMBITO]
+        );
+    }
+
+    public function existeNombre($nombre, $idExcluir = null)
+    {
+        if ($idExcluir) {
+            return $this->selectValue(
+                "SELECT 1 FROM actividad
+                 WHERE ambito = $1 AND LOWER(nombre) = LOWER($2) AND id_actividad <> $3",
+                [self::AMBITO, $nombre, $idExcluir]
+            ) !== null;
+        }
+        return $this->selectValue(
+            "SELECT 1 FROM actividad WHERE ambito = $1 AND LOWER(nombre) = LOWER($2)",
+            [self::AMBITO, $nombre]
+        ) !== null;
+    }
+
+    public function crear($datos)
+    {
+        return $this->selectValue(
+            "INSERT INTO actividad (ambito, nombre, descripcion, estado)
+             VALUES ($1, $2, $3, $4)
+             RETURNING id_actividad",
+            [self::AMBITO, $datos['nombre'], $datos['descripcion'], $datos['estado']]
+        );
+    }
+
+    public function actualizar($idActividad, $datos)
+    {
+        return $this->update(
+            "UPDATE actividad
+             SET nombre = $1, descripcion = $2, estado = $3
+             WHERE id_actividad = $4 AND ambito = $5",
+            [$datos['nombre'], $datos['descripcion'], $datos['estado'], $idActividad, self::AMBITO]
+        );
+    }
+
+    public function cambiarEstado($idActividad, $estado)
+    {
+        return $this->update(
+            "UPDATE actividad SET estado = $1 WHERE id_actividad = $2 AND ambito = $3",
+            [$estado, $idActividad, self::AMBITO]
+        );
+    }
+}
