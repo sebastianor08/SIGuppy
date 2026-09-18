@@ -111,9 +111,9 @@ include '../partials/head.php';
                                 </thead>
                                 <tbody>
                                     <?php if (count($registrosFiltrados) === 0): ?>
-                                        <tr>
-                                            <td colspan="5" style="text-align:center; color:#888;">No hay registros con esos filtros</td>
-                                        </tr>
+                                        <tr class="sig-empty-row">
+                                        <td colspan="5">No hay registros con esos filtros</td></tr>
+                                    
                                     <?php endif; ?>
                                     <?php foreach ($registrosFiltrados as $registro): ?>
                                         <tr>

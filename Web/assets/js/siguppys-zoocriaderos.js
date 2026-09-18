@@ -53,12 +53,14 @@
     return d.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
   }
 
-  function role() {
+function role() {
     return (window.SIGuppys && window.SIGuppys.getRole()) || "auxiliar";
-  }
-  function permisos() {
-    return PERMISOS[role()];
-  }
+}
+function permisos() {
+    // Por ahora, todos los roles ven habilitado crear/editar/inhabilitar
+    // (sin filtrar por rol todavía).
+    return { crear: true, editar: true, inhabilitar: true };
+}
   function roleLabel() {
     var roles = window.SIGuppys && window.SIGuppys.ROLES;
     return (roles && roles[role()] && roles[role()].label) || role();

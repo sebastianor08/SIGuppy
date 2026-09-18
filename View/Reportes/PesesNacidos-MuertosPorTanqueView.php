@@ -116,7 +116,7 @@ include '../partials/head.php';
                                 <tbody>
                                     <?php if (count($resumenPorTanque) === 0): ?>
                                         <tr class="sig-empty-row">
-                                        <td colspan="5">No hay registros con esos filtros</td>
+                                        <td colspan="5">No hay registros con esos filtros</td></tr>
                                     
                                     <?php endif; ?>
                                     <?php foreach ($resumenPorTanque as $fila): ?>

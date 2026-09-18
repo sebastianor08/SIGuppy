@@ -108,7 +108,7 @@ include '../partials/head.php';
                             <tbody>
                                 <?php if (count($actividadesFiltradas) === 0): ?>
                                     <tr class="sig-empty-row">
-                                        <td colspan="6">No hay actividades con esos filtros</td>
+                                        <td colspan="6">No hay actividades con esos filtros</td></tr>
                                     
                                 <?php endif; ?>
                                 <?php foreach ($actividadesFiltradas as $actividad): ?>

@@ -177,6 +177,9 @@ class SeguimientoZoocriaderoController
             jsonResponse(['ok' => false, 'message' => 'El zoocriadero seleccionado no existe o está inhabilitado.'], 422);
         }
         if (!$obj->tanquePerteneceAZoocriadero($idTanque, $idZoo)) {
+            if ($obj->tanqueExisteEnZoocriadero($idTanque, $idZoo)) {
+                jsonResponse(['ok' => false, 'message' => 'Ese tanque está inhabilitado. No se pueden registrar seguimientos para tanques inhabilitados.'], 422);
+            }
             jsonResponse(['ok' => false, 'message' => 'El tanque seleccionado no pertenece al zoocriadero elegido.'], 422);
         }
         if (!$obj->accionValida($idActividad)) {
