@@ -73,6 +73,8 @@
             <ul class="nav nav-collapse">
               <li><a href="<?php echo $rutaBase; ?>View/Zoocriadero/zoocriaderos.php" data-page="zoocriaderos"><span
                     class="sub-item">Zoocriaderos</span></a></li>
+              <li><a href="<?php echo $rutaBase; ?>View/Tanque/tanques.php" data-page="tanques"><span
+                    class="sub-item">Tanques</span></a></li>
               <li><a href="<?php echo $rutaBase; ?>View/Acciones/acciones.php" data-page="acciones-zoocriadero"><span
                     class="sub-item">Acciones</span></a></li>
             </ul>
