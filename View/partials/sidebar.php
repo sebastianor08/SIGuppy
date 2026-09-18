@@ -156,9 +156,6 @@
               <?php if (sigPuedeVer('Gestión de Usuarios')): ?>
               <li><a href="#" data-page="usuarios-registrar"><span class="sub-item">Gestión De Usuarios</span></a></li>
               <?php endif; ?>
-              <?php if (sigPuedeVer('Consultar Usuarios')): ?>
-              <li><a href="#" data-page="usuarios-consultar"><span class="sub-item">Consultar Usuarios</span></a></li>
-              <?php endif; ?>
               <?php if (sigPuedeVer('Roles y Permisos')): ?>
               <li><a href="<?php echo $rutaBase; ?>View/Roles/registro-roles.php" data-page="roles-registrar"><span class="sub-item">Roles y Permisos</span></a></li>
               <li><a href="<?php echo $rutaBase; ?>View/Roles/consultar-roles.php" data-page="roles-consultar"><span class="sub-item">Consultar Roles</span></a></li>
