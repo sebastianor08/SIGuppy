@@ -88,6 +88,7 @@
 
     $acciones = $modelo->acciones();
     $modulos  = $modelo->modulos();
+    $permitidas = $modelo->combinacionesPermitidas(); // ['idModulo-idAccion' => true]
 
     // Ayuda para imprimir texto sin romper el HTML
     function h($v){ return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); }
@@ -96,6 +97,7 @@
     $pageTitle      = $editando ? 'Editar Rol' : 'Registro Roles';
     $bodyPage       = 'roles-registrar';
     $showRoleSwitch = false;
+    $extraStyles    = '.sig-cell-bloqueada{background:#f5f5f5;} .sig-cell-bloqueada input{cursor:not-allowed;}';
     include '../partials/head.php';
 ?>
     <div class="wrapper">
@@ -157,21 +159,29 @@
                         <tr>
                           <th>Accion/Modulo</th>
                           <?php foreach($modulos as $m): ?>
-                            <th class="text-center"><?php echo h($m['nombre']); ?></th>
+                            <th class="text-center" data-modulo="<?php echo h($m['nombre']); ?>"><?php echo h($m['nombre']); ?></th>
                           <?php endforeach; ?>
                         </tr>
                       </thead>
                       <tbody>
                         <?php foreach($acciones as $a): ?>
                           <tr>
-                            <td><?php echo h($a['nombre']); ?></td>
+                            <td data-accion="<?php echo h($a['nombre']); ?>"><?php echo h($a['nombre']); ?></td>
                             <?php foreach($modulos as $m):
                                     $valor = $m['id_modulo'] . '-' . $a['id_accion_permiso'];
                                     $check = in_array($valor, $marcados, true) ? 'checked' : '';
+                                    $permitido = isset($permitidas[$valor]);
                             ?>
-                              <td class="text-center">
-                                <input type="checkbox" class="form-check-input"
-                                       name="permisos[]" value="<?php echo h($valor); ?>" <?php echo $check; ?>>
+                              <td class="text-center<?php echo $permitido ? '' : ' sig-cell-bloqueada'; ?>"
+                                  data-modulo="<?php echo h($m['nombre']); ?>"
+                                  data-accion="<?php echo h($a['nombre']); ?>">
+                                <?php if($permitido): ?>
+                                  <input type="checkbox" class="form-check-input"
+                                         name="permisos[]" value="<?php echo h($valor); ?>" <?php echo $check; ?>>
+                                <?php else: ?>
+                                  <input type="checkbox" class="form-check-input" disabled
+                                         title="Esta acción no aplica para este módulo">
+                                <?php endif; ?>
                               </td>
                             <?php endforeach; ?>
                           </tr>
@@ -233,6 +243,31 @@
             }
           });
         });
+
+        // En el módulo "Reportes" no tiene sentido separar "Ver" de
+        // "Exportar" (si puede ver el reporte, tiene que poder
+        // exportarlo, y viceversa): se marcan/desmarcan juntas.
+        (function(){
+          function celdaDe(nombreAccion){
+            return tabla.querySelector(
+              'td[data-modulo="Reportes"][data-accion="' + nombreAccion + '"]'
+            );
+          }
+          var celdaVer = celdaDe('Ver');
+          var celdaExportar = celdaDe('Exportar');
+          if(!celdaVer || !celdaExportar) return;
+
+          var chkVer = celdaVer.querySelector('input[type=checkbox]');
+          var chkExportar = celdaExportar.querySelector('input[type=checkbox]');
+          if(!chkVer || !chkExportar) return;
+
+          chkVer.addEventListener('change', function(){
+            chkExportar.checked = this.checked;
+          });
+          chkExportar.addEventListener('change', function(){
+            chkVer.checked = this.checked;
+          });
+        })();
 
         document.getElementById('formRol').addEventListener('submit', function(ev){
           var nombre = document.getElementById('nombre_rol');
