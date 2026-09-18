@@ -18,7 +18,6 @@
                 <h6 class="op-7 mb-2">Usuarios / Gestión de Usuarios</h6>
               </div>
               <div class="ms-md-auto py-2 py-md-0" id="registrarUsuarioWrap">
-                <!-- el botón Registrar Usuario lo arma Web/assets/js/siguppys-usuarios.js según el rol -->
               </div>
             </div>
 
@@ -101,7 +100,8 @@
                         </div>
                         <div class="col-6 mb-3">
                           <label class="form-label">Correo electrónico (único)</label>
-                          <input type="email" name="correo" class="form-control" placeholder="correo@siguppys.com" required />
+                          <input type="email" name="correo" class="form-control" placeholder="usuario@cali.gov.co" required />
+                          <div class="form-text">Solo se aceptan correos @cali.gov.co o @gmail.com.</div>
                         </div>
                       </div>
                       <div class="mb-1" id="usuarioPasswordGroup">
