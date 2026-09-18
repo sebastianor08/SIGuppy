@@ -23,10 +23,6 @@
             <img src="../../Web/assets/img/logo-secretaria-salud.png" class="logo-secretaria" alt="">
         </div>
 
-        <div class="text-center mb-3">
-            <img src="../../Web/assets/img/SIGUPPY.png" class="logo-siguppy" alt="SIGuppy">
-            <div class="slogan-text mt-1"></div>
-        </div>
 
         <div class="mb-4">
             <h4 class="fw-bold text-dark mb-1">¿Has olvidado tu contraseña?</h4>

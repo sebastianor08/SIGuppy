@@ -26,10 +26,7 @@ if (!isset($_SESSION['id_recuperar'])) {
             <img src="../../Web/assets/img/logo-secretaria-salud.png" class="logo-secretaria" alt="Secretaría de Salud">
         </div>
 
-        <div class="text-center mb-3">
-            <img src="../../Web/assets/img/SIGUPPY.png" class="logo-siguppy" alt="SIGuppy">
-            <div class="slogan-text mt-1"></div>
-        </div>
+
 
         <!-- Títulos exactos de tu Figma -->
         <div class="mb-4">
