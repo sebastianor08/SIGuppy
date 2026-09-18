@@ -60,7 +60,7 @@
                 <label for="correo" class="form-label fw-bold small text-secondary">Correo electrónico</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="fas fa-envelope text-muted"></i></span>
-                    <input type="text" class="form-control border-start-0 bg-light" id="correo" name="correo" placeholder="ejemplo@siguppy.gov.co">
+                    <input type="text" class="form-control border-start-0 bg-light" id="correo" name="correo" placeholder="ejemplo@cali.gov.co">
                 </div>
             </div>
 
@@ -68,7 +68,7 @@
                 <label for="contrasena" class="form-label fw-bold small text-secondary">Contraseña</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock text-muted"></i></span>
-                    <input type="password" class="form-control border-start-0 border-end-0 bg-light" id="contrasena" name="contrasena" placeholder="******">
+                    <input type="password" class="form-control border-start-0 border-end-0 bg-light" id="contrasena" name="contrasena" placeholder="●●●●●●●●">
                     <button class="btn btn-light border border-start-0" type="button" onclick="togglePassword()">
                         <i class="fas fa-eye text-muted" id="iconEye"></i>
                     </button>
