@@ -22,10 +22,8 @@
                   <i class="fas fa-clipboard-check me-1"></i> Registrar Seguimiento
                 </a>
                 <div id="registrarZoocriaderoWrap">
-                  <!-- el botón Registrar Zoocriadero lo arma Web/assets/js/siguppys-zoocriaderos.js según el rol -->
                 </div>
                 <div id="registrarTanqueWrap">
-                  <!-- el botón Registrar Tanque lo arma Web/assets/js/siguppys-zoocriaderos.js según el rol -->
                 </div>
               </div>
             </div>
@@ -77,22 +75,22 @@
                     </div>
                     <div class="modal-body">
                       <div class="mb-3">
-                        <label class="form-label">Nombre</label>
+                        <label class="form-label">Nombre <span class="text-danger">*</span></label>
                         <input type="text" name="nombre" class="form-control" required />
                       </div>
                       <div class="mb-3">
-                        <label class="form-label">Dirección</label>
+                        <label class="form-label">Dirección <span class="text-danger">*</span></label>
                         <input type="text" name="direccion" class="form-control" required />
                       </div>
                       <div class="row">
                         <div class="col-6 mb-3">
-                          <label class="form-label">Comuna</label>
+                          <label class="form-label">Comuna <span class="text-danger">*</span></label>
                           <select name="comuna" id="comunaSelect" class="form-select" required>
                             <option value="">Seleccione la comuna</option>
                           </select>
                         </div>
                         <div class="col-6 mb-3">
-                          <label class="form-label">Barrio</label>
+                          <label class="form-label">Barrio <span class="text-danger">*</span></label>
                           <select name="barrio" id="barrioSelect" class="form-select" disabled required>
                             <option value="">Seleccione primero la comuna</option>
                           </select>
@@ -129,15 +127,15 @@
                     </div>
                     <div class="modal-body">
                       <div class="mb-3">
-                        <label class="form-label">Zoocriadero</label>
+                        <label class="form-label">Zoocriadero <span class="text-danger">*</span></label>
                         <select name="id_zoocriadero" class="form-select" required></select>
                       </div>
                       <div class="mb-3">
-                        <label class="form-label">Número de tanque</label>
+                        <label class="form-label">Número de tanque <span class="text-danger">*</span></label>
                         <input type="number" min="1" step="1" name="numero_tanque" class="form-control" placeholder="Ej. 1" required />
                       </div>
                       <div class="mb-1">
-                        <label class="form-label">Tipo de tanque</label>
+                        <label class="form-label">Tipo de tanque <span class="text-danger">*</span></label>
                         <select name="id_tipo_tanque" class="form-select" required></select>
                       </div>
                     </div>
