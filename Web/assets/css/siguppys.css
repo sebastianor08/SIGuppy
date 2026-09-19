@@ -915,107 +915,15 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
   }
 }
 
-
-/* ============================================================
-   Módulo Reportes: modo oscuro
-   Los 6 reportes (View/Reportes/*.php) traen su propio <style>
-   con clases propias (.caja, .tarjeta, .numero, tablas, badges,
-   donuts, barras...) en vez de las .card nativas de kaiadmin, así
-   que no heredan el modo oscuro solas. Estas reglas les agregan
-   la versión oscura usando los mismos colores que ya usa kaiadmin
-   para .card (#202940) y para el texto atenuado (#8d9498/#b9babf).
-   ============================================================ */
-body[data-background-color="dark"] .caja {
-  background-color: #202940;
-  color: rgba(169, 175, 187, 0.82);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-}
-body[data-background-color="dark"] .caja-gris {
-  background-color: rgba(255, 255, 255, 0.04);
+#mapaResumen {
+  height: 320px;
+  width: 100%;
+  border-radius: 0.5rem;
+  z-index: 0; 
 }
 
-/* Filtros: los <select>/<input type="date"> sin clase de Bootstrap
-   se quedan blancos en modo oscuro porque kaiadmin solo teoriza
-   dark mode para .form-control/.form-select. */
-body[data-background-color="dark"] .fila-filtros select,
-body[data-background-color="dark"] .fila-filtros input[type="date"] {
-  background-color: #1a2035;
-  color: #fff;
-  border-color: #2f374b;
-}
-body[data-background-color="dark"] .fila-filtros select option {
-  background: #1a2035;
-}
-body[data-background-color="dark"] .fila-filtros input[type="date"] {
-  color-scheme: dark;
-}
-body[data-background-color="dark"] .btn-reportes {
-  background-color: transparent;
-  border-color: #2f7dfa;
-}
-body[data-background-color="dark"] .btn-reportes:hover {
-  background-color: rgba(47, 125, 243, 0.15);
-}
-
-/* Textos secundarios (encabezados de tarjeta, pies de tabla, notas
-   de gráficas, descripciones) que venían en gris fijo (#555/#666/
-   #777/#888/#999/#444/#333) y quedaban casi invisibles sobre fondo
-   oscuro. */
-body[data-background-color="dark"] .caja .tarjeta p,
-body[data-background-color="dark"] .caja .cabecera-tarjeta p,
-body[data-background-color="dark"] .caja .pie-tabla,
-body[data-background-color="dark"] .caja .nota-grafica,
-body[data-background-color="dark"] .caja .nota-donut,
-body[data-background-color="dark"] .caja .nota-inferior,
-body[data-background-color="dark"] .caja .descripcion,
-body[data-background-color="dark"] .caja .donut-centro span,
-body[data-background-color="dark"] .caja th {
-  color: #8d9498;
-}
-body[data-background-color="dark"] .caja .boton-pagina {
-  border-color: rgba(255, 255, 255, 0.16);
-  color: #b9babf;
-}
-body[data-background-color="dark"] .caja th,
-body[data-background-color="dark"] .caja td {
-  border-bottom-color: rgba(181, 181, 181, 0.14);
-}
-
-/* Iconos redondos de las tarjetas resumen: el fondo pastel claro
-   pasa a una versión translúcida del mismo color de acento. */
-body[data-background-color="dark"] .caja .icono-azul {
-  background-color: rgba(47, 125, 250, 0.18);
-}
-body[data-background-color="dark"] .caja .icono-verde {
-  background-color: rgba(33, 166, 102, 0.18);
-}
-body[data-background-color="dark"] .caja .icono-naranja {
-  background-color: rgba(224, 149, 45, 0.2);
-}
-body[data-background-color="dark"] .caja .icono-rojo {
-  background-color: rgba(230, 69, 69, 0.18);
-}
-body[data-background-color="dark"] .caja .icono-morado {
-  background-color: rgba(108, 92, 231, 0.2);
-}
-
-/* Gráfica de dona: el círculo del centro debe verse del mismo
-   color que la tarjeta que lo contiene, no blanco/gris claro. */
-body[data-background-color="dark"] .caja .donut-centro {
-  background-color: #202940;
-}
-
-/* Barra de progreso de cumplimiento y ejes de las gráficas hechas
-   solo con CSS/SVG. */
-body[data-background-color="dark"] .caja .barra-fondo {
-  background-color: rgba(255, 255, 255, 0.12);
-}
-body[data-background-color="dark"] .caja .grafica-barras {
-  border-bottom-color: rgba(255, 255, 255, 0.16);
-}
-body[data-background-color="dark"] .caja .linea-eje {
-  stroke: rgba(255, 255, 255, 0.16);
-}
-body[data-background-color="dark"] .caja .texto-eje {
-  fill: #8d9498;
+#mapaFiltros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
 }
