@@ -1,25 +1,3 @@
-/* =========================================================
-   SIGuppys — Módulo Zoocriaderos
-   =========================================================
-   Los datos YA NO están quemados en este archivo: se leen de
-   PostgreSQL a través del router MVC:
-
-     Web/ajax.php?modulo=Zoocriadero&controlador=Zoocriadero&funcion=...
-
-   Endpoints usados:
-     lista        -> GET   zoocriaderos + nº de tanques
-     comunas      -> GET   para el select "Comuna"
-     barrios      -> GET   barrios de la comuna elegida
-     tiposTanque  -> GET   para el select "Tipo de tanque"
-     tanques      -> GET   tanques de un zoocriadero (modal detalle)
-     postCreate   -> POST  INSERT en zoocriadero
-     postUpdate   -> POST  UPDATE en zoocriadero
-     postEstado   -> POST  UPDATE del campo estado (habilitar/inhabilitar)
-     postTanque   -> POST  INSERT en tanque
-
-   El diseño de la tabla, los filtros y los permisos por rol
-   quedaron igual que antes.
-   ========================================================= */
 
 (function () {
   "use strict";
@@ -34,12 +12,11 @@
     coordinador: { crear: true, editar: true, inhabilitar: true },
   };
 
-  var data = [];       // zoocriaderos traídos de la base
-  var comunas = [];    // comunas de Cali
+  var data = [];       
+  var comunas = [];    
   var tiposTanque = [];
   var state = { q: "", estado: "todos" };
 
-  // ---------- Utilidades ----------
   function escapeHtml(str) {
     return String(str == null ? "" : str).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -53,12 +30,14 @@
     return d.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
   }
 
-  function role() {
+function role() {
     return (window.SIGuppys && window.SIGuppys.getRole()) || "auxiliar";
-  }
-  function permisos() {
-    return PERMISOS[role()];
-  }
+}
+function permisos() {
+    // Por ahora, todos los roles ven habilitado crear/editar/inhabilitar
+    // (sin filtrar por rol todavía).
+    return { crear: true, editar: true, inhabilitar: true };
+}
   function roleLabel() {
     var roles = window.SIGuppys && window.SIGuppys.ROLES;
     return (roles && roles[role()] && roles[role()].label) || role();
@@ -80,7 +59,7 @@
     box.textContent = "";
   }
 
-  // ---------- Llamadas al backend ----------
+
   async function getJson(funcion, extra) {
     var url = AJAX_URL + "?" + MODULO + "&funcion=" + funcion + (extra || "");
     var response = await fetch(url, { headers: { Accept: "application/json" } });

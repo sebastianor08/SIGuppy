@@ -49,6 +49,18 @@ class SeguimientoZoocriaderoModel extends MasterModel
         ) !== null;
     }
 
+    // Igual que la de arriba pero SIN filtrar por estado: sirve solo
+    // para distinguir "el tanque no existe en ese zoocriadero" de
+    // "el tanque existe pero está inhabilitado" y dar un mensaje claro.
+    public function tanqueExisteEnZoocriadero($idTanque, $idZoocriadero)
+    {
+        return $this->selectValue(
+            "SELECT 1 FROM tanque
+            WHERE id_tanque = $1 AND id_zoocriadero = $2",
+            [$idTanque, $idZoocriadero]
+        ) !== null;
+    }
+
     public function zoocriaderoActivoExiste($idZoocriadero)
     {
         return $this->selectValue(

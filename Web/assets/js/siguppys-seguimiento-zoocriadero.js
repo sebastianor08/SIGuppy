@@ -1,16 +1,4 @@
-/* =========================================================
-  SIGuppys — Seguimiento de Zoocriadero
-  =========================================================
-  Todo sale de PostgreSQL a través del router MVC:
-  Web/ajax.php?modulo=SeguimientoZoocriadero&controlador=SeguimientoZoocriadero&funcion=...
 
-    zoocriaderos -> GET  llena el select "Zoocriadero"
-    tanques      -> GET  llena el select "Tanque" del zoocriadero elegido
-    acciones     -> GET  llena el select "Acción" (tabla actividad)
-    historial    -> GET  tabla de seguimientos registrados
-    postCreate   -> POST INSERT en seguimiento_zoocriadero
-    postUpdate   -> POST UPDATE del seguimiento que se está editando
-   ========================================================= */
 (function () {
   "use strict";
 
@@ -163,13 +151,54 @@
           '<td class="text-center">' + escapeHtml(s.ph || "—") + "</td>" +
           '<td class="text-center">' + escapeHtml(s.temperatura || "—") + "</td>" +
           '<td class="text-center">' +
+          '<div class="table-actions">' +
+          '<button type="button" class="btn-icon" data-ver="' + s.id_seguimiento +
+          '" title="Ver detalle"><i class="fas fa-eye"></i></button>' +
           '<button type="button" class="btn-icon" data-editar="' + s.id_seguimiento +
           '" title="Editar"><i class="fas fa-pen"></i></button>' +
+          "</div>" +
           "</td>" +
           "</tr>"
         );
       })
       .join("");
+  }
+
+  // ---------- Ver detalle (solo lectura) ----------
+  function abrirDetalle(idSeguimiento) {
+    var s = historial.find(function (x) { return String(x.id_seguimiento) === String(idSeguimiento); });
+    if (!s) return;
+
+    var zoo = zoocriaderos.find(function (z) { return String(z.id_zoocriadero) === String(s.id_zoocriadero); });
+    var totalNacidos = (Number(s.numero_nacidos_hembra) || 0) + (Number(s.numero_nacidos_macho) || 0);
+    var totalMuertos = (Number(s.numero_muertos_hembra) || 0) + (Number(s.numero_muertos_macho) || 0);
+
+    var body = document.getElementById("seguimientoDetailBody");
+    body.innerHTML =
+      '<dl class="row mb-0">' +
+      '<dt class="col-5">Fecha</dt><dd class="col-7">' + escapeHtml(s.fecha) + "</dd>" +
+      '<dt class="col-5">Zoocriadero</dt><dd class="col-7">' + escapeHtml(s.zoocriadero) + "</dd>" +
+      '<dt class="col-5">Dirección</dt><dd class="col-7">' + escapeHtml(zoo ? zoo.direccion : "—") + "</dd>" +
+      '<dt class="col-5">Tanque</dt><dd class="col-7">' + escapeHtml(s.numero_tanque) + "</dd>" +
+      '<dt class="col-5">Acción</dt><dd class="col-7">' + escapeHtml(s.actividad || "—") + "</dd>" +
+      '<dt class="col-5">pH</dt><dd class="col-7">' + escapeHtml(s.ph || "—") + "</dd>" +
+      '<dt class="col-5">Temperatura</dt><dd class="col-7">' +
+      (s.temperatura ? escapeHtml(s.temperatura) + " °C" : "—") + "</dd>" +
+      '<dt class="col-5">Peces sembrados</dt><dd class="col-7">' + escapeHtml(s.numero_sembrados) + "</dd>" +
+      '<dt class="col-5">Nacidos (hembras / machos)</dt><dd class="col-7">' +
+      escapeHtml(s.numero_nacidos_hembra) + " / " + escapeHtml(s.numero_nacidos_macho) +
+      " <span class=\"text-muted\">(total " + totalNacidos + ")</span></dd>" +
+      '<dt class="col-5">Muertos (hembras / machos)</dt><dd class="col-7">' +
+      escapeHtml(s.numero_muertos_hembra) + " / " + escapeHtml(s.numero_muertos_macho) +
+      " <span class=\"text-muted\">(total " + totalMuertos + ")</span></dd>" +
+      "</dl>" +
+      '<hr class="my-3" />' +
+      '<h6 class="fw-bold mb-2">Observaciones</h6>' +
+      '<p class="mb-0" style="white-space: pre-wrap;">' +
+      (s.observaciones ? escapeHtml(s.observaciones) : '<span class="text-muted">Sin observaciones registradas.</span>') +
+      "</p>";
+
+    bootstrap.Modal.getOrCreateInstance(document.getElementById("seguimientoDetailModal")).show();
   }
 
   // ---------- Modo edición ----------
@@ -199,6 +228,15 @@
     obsCount.textContent = obsInput.value.length;
     accionSelect.value = s.id_actividad || "";
 
+    // El cambio de accionSelect.value de arriba no dispara 'change', así que
+    // las reglas de pH/Temperatura/Sembrados no se recalculan solas: se pide
+    // explícitamente (ver seguimiento-zoocriadero.php). Se hace DESPUÉS de
+    // fijar ph/temperatura/sembrados para que, si la acción cargada los
+    // requiere, queden habilitados con el valor que trae el registro.
+    if (typeof window.sigRecalcularReglasSeguimiento === "function") {
+      window.sigRecalcularReglasSeguimiento();
+    }
+
     tituloEl.textContent = "Editar Seguimiento de Zoocriadero";
     saveButton.innerHTML = '<i class="fas fa-save me-1"></i>Guardar cambios';
     btnCancelarEdicion.classList.remove("d-none");
@@ -216,6 +254,13 @@
     tituloEl.textContent = "Registrar Seguimiento de Zoocriadero";
     saveButton.innerHTML = '<i class="fas fa-save me-1"></i>Guardar';
     btnCancelarEdicion.classList.add("d-none");
+
+    // form.reset() no dispara 'change' en id_actividad: sin esto, pH,
+    // Temperatura y Peces sembrados podían quedar habilitados/deshabilitados
+    // con el estado de la edición anterior en vez de con el select ya vacío.
+    if (typeof window.sigRecalcularReglasSeguimiento === "function") {
+      window.sigRecalcularReglasSeguimiento();
+    }
   }
 
   // ---------- Eventos ----------
@@ -239,8 +284,11 @@
   });
 
   historialBody.addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-editar]");
-    if (btn) cargarEnFormulario(btn.getAttribute("data-editar"));
+    var btnVer = e.target.closest("[data-ver]");
+    if (btnVer) { abrirDetalle(btnVer.getAttribute("data-ver")); return; }
+
+    var btnEditar = e.target.closest("[data-editar]");
+    if (btnEditar) cargarEnFormulario(btnEditar.getAttribute("data-editar"));
   });
 
   btnCancelarEdicion.addEventListener("click", salirDeEdicion);

@@ -128,6 +128,66 @@ class RolesModel extends MasterModel{
         );
     }
 
+    // Combinaciones módulo-acción válidas (tabla modulo_accion_permitida):
+    // ['idModulo-idAccion' => true, ...]. Sirve para bloquear en el
+    // formulario las casillas que no tienen sentido para ese módulo
+    // (ej. "Exportar" en Zoocriaderos, o cualquier acción que no sea
+    // "Ver" en Auditoría).
+    public function combinacionesPermitidas(){
+        $filas = $this->selectAll(
+            "SELECT id_modulo, id_accion_permiso FROM modulo_accion_permitida"
+        );
+
+        $permitidas = [];
+        foreach($filas as $f){
+            $permitidas[$f['id_modulo'] . '-' . $f['id_accion_permiso']] = true;
+        }
+        return $permitidas;
+    }
+
+    // Para la sesión: ¿el rol $idRol tiene la acción $nombreAccion
+    // habilitada en el módulo $nombreModulo? Se usa en el sidebar para
+    // mostrar/ocultar cada opción de menú según el permiso "Ver".
+    public function tienePermisoPorId($idRol, $nombreModulo, $nombreAccion){
+        return $this->selectValue(
+            "SELECT 1
+             FROM rol_permiso rp
+             INNER JOIN rol r ON r.id_rol = rp.id_rol
+             INNER JOIN modulo m ON m.id_modulo = rp.id_modulo
+             INNER JOIN accion_permiso a ON a.id_accion_permiso = rp.id_accion_permiso
+             WHERE rp.id_rol = $1
+               AND LOWER(m.nombre) = LOWER($2)
+               AND LOWER(a.nombre) = LOWER($3)
+               AND r.estado = 1",
+            [$idRol, $nombreModulo, $nombreAccion]
+        ) !== null;
+    }
+
+    public function permisosPorNombre($nombreRol, $nombreModulo){
+        $filas = $this->selectAll(
+            "SELECT a.nombre AS accion
+             FROM rol_permiso rp
+             INNER JOIN rol r ON r.id_rol = rp.id_rol
+             INNER JOIN modulo m ON m.id_modulo = rp.id_modulo
+             INNER JOIN accion_permiso a ON a.id_accion_permiso = rp.id_accion_permiso
+             WHERE LOWER(r.nombre_rol) = LOWER($1)
+               AND LOWER(m.nombre) = LOWER($2)
+               AND r.estado = 1",
+            [$nombreRol, $nombreModulo]
+        );
+
+        $acciones = array_map(function($f){
+            return mb_strtolower($f['accion'], 'UTF-8');
+        }, $filas);
+
+        return [
+            'consultar' => in_array('consultar', $acciones, true),
+            'crear'     => in_array('registrar', $acciones, true),
+            'editar'    => in_array('editar', $acciones, true),
+            'eliminar'  => in_array('eliminar', $acciones, true),
+        ];
+    }
+
     // No se borra el rol físicamente: se inhabilita (estado = 0) o se
     // habilita (estado = 1), igual que zoocriadero, tanque y las demás
     // tablas del sistema. Así se conserva el histórico de usuarios/permisos.
@@ -138,11 +198,6 @@ class RolesModel extends MasterModel{
         );
     }
 
-    // ------------------------------------------------------------
-    // Guarda el rol completo dentro de una transacción:
-    // o se guardan el rol Y todos sus permisos, o no se guarda nada.
-    // $seleccion llega del formulario como ['idModulo-idAccion', ...]
-    // ------------------------------------------------------------
     public function registrarRolConPermisos($nombre, $descripcion, $seleccion){
         $this->beginTransaction();
 
@@ -170,11 +225,6 @@ class RolesModel extends MasterModel{
         return (int) $idRol;
     }
 
-    // ------------------------------------------------------------
-    // Edición: UPDATE del rol y reemplazo completo de sus permisos.
-    // Se borran los permisos viejos y se vuelven a insertar los
-    // marcados, todo dentro de la misma transacción.
-    // ------------------------------------------------------------
     public function actualizarRolConPermisos($idRol, $nombre, $descripcion, $seleccion){
         $this->beginTransaction();
 

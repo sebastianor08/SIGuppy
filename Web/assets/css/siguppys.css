@@ -1,3 +1,7 @@
+/* =========================================================
+   SIGuppys — estilos propios
+   Se agregan sobre kaiadmin.min.css, sin tocar el archivo base.
+   ========================================================= */
 
 
 :root {
@@ -82,6 +86,13 @@
   font-size: 11px;
 }
 
+/* ---- Estado activo estilo "pastilla" ----
+   Kaiadmin trae, para .sidebar-style-2 + .nav-secondary, un relleno sólido
+   de color con más especificidad; aquí lo reemplazamos por un tono suave.
+   IMPORTANTE: la clase "active" ya NO se escribe a mano en el HTML — la
+   agrega assets/js/siguppys-nav.js según la página actual (data-page),
+   así que un módulo o submódulo solo se ve azul cuando realmente estás
+   dentro de él. */
 .siguppys-sidebar.sidebar.sidebar-style-2 .nav.nav-secondary > .nav-item.active > a,
 .siguppys-sidebar .nav > .nav-item > a[aria-expanded="true"] {
   background: var(--sig-blue-soft) !important;
@@ -119,6 +130,12 @@
   line-height: 1.4;
 }
 
+/* ---- Pie del sidebar: botón Cerrar Sesión ---- */
+.sidebar-footer {
+  flex: none;
+  padding: 16px 20px 22px;
+  border-top: 1px solid #f1f1f1;
+}
 .sidebar-wrapper {
   padding-bottom: 90px; /* espacio para que el menú no quede tapado detrás del botón fijo */
 }
@@ -315,6 +332,15 @@ body[data-role="coordinador"] .table-actions.only-coordinador {
   color: var(--sig-muted);
 }
 
+/* =========================================================
+   Modo oscuro — ajustes para los elementos propios de SIGuppys
+   =========================================================
+   El esqueleto del modo oscuro (fondos, texto, tarjetas) ya lo
+   trae kaiadmin.css activando data-background-color="dark" en el
+   body / sidebar / logo-header / navbar; assets/js/siguppys-nav.js
+   se encarga de poner y quitar ese atributo. Aquí solo adaptamos
+   las piezas que agregamos nosotros (marca, selector de rol,
+   placeholders, tabla de acciones). */
 body[data-background-color="dark"] .siguppys-logo-header {
   border-bottom-color: rgba(255, 255, 255, 0.08);
 }
@@ -372,6 +398,55 @@ body[data-background-color="dark"] .settings-option {
   border-color: rgba(255, 255, 255, 0.1);
 }
 body[data-background-color="dark"] .settings-option strong {
+  color: #fff;
+}
+
+/* =========================================================
+   Modo daltonismo — paleta segura azul / naranja
+   =========================================================
+   Sustituye el par rojo/verde (que muchas personas con daltonismo
+   rojo-verde no distinguen bien) por azul/naranja, manteniendo
+   además el texto ("Activo" / "Inhabilitado") como apoyo, no solo
+   el color. */
+body.daltonismo-mode {
+  --sig-green: #0072b2;
+  --sig-red: #e69f00;
+}
+body.daltonismo-mode .badge-estado.activo {
+  background: rgba(0, 114, 178, 0.14);
+  color: #0072b2;
+}
+body.daltonismo-mode .badge-estado.inactivo {
+  background: rgba(230, 159, 0, 0.18);
+  color: #966400;
+}
+body.daltonismo-mode .card-stats .icon-big.icon-success {
+  background: #0072b2 !important;
+}
+body.daltonismo-mode .card-stats .icon-big.icon-danger {
+  background: #e69f00 !important;
+}
+body.daltonismo-mode .table-actions .btn-icon.text-danger {
+  color: #966400;
+  border-color: #e69f00;
+}
+body.daltonismo-mode .table-actions .btn-icon.text-danger:hover {
+  color: #966400;
+  border-color: #e69f00;
+}
+body.daltonismo-mode .table-actions .btn-icon.text-success {
+  color: #0072b2;
+}
+body.daltonismo-mode .table-actions .btn-icon.text-success:hover {
+  color: #0072b2;
+  border-color: #0072b2;
+}
+body.daltonismo-mode .btn-logout {
+  border-color: #e69f00;
+  color: #966400;
+}
+body.daltonismo-mode .btn-logout:hover {
+  background: #e69f00;
   color: #fff;
 }
 
@@ -574,6 +649,10 @@ body[data-daltonismo="acromatopsia"] .btn-outline-warning::before {
 }
 
 
+
+/* =========================================================
+   Formulario de Seguimiento de Zoocriadero
+   ========================================================= */
 .sig-followup-card {
   border-radius: 14px;
 }
@@ -585,6 +664,9 @@ body[data-daltonismo="acromatopsia"] .btn-outline-warning::before {
   color: #6b7280;
 }
 
+/* =========================================================
+   Modo oscuro — Modales, formularios y componentes flotantes
+   ========================================================= */
 body[data-background-color="dark"] .modal-content,
 body[data-background-color="dark2"] .modal-content {
   background-color: #202940;

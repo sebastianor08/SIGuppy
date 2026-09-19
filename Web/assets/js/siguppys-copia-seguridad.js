@@ -1,17 +1,4 @@
-/* =========================================================
-   SIGuppys — Módulo Copia de Seguridad
-   =========================================================
-   Habla con el backend a través de:
-     Web/ajax.php?modulo=CopiaSeguridad&controlador=CopiaSeguridad&funcion=...
 
-   Endpoints usados:
-     estado           -> GET   tamaño de BD_Dengue_SIGuppy, último backup, nº de respaldos
-     historial        -> GET   filas de copia_seguridad_historial (auditoría)
-     archivos         -> GET   .sql disponibles en el servidor (selector del modal Restaurar)
-     descargar        -> GET   genera un .sql NUEVO y lo entrega como descarga
-     descargarArchivo -> GET   descarga un .sql que ya existe (fila del historial)
-     restaurar        -> POST  ejecuta psql -f sobre el .sql elegido o subido
-   ========================================================= */
 
 (function () {
   "use strict";

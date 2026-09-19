@@ -39,6 +39,7 @@ CSS;
     include '../partials/head.php';
 ?>
     <div class="wrapper">
+      <?php $rutaBase = '../../'; ?>
       <?php include '../partials/sidebar.php'; ?>
       <div class="main-panel">
         <?php include '../partials/topbar.php'; ?>
@@ -142,8 +143,12 @@ CSS;
     </div>
 
 <?php
+
     $pageScripts = ['Web/assets/js/siguppys-depositos.js'];
+
     include '../partials/footer.php';
+
 ?>
+
 </body>
 </html>

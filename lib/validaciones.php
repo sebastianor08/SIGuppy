@@ -1,25 +1,15 @@
 <?php
 
-    // ============================================================
-    // Validaciones compartidas por los formularios del sistema.
-    //
-    // El problema que resuelven: un campo con la barra espaciadora
-    // ("   ") NO está vacío para PHP ni para el required del HTML,
-    // así que sin esto se alcanzaba a guardar un registro en blanco.
-    // ============================================================
 
-    // Quita espacios de los extremos y colapsa los espacios repetidos
-    // del medio: "  Zoocriadero    Norte " -> "Zoocriadero Norte"
     function limpiar($valor){
         return trim(preg_replace('/\s+/u', ' ', (string) $valor));
     }
 
-    // ¿Quedó vacío después de limpiar? (cubre "", "   ", tabs, saltos de línea)
     function esVacio($valor){
         return limpiar($valor) === '';
     }
 
-    // ¿Tiene al menos una letra o un número? Evita nombres como "---" o "...."
+
     function tieneContenido($valor){
         return preg_match('/[\p{L}\p{N}]/u', (string) $valor) === 1;
     }
@@ -68,6 +58,88 @@
             return "El campo \"$etiqueta\" no puede ser menor que $min.";
         }
         return null;
+    }
+
+    function validarDocumento($valor, $etiqueta = 'Número de documento', $min = 5, $max = 20){
+        $limpio = str_replace(' ', '', trim((string) $valor));
+
+        if($limpio === ''){
+            return "El campo \"$etiqueta\" es obligatorio.";
+        }
+        if(!preg_match('/^[A-Za-z0-9]+$/', $limpio)){
+            return "El campo \"$etiqueta\" solo puede contener letras y números, sin espacios ni signos.";
+        }
+        if(mb_strlen($limpio) < $min){
+            return "El campo \"$etiqueta\" debe tener al menos $min caracteres.";
+        }
+        if(mb_strlen($limpio) > $max){
+            return "El campo \"$etiqueta\" no puede superar $max caracteres.";
+        }
+        return null;
+    }
+
+    function normalizarDocumento($valor){
+        return mb_strtoupper(str_replace(' ', '', trim((string) $valor)));
+    }
+
+    define('PASSWORD_MIN_LONGITUD', 8);
+
+    function validarContrasena($valor, $etiqueta = 'Contraseña'){
+        $clave = (string) $valor;
+
+        if($clave === ''){
+            return "El campo \"$etiqueta\" es obligatorio.";
+        }
+        if(mb_strlen($clave) < PASSWORD_MIN_LONGITUD){
+            return "La contraseña debe tener al menos " . PASSWORD_MIN_LONGITUD . " caracteres.";
+        }
+        if(!preg_match('/[a-záéíóúñü]/u', $clave)){
+            return "La contraseña debe incluir al menos una letra minúscula.";
+        }
+        if(!preg_match('/[A-ZÁÉÍÓÚÑÜ]/u', $clave)){
+            return "La contraseña debe incluir al menos una letra mayúscula.";
+        }
+        if(!preg_match('/[^\p{L}\p{N}\s]/u', $clave)){
+            return "La contraseña debe incluir al menos un carácter especial (por ejemplo: ! @ # $ % & * ?).";
+        }
+        if(preg_match('/\s/u', $clave)){
+            return "La contraseña no puede contener espacios.";
+        }
+
+        return null;
+    }
+
+    // Texto de ayuda para mostrar en pantalla (se usa en el formulario)
+    function reglasContrasenaTexto(){
+        return 'Mínimo ' . PASSWORD_MIN_LONGITUD . ' caracteres, con al menos una minúscula, una mayúscula y un carácter especial.';
+    }
+
+    define('DOMINIOS_CORREO_PERMITIDOS', ['cali.gov.co', 'gmail.com']);
+
+    function validarCorreo($valor, $etiqueta = 'Correo electrónico', $max = 120){
+        $correo = mb_strtolower(trim((string) $valor));
+
+        if($correo === ''){
+            return "El campo \"$etiqueta\" es obligatorio.";
+        }
+        if(!filter_var($correo, FILTER_VALIDATE_EMAIL)){
+            return "El campo \"$etiqueta\" no es válido.";
+        }
+        if(mb_strlen($correo) > $max){
+            return "El campo \"$etiqueta\" no puede superar $max caracteres.";
+        }
+
+        $dominio = substr(strrchr($correo, '@'), 1);
+        if(!in_array($dominio, DOMINIOS_CORREO_PERMITIDOS, true)){
+            return 'El correo debe ser de uno de estos dominios: ' . implode(', ', DOMINIOS_CORREO_PERMITIDOS) . '.';
+        }
+
+        return null;
+    }
+
+    // Texto de ayuda para mostrar en pantalla (se usa en el formulario)
+    function reglasCorreoTexto(){
+        return 'Solo se aceptan correos ' . implode(' o ', DOMINIOS_CORREO_PERMITIDOS) . '.';
     }
 
 ?>

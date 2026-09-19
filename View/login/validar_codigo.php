@@ -15,13 +15,9 @@
     <div class="login-card">
         <!-- Header con Logos Grandes -->
         <div class="top-header">
-            <img src="Web/assets/img/logo-secretaria-salud.png" class="logo-secretaria" alt="Secretaría de Salud">
+            <img src="../../Web/assets/img/logo-secretaria-salud.png" class="logo-secretaria" alt="Secretaría de Salud">
         </div>
 
-        <div class="text-center mb-3">
-            <img src="../../Web/assets/img/SIGUPPY.png" class="logo-siguppy" alt="SIGuppy">
-            <div class="slogan-text mt-1">Control biológico contra el dengue</div>
-        </div>
 
         <!-- Títulos exactos de tu Figma -->
         <div class="mb-4">
@@ -37,7 +33,7 @@
         <?php endif; ?>
 
         <!-- Formulario -->
-        <form action="Controller/login/validar_codigo_process.php" method="POST">
+        <form action="../../Controller/login/validar_codigo_process.php" method="POST">
             <div class="form-group mb-4 px-0">
                 <label for="codigo" class="form-label fw-bold small text-secondary">Ingrese el codigo</label>
                 <div class="input-group">

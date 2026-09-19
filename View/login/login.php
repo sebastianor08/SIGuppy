@@ -1,4 +1,9 @@
 <!-- Mensajes de Excepciones según requerimientos -->
+<?php if (isset($_GET['status']) && $_GET['status'] === 'changed'): ?>
+    <div class="alert alert-success py-2 small text-center mb-3">
+        Contraseña actualizada. Ya puedes iniciar sesión con ella.
+    </div>
+<?php endif; ?>
 <?php if (isset($_GET['error'])): ?>
     <?php if ($_GET['error'] === 'inactive'): ?>
         <div class="alert alert-warning py-2 small text-center mb-3">
@@ -46,37 +51,21 @@
 <body>
 
     <div class="login-card">
-        <!-- Logo institucional a la izquierda -->
+        <!-- Único logo institucional: Secretaría de Salud, centrado arriba -->
         <div class="top-header">
-            <img src="../../Web/assets/img/logo-secretaria-salud.png" class="logo-secretaria" alt="">
+            <img src="../../Web/assets/img/logo-secretaria-salud.png" class="logo-secretaria" alt="Secretaría de Salud Pública - Alcaldía de Santiago de Cali">
         </div>
 
-        <!-- Logo SIGuppy centrado y más visible -->
-        <div class="text-center mb-3">
-            <img src="../../Web/assets/img/SIGUPPY.png" class="logo-siguppy" alt="SIGuppy">
-            <h3 class="fw-bold text-dark mt-2 mb-1"></h3>
-            <p class="text-muted small"></p>
-        </div>
 
-        <!-- Alertas PHP -->
-        <?php if (isset($_GET['error'])): ?>
-            <div class="alert alert-danger py-2 small text-center mb-3">
-                <?php 
-                    if ($_GET['error'] == 'vacio') echo "Por favor, complete todos los campos.";
-                    elseif ($_GET['error'] == 'invalid') echo "Correo o contraseña incorrectos.";
-                    elseif ($_GET['error'] == 'inactivo') echo "Tu usuario se encuentra inactivo.";
-                ?>
-            </div>
-        <?php endif; ?>
 
         <!-- Formulario -->
-        <form action="controller/login_process.php" method="POST" id="formLogin">
+        <form action="../../Controller/login/login_process.php" method="POST" id="formLogin">
             
             <div class="form-group mb-3 px-0">
-                <label for="correo" class="form-label fw-bold small text-secondary">Usuario o correo electrónico</label>
+                <label for="correo" class="form-label fw-bold small text-secondary">Correo electrónico</label>
                 <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-user text-muted"></i></span>
-                    <input type="text" class="form-control border-start-0 bg-light" id="correo" name="correo" placeholder="ejemplo@siguppy.gov.co">
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-envelope text-muted"></i></span>
+                    <input type="text" class="form-control border-start-0 bg-light" id="correo" name="correo" placeholder="ejemplo@cali.gov.co">
                 </div>
             </div>
 
@@ -84,7 +73,7 @@
                 <label for="contrasena" class="form-label fw-bold small text-secondary">Contraseña</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock text-muted"></i></span>
-                    <input type="password" class="form-control border-start-0 border-end-0 bg-light" id="contrasena" name="contrasena" placeholder="******">
+                    <input type="password" class="form-control border-start-0 border-end-0 bg-light" id="contrasena" name="contrasena" placeholder="●●●●●●●●">
                     <button class="btn btn-light border border-start-0" type="button" onclick="togglePassword()">
                         <i class="fas fa-eye text-muted" id="iconEye"></i>
                     </button>
@@ -96,10 +85,6 @@
             </div>
 
             <button type="submit" class="btn btn-primary btn-info-custom w-100">Iniciar sesión</button>
-
-            <div class="text-center mt-3">
-                <p class="small text-muted mb-0">¿No tienes una cuenta? <a href="registro.php" class="text-info fw-bold text-decoration-none">Regístrate aquí</a></p>
-            </div>
         </form>
     </div>
 
