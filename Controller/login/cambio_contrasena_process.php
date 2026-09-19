@@ -1,10 +1,6 @@
 <?php
 ob_start();
 session_start();
-
-// Carga el MasterModel (conexión nativa pgsql, sin PDO) y las validaciones
-// compartidas (aquí no se carga automático como en Web/ajax.php, así que
-// se incluye directo).
 require_once '../../Model/MasterModel.php';
 require_once '../../lib/validaciones.php';
 
@@ -24,11 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    // Misma regla que al crear un usuario: mínimo 8 caracteres, una
-    // minúscula, una mayúscula y un carácter especial.
     $errorClave = validarContrasena($nueva);
     if ($errorClave !== null) {
-        header("Location: ../../View/login/cambio_contrasena.php?error=no_coinciden");
+        header("Location: ../../View/login/cambio_contrasena.php?error=requisitos&mensaje=" . urlencode($errorClave));
         exit();
     }
 
@@ -48,9 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: ../../View/login/login.php?status=changed");
         exit();
 
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         error_log("Error cambiando contraseña: " . $e->getMessage());
-        header("Location: ../../View/login/cambio_contrasena.php?error=no_coinciden");
+        header("Location: ../../View/login/cambio_contrasena.php?error=sistema");
         exit();
     }
 }
