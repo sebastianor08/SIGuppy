@@ -1107,3 +1107,182 @@ body[data-background-color="dark"] .caja .linea-eje {
 body[data-background-color="dark"] .caja .texto-eje {
   fill: #8d9498;
 }
+
+/* ============================================================
+   Exportar a PDF: el botón "Generar Reportes" (.btn-reportes) llama
+   a window.print(). Estas reglas dejan solo el reporte en la hoja.
+   ============================================================ */
+@media print {
+  .sidebar,
+  .main-header,
+  .fila-filtros,
+  .btn-reportes,
+  .btn-aplicar,
+  form {
+    display: none !important;
+  }
+
+  .wrapper,
+  .main-panel {
+    width: 100% !important;
+    height: auto !important;
+    float: none !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  .container,
+  .page-inner,
+  .caja {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+  }
+
+  .caja {
+    margin-bottom: 16px !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .donut,
+  .donut-centro,
+  .barra,
+  .barra-relleno,
+  .icono,
+  .badge,
+  .punto-leyenda {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  table, th, td {
+    border: 1px solid #ccc !important;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr,
+  .caja {
+    page-break-inside: avoid;
+  }
+
+  body {
+    background: #fff !important;
+  }
+}
+
+
+/* ============================================================
+   Exportar a PDF en modo nocturno: el PDF siempre sale en claro,
+   pero SOLO al imprimir. La pantalla no cambia nada. Estas reglas
+   repiten los selectores del modo oscuro de los reportes (mismo
+   peso) y van después, así que ganan al imprimir.
+   ============================================================ */
+@media print {
+  body[data-background-color="dark"],
+  body[data-background-color="dark"] .wrapper,
+  body[data-background-color="dark"] .main-panel,
+  body[data-background-color="dark"] .container,
+  body[data-background-color="dark"] .page-inner {
+    background: #fff !important;
+    color: #333 !important;
+  }
+
+  body[data-background-color="dark"] .caja {
+    background-color: #fff !important;
+    color: #333 !important;
+    box-shadow: none !important;
+  }
+
+  body[data-background-color="dark"] .caja-gris {
+    background-color: #e9e9ee !important;
+  }
+
+  body[data-background-color="dark"] .caja h1,
+  body[data-background-color="dark"] .caja h2,
+  body[data-background-color="dark"] .caja h3,
+  body[data-background-color="dark"] .caja h4,
+  body[data-background-color="dark"] .caja .titulo-pagina {
+    color: #2a2f5b !important;
+  }
+
+  body[data-background-color="dark"] .caja td,
+  body[data-background-color="dark"] .caja li,
+  body[data-background-color="dark"] .caja label,
+  body[data-background-color="dark"] .caja .etiquetas-tanques,
+  body[data-background-color="dark"] .caja .etiquetas-barras {
+    color: #333 !important;
+  }
+
+  body[data-background-color="dark"] .caja .tarjeta p,
+  body[data-background-color="dark"] .caja .cabecera-tarjeta p,
+  body[data-background-color="dark"] .caja .pie-tabla,
+  body[data-background-color="dark"] .caja .nota-grafica,
+  body[data-background-color="dark"] .caja .nota-donut,
+  body[data-background-color="dark"] .caja .nota-inferior,
+  body[data-background-color="dark"] .caja .descripcion,
+  body[data-background-color="dark"] .caja .donut-centro span,
+  body[data-background-color="dark"] .caja th {
+    color: #555 !important;
+  }
+
+  body[data-background-color="dark"] .caja .boton-pagina {
+    border-color: #cfcfd6 !important;
+    color: #333 !important;
+  }
+
+  body[data-background-color="dark"] .caja .icono-azul {
+    background-color: #e5f0ff !important;
+  }
+
+  body[data-background-color="dark"] .caja .icono-verde {
+    background-color: #e3f9ec !important;
+  }
+
+  body[data-background-color="dark"] .caja .icono-naranja {
+    background-color: #fff3df !important;
+  }
+
+  body[data-background-color="dark"] .caja .icono-rojo {
+    background-color: #fde6e6 !important;
+  }
+
+  body[data-background-color="dark"] .caja .icono-morado {
+    background-color: #efe9fd !important;
+  }
+
+  body[data-background-color="dark"] .caja .donut-centro {
+    background-color: #fff !important;
+  }
+
+  body[data-background-color="dark"] .caja-gris .donut-centro {
+    background-color: #e9e9ee !important;
+  }
+
+  body[data-background-color="dark"] .caja .barra-fondo {
+    background-color: #dcdce3 !important;
+  }
+
+  body[data-background-color="dark"] .caja .grafica-barras {
+    border-bottom-color: #c7c7cf !important;
+  }
+
+  body[data-background-color="dark"] .caja .linea-eje {
+    stroke: #d7d7dc !important;
+  }
+
+  body[data-background-color="dark"] .caja .texto-eje {
+    fill: #999 !important;
+  }
+}
