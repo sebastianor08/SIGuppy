@@ -1,15 +1,6 @@
 <?php
 
 include_once '../Model/Tanque/TanqueModel.php';
-
-// ============================================================
-// Controlador del módulo Tanques. Responde solo JSON, así que
-// se llama siempre por Web/ajax.php:
-//   Web/ajax.php?modulo=Tanque&controlador=Tanque&funcion=lista
-//
-// La creación de tanques sigue viviendo en ZoocriaderoController
-// (postTanque); aquí solo se listan, editan y cambian de estado.
-// ============================================================
 class TanqueController
 {
 
@@ -34,6 +25,28 @@ class TanqueController
     }
 
     // ---------- Escrituras ----------
+
+    public function postCreate()
+    {
+        $obj = new TanqueModel();
+        $body = requestJsonBody();
+
+        // $idExcluir = null: al crear, cualquier tanque con el mismo número
+        // en ese zoocriadero cuenta como choque (a diferencia de editar,
+        // donde el propio tanque no debe chocar consigo mismo).
+        $datos = $this->validarTanque($body, $obj, null);
+
+        $id = $obj->crear($datos);
+        if ($id === null) {
+            jsonResponse(['ok' => false, 'message' => 'No se pudo registrar el tanque: ' . $obj->ultimoError()], 500);
+        }
+
+        jsonResponse([
+            'ok' => true,
+            'message' => 'Tanque registrado correctamente.',
+            'id_tanque' => (int) $id,
+        ], 201);
+    }
 
     public function postUpdate()
     {

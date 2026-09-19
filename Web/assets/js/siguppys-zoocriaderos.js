@@ -1,4 +1,3 @@
-
 (function () {
   "use strict";
 
@@ -14,7 +13,6 @@
 
   var data = [];       
   var comunas = [];    
-  var tiposTanque = [];
   var state = { q: "", estado: "todos" };
 
   function escapeHtml(str) {
@@ -137,27 +135,6 @@ function permisos() {
     barrioSelect.disabled = barrios.length === 0;
   }
 
-  function fillTiposTanqueSelect(selectEl) {
-    selectEl.innerHTML =
-      '<option value="">Seleccione el tipo</option>' +
-      tiposTanque
-        .map(function (t) {
-          return '<option value="' + t.id_tipo_tanque + '">' + escapeHtml(t.nombre) + "</option>";
-        })
-        .join("");
-  }
-
-  function fillZoocriaderosSelect(selectEl) {
-    var activos = data.filter(function (z) { return z.estado === 1; });
-    selectEl.innerHTML =
-      '<option value="">Seleccione un zoocriadero</option>' +
-      activos
-        .map(function (z) {
-          return '<option value="' + z.id + '">' + escapeHtml(z.nombre) + "</option>";
-        })
-        .join("");
-  }
-
   // ---------- Render ----------
   function renderAcciones(z) {
     var p = permisos();
@@ -225,7 +202,6 @@ function permisos() {
       tbody.innerHTML = rows.map(renderRow).join("");
     }
     renderRegistrarBtn();
-    renderRegistrarTanqueBtn();
     var countEl = document.getElementById("zoocriaderosCount");
     if (countEl) countEl.textContent = rows.length + " de " + data.length + " zoocriaderos";
   }
@@ -242,21 +218,6 @@ function permisos() {
         '<button type="button" class="btn btn-round btn-locked" disabled title="' +
         escapeHtml(lockedTitle("registrar zoocriaderos")) + '">' +
         '<i class="fas fa-lock me-1"></i> Registrar Zoocriadero</button>';
-    }
-  }
-
-  function renderRegistrarTanqueBtn() {
-    var wrap = document.getElementById("registrarTanqueWrap");
-    if (!wrap) return;
-    if (permisos().crear) {
-      wrap.innerHTML =
-        '<button type="button" class="btn btn-outline-primary btn-round" data-bs-toggle="modal" data-bs-target="#tanqueModal" id="btnAbrirRegistrarTanque">' +
-        '<i class="fas fa-vial me-1"></i> Registrar Tanque</button>';
-    } else {
-      wrap.innerHTML =
-        '<button type="button" class="btn btn-round btn-locked" disabled title="' +
-        escapeHtml(lockedTitle("registrar tanques")) + '">' +
-        '<i class="fas fa-lock me-1"></i> Registrar Tanque</button>';
     }
   }
 
@@ -341,42 +302,6 @@ function permisos() {
         : '<p class="small text-muted mb-0">Este zoocriadero todavía no tiene tanques registrados.</p>');
   }
 
-  // ---------- Modal Registrar Tanque ----------
-  var tanqueModalEl = document.getElementById("tanqueModal");
-  var tanqueForm = document.getElementById("tanqueForm");
-
-  function openCreateTanqueModal() {
-    tanqueForm.reset();
-    fillZoocriaderosSelect(tanqueForm.elements["id_zoocriadero"]);
-    fillTiposTanqueSelect(tanqueForm.elements["id_tipo_tanque"]);
-  }
-
-  async function handleTanqueSubmit(e) {
-    e.preventDefault();
-    if (!permisos().crear) return;
-
-    var payload = {
-      id_zoocriadero: Number(tanqueForm.elements["id_zoocriadero"].value),
-      id_tipo_tanque: Number(tanqueForm.elements["id_tipo_tanque"].value),
-      numero_tanque: Number(tanqueForm.elements["numero_tanque"].value),
-    };
-    if (!payload.id_zoocriadero) { alert("Debe seleccionar un zoocriadero."); return; }
-    if (!payload.numero_tanque || payload.numero_tanque < 1) {
-      alert("El número de tanque debe ser un entero mayor que cero.");
-      return;
-    }
-    if (!payload.id_tipo_tanque) { alert("Debe seleccionar el tipo de tanque."); return; }
-
-    try {
-      var res = await postJson("postTanque", payload); // INSERT en tanque
-      bootstrap.Modal.getOrCreateInstance(tanqueModalEl).hide();
-      await recargar();
-      showMessage(res.message, "success");
-    } catch (error) {
-      alert(error.message);
-    }
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
     if (!permisos().crear) return;
@@ -394,13 +319,23 @@ function permisos() {
     };
 
     // Un campo escrito solo con espacios queda vacío tras el .trim() de arriba
-    if (payload.nombre.length < 3) {
-      alert("El nombre es obligatorio y debe tener al menos 3 caracteres (no solo espacios).");
+    if (payload.nombre.length < 4) {
+      alert("El nombre es obligatorio y debe tener al menos 4 caracteres (no solo espacios).");
+      form.elements["nombre"].focus();
+      return;
+    }
+    if (payload.nombre.length > 100) {
+      alert("El nombre no puede superar 100 caracteres.");
       form.elements["nombre"].focus();
       return;
     }
     if (payload.direccion.length < 5) {
       alert("La dirección es obligatoria y debe tener al menos 5 caracteres (no solo espacios).");
+      form.elements["direccion"].focus();
+      return;
+    }
+    if (payload.direccion.length > 200) {
+      alert("La dirección no puede superar 200 caracteres.");
       form.elements["direccion"].focus();
       return;
     }
@@ -460,10 +395,6 @@ function permisos() {
     if (e.target.closest("#btnAbrirRegistrar")) openCreateModal();
   });
 
-  document.getElementById("registrarTanqueWrap").addEventListener("click", function (e) {
-    if (e.target.closest("#btnAbrirRegistrarTanque")) openCreateTanqueModal();
-  });
-
   document.getElementById("comunaSelect").addEventListener("change", function () {
     cargarBarrios(this.value, null).catch(function (error) {
       showMessage(error.message, "danger");
@@ -471,7 +402,6 @@ function permisos() {
   });
 
   form.addEventListener("submit", handleSubmit);
-  tanqueForm.addEventListener("submit", handleTanqueSubmit);
 
   document.getElementById("zoocriaderosSearch").addEventListener("input", function () {
     state.q = this.value;
@@ -486,9 +416,6 @@ function permisos() {
     if (!permisos().crear && modalEl.classList.contains("show")) {
       bootstrap.Modal.getOrCreateInstance(modalEl).hide();
     }
-    if (!permisos().crear && tanqueModalEl.classList.contains("show")) {
-      bootstrap.Modal.getOrCreateInstance(tanqueModalEl).hide();
-    }
     render();
   });
 
@@ -500,11 +427,9 @@ function permisos() {
       var resultados = await Promise.all([
         getJson("lista"),
         getJson("comunas"),
-        getJson("tiposTanque"),
       ]);
       data = resultados[0].map(normalizar);
       comunas = resultados[1];
-      tiposTanque = resultados[2];
       clearMessage();
       render();
     } catch (error) {

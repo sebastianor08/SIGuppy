@@ -18,9 +18,7 @@
                 <h6 class="op-7 mb-2">Todos los tanques de todos los zoocriaderos</h6>
               </div>
               <div class="ms-md-auto py-2 py-md-0 d-flex gap-2 align-items-center">
-                <a href="../Zoocriadero/zoocriaderos.php" class="btn btn-outline-primary btn-round">
-                  <i class="fas fa-plus me-1"></i> Registrar Tanque
-                </a>
+                <div id="registrarTanqueWrap"></div>
               </div>
             </div>
             <div class="card">
@@ -55,6 +53,39 @@
                     </thead>
                     <tbody id="tanquesTableBody"></tbody>
                   </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Modal Registrar Tanque -->
+            <div class="modal fade" id="tanqueCreateModal" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form id="tanqueCreateForm">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Registrar Tanque</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="mb-3">
+                        <label class="form-label">Zoocriadero <span class="text-danger">*</span></label>
+                        <select name="id_zoocriadero" class="form-select" required></select>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Número de tanque <span class="text-danger">*</span></label>
+                        <input type="number" min="1" step="1" name="numero_tanque" class="form-control" placeholder="Ej. 1" required />
+                        <div class="form-text" id="tanqueCreateNumeroHint">Seleccione primero el zoocriadero.</div>
+                      </div>
+                      <div class="mb-1">
+                        <label class="form-label">Tipo de tanque <span class="text-danger">*</span></label>
+                        <select name="id_tipo_tanque" class="form-select" required></select>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancelar</button>
+                      <button type="submit" class="btn btn-primary" id="tanqueCreateSubmitBtn">Guardar Tanque</button>
+                    </div>
+                  </form>
                 </div>
               </div>
             </div>
