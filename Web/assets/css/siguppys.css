@@ -832,3 +832,16 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
     transform: translate3d(265px, 0, 0) !important;
   }
 }
+
+#mapaResumen {
+  height: 320px;
+  width: 100%;
+  border-radius: 0.5rem;
+  z-index: 0; 
+}
+
+#mapaFiltros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
