@@ -20,7 +20,7 @@
 
     <div class="login-card">
         <div class="top-header">
-            <img src="../../Web/assets/img/logo-secretaria-salud.png" class="logo-secretaria" alt="">
+            <img src="../../Web/assets/img/logo-secretaria-salud-transparente.png" class="logo-secretaria" alt="">
         </div>
 
 

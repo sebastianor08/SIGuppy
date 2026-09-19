@@ -1,6 +1,5 @@
 <?php
 session_start();
-// Protección: Si no validó el código previamente, redirigir
 if (!isset($_SESSION['id_recuperar'])) {
     header("Location: recuperar.php");
     exit();
@@ -23,7 +22,7 @@ if (!isset($_SESSION['id_recuperar'])) {
     <div class="login-card">
         <!-- Header Logos Grandes -->
         <div class="top-header">
-            <img src="../../Web/assets/img/logo-secretaria-salud.png" class="logo-secretaria" alt="Secretaría de Salud">
+            <img src="../../Web/assets/img/logo-secretaria-salud-transparente.png" class="logo-secretaria" alt="Secretaría de Salud">
         </div>
 
 

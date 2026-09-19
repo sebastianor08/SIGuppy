@@ -21,7 +21,11 @@
     <div class="login-card">
         <!-- Único logo institucional: Secretaría de Salud, centrado arriba -->
         <div class="top-header">
-            <img src="../../Web/assets/img/logo-secretaria-salud.png" class="logo-secretaria" alt="Secretaría de Salud Pública - Alcaldía de Santiago de Cali">
+            <img src="../../Web/assets/img/logo-secretaria-salud-transparente.png" class="logo-secretaria" alt="Secretaría de Salud Pública - Alcaldía de Santiago de Cali">
+        </div>
+
+        <div class="mb-4 text-center">
+            <h4 class="login-title fw-bold mb-0">Iniciar Sesión</h4>
         </div>
 
         <!-- Mensajes de Excepciones según requerimientos -->
