@@ -71,15 +71,15 @@
                     </div>
                     <div class="modal-body">
                       <div class="mb-3">
-                        <label class="form-label">Zoocriadero</label>
+                        <label class="form-label">Zoocriadero <span class="text-danger">*</span></label>
                         <select name="id_zoocriadero" class="form-select" required></select>
                       </div>
                       <div class="mb-3">
-                        <label class="form-label">Número de tanque</label>
+                        <label class="form-label">Número de tanque <span class="text-danger">*</span></label>
                         <input type="number" min="1" step="1" name="numero_tanque" class="form-control" required />
                       </div>
                       <div class="mb-1">
-                        <label class="form-label">Tipo de tanque</label>
+                        <label class="form-label">Tipo de tanque <span class="text-danger">*</span></label>
                         <select name="id_tipo_tanque" class="form-select" required></select>
                       </div>
                     </div>

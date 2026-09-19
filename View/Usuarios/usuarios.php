@@ -74,38 +74,39 @@
                     <div class="modal-body">
                       <div class="row">
                         <div class="col-6 mb-3">
-                          <label class="form-label">Nombres</label>
-                          <input type="text" name="nombre" class="form-control" required />
+                          <label class="form-label">Nombres <span class="text-danger">*</span></label>
+                          <input type="text" name="nombre" class="form-control" minlength="2" maxlength="50" required />
                         </div>
                         <div class="col-6 mb-3">
-                          <label class="form-label">Apellidos</label>
-                          <input type="text" name="apellido" class="form-control" required />
+                          <label class="form-label">Apellidos <span class="text-danger">*</span></label>
+                          <input type="text" name="apellido" class="form-control" minlength="2" maxlength="50" required />
                         </div>
                       </div>
                       <div class="row">
                         <div class="col-6 mb-3">
-                          <label class="form-label">Tipo de documento</label>
+                          <label class="form-label">Tipo de documento <span class="text-danger">*</span></label>
                           <select name="id_tipodocumento" class="form-select" required></select>
                         </div>
                         <div class="col-6 mb-3">
-                          <label class="form-label">Número de documento (único)</label>
+                          <label class="form-label">Número de documento (único) <span class="text-danger">*</span></label>
                           <input type="text" name="documento" class="form-control" maxlength="20"
                                  placeholder="Ej: 1012345678" autocomplete="off" required />
+                          <div class="form-text" id="documentoHint">Seleccione primero el tipo de documento.</div>
                         </div>
                       </div>
                       <div class="row">
                         <div class="col-6 mb-3">
-                          <label class="form-label">Rol asignado</label>
+                          <label class="form-label">Rol asignado <span class="text-danger">*</span></label>
                           <select name="id_rol" class="form-select" required></select>
                         </div>
                         <div class="col-6 mb-3">
-                          <label class="form-label">Correo electrónico (único)</label>
+                          <label class="form-label">Correo electrónico (único) <span class="text-danger">*</span></label>
                           <input type="email" name="correo" class="form-control" placeholder="usuario@cali.gov.co" required />
                           <div class="form-text">Solo se aceptan correos @cali.gov.co o @gmail.com.</div>
                         </div>
                       </div>
                       <div class="mb-1" id="usuarioPasswordGroup">
-                        <label class="form-label">Contraseña</label>
+                        <label class="form-label">Contraseña <span class="text-danger">*</span></label>
                         <input type="password" name="contrasena" class="form-control" minlength="8"
                                placeholder="Mínimo 8 caracteres" autocomplete="new-password" />
                         <div class="form-text">

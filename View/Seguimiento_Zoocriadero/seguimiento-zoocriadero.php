@@ -41,21 +41,21 @@
           <input type="hidden" id="id_seguimiento" name="id_seguimiento" value="" />
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label" for="id_zoocriadero">Zoocriadero</label>
+              <label class="form-label" for="id_zoocriadero">Zoocriadero <span class="text-danger"> *</span></label>
               <select class="form-select" id="id_zoocriadero" name="id_zoocriadero" required><option value="">Seleccione un zoocriadero</option></select>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="id_tanque">Tanque</label>
+              <label class="form-label" for="id_tanque">Tanque <span class="text-danger"> *</span></label>
               <select class="form-select" id="id_tanque" name="id_tanque" disabled required><option value="">Seleccione primero un zoocriadero</option></select>
             </div>
 
             <div class="col-md-6">
-              <label class="form-label" for="direccion">Dirección</label>
+              <label class="form-label" for="direccion">Dirección<span class="text-danger"> *</span></label>
               <input type="text" class="form-control" id="direccion" readonly placeholder="Se cargará desde el zoocriadero" />
               <div class="form-text">La dirección pertenece al zoocriadero y no se puede modificar en este registro.</div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="fecha">Fecha</label>
+              <label class="form-label" for="fecha">Fecha<span class="text-danger"> *</span></label>
               <input type="date" class="form-control" id="fecha" name="fecha" required />
             </div>
 
@@ -92,12 +92,12 @@
               <span class="form-control-plaintext fw-bold" id="totalNacidosMuertos">0 / 0</span>
             </div>
             <div class="col-md-4">
-              <label class="form-label" for="id_actividad">Acción</label>
+              <label class="form-label" for="id_actividad">Acción<span class="text-danger"> *</span></label>
               <select class="form-select" id="id_actividad" name="id_actividad" required><option value="">Seleccione la acción</option></select>
             </div>
 
             <div class="col-12">
-              <label class="form-label" for="observaciones">Observaciones</label>
+              <label class="form-label" for="observaciones">Observaciones  (Opcional)</label>
               <textarea class="form-control" id="observaciones" name="observaciones" rows="4" maxlength="300" placeholder="Escribe aquí las observaciones..."></textarea>
               <div class="form-text text-end"><span id="observacionesCount">0</span>/300</div>
             </div>

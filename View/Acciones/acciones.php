@@ -24,15 +24,15 @@
                 <form id="accionForm">
                   <input type="hidden" name="id_actividad" />
                   <div class="mb-3">
-                    <label class="form-label">Nombre de la Acción*</label>
+                    <label class="form-label">Nombre de la Acción <span class="text-danger"> *</span></label>
                     <input type="text" name="nombre" class="form-control" placeholder="Ej: Limpieza de tanque" required />
                   </div>
                   <div class="mb-3">
-                    <label class="form-label">Descripción</label>
+                    <label class="form-label">Descripción<span class="text-danger"> *</span></label>
                     <textarea name="descripcion" class="form-control" rows="3" placeholder="Descripción de la acción..."></textarea>
                   </div>
                   <div class="mb-3">
-                    <label class="form-label">Estado</label>
+                    <label class="form-label">Estado <span class="text-danger"> *</span></label>
                     <select name="estado" class="form-select">
                       <option value="1">Activo</option>
                       <option value="0">Inhabilitado</option>
