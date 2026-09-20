@@ -41,6 +41,26 @@ class RegistrarSitioController
         jsonResponse(['ok' => true, 'data' => $obj->comunasDeCiudad($id)]);
     }
 
+    // Faltaba: el JS de "Editar Sitio" (cargarEdicion) llama a esta función
+    // para precargar el formulario, pero nunca existió en este controlador
+    // (el modelo ya tenía buscar(), solo que nadie lo exponía por AJAX).
+    public function buscar()
+    {
+        $obj = new RegistrarSitioModel();
+        $id = filter_var($_GET['id_sitio'] ?? null, FILTER_VALIDATE_INT);
+
+        if (!$id) {
+            jsonResponse(['ok' => false, 'message' => 'id_sitio es obligatorio.'], 422);
+        }
+
+        $sitio = $obj->buscar($id);
+        if (!$sitio) {
+            jsonResponse(['ok' => false, 'message' => 'El sitio no existe.'], 404);
+        }
+
+        jsonResponse(['ok' => true, 'data' => $sitio]);
+    }
+
     public function barrios()
     {
         $obj = new RegistrarSitioModel();

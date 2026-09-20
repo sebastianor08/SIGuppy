@@ -1,3 +1,8 @@
+/* =========================================================
+   SIGuppys — estilos propios
+   Se agregan sobre kaiadmin.min.css, sin tocar el archivo base.
+   ========================================================= */
+
 
 :root {
   --sig-blue: #1d7af3;
@@ -382,6 +387,7 @@
     max-width: 320px;
   }
 
+
 body[data-background-color="dark"] .siguppys-logo-header {
   border-bottom-color: rgba(255, 255, 255, 0.08);
 }
@@ -442,13 +448,6 @@ body[data-background-color="dark"] .settings-option strong {
   color: #fff;
 }
 
-/* =========================================================
-   Modo daltonismo — paleta segura azul / naranja
-   =========================================================
-   Sustituye el par rojo/verde (que muchas personas con daltonismo
-   rojo-verde no distinguen bien) por azul/naranja, manteniendo
-   además el texto ("Activo" / "Inhabilitado") como apoyo, no solo
-   el color. */
   body.daltonismo-mode {
     --sig-green: #0072b2;
     --sig-red: #e69f00;
@@ -714,9 +713,6 @@ body[data-background-color="dark2"] .modal-content {
     color: #6b7280;
   }
 
-  /* =========================================================
-  Modo oscuro — Modales, formularios y componentes flotantes
-   ========================================================= */
   body[data-background-color="dark"] .modal-content,
   body[data-background-color="dark2"] .modal-content {
     background-color: #202940;
@@ -812,6 +808,7 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
   color: #9ea5b5 !important;
   border-color: #36405a !important;
 }
+
 
 .sidebar_minimize_hover .sidebar,
 .sidebar_minimize.sidebar_minimize_hover .sidebar {
@@ -985,6 +982,10 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
     background-color: rgba(47, 125, 243, 0.15);
   }
 
+  /* Textos secundarios (encabezados de tarjeta, pies de tabla, notas
+  de gráficas, descripciones) que venían en gris fijo (#555/#666/
+  #777/#888/#999/#444/#333) y quedaban casi invisibles sobre fondo
+   oscuro. */
   body[data-background-color="dark"] .caja .tarjeta p,
   body[data-background-color="dark"] .caja .cabecera-tarjeta p,
   body[data-background-color="dark"] .caja .pie-tabla,
@@ -1007,6 +1008,8 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
     border-bottom-color: rgba(181, 181, 181, 0.14);
   }
 
+  /* Iconos redondos de las tarjetas resumen: el fondo pastel claro
+   pasa a una versión translúcida del mismo color de acento. */
   body[data-background-color="dark"] .caja .icono-azul {
     background-color: rgba(47, 125, 250, 0.18);
   }
@@ -1027,10 +1030,14 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
     background-color: rgba(108, 92, 231, 0.2);
   }
 
+  /* Gráfica de dona: el círculo del centro debe verse del mismo
+   color que la tarjeta que lo contiene, no blanco/gris claro. */
   body[data-background-color="dark"] .caja .donut-centro {
     background-color: #202940;
   }
 
+  /* Barra de progreso de cumplimiento y ejes de las gráficas hechas
+   solo con CSS/SVG. */
 body[data-background-color="dark"] .caja .barra-fondo {
   background-color: rgba(255, 255, 255, 0.12);
 }
@@ -1213,8 +1220,8 @@ body[data-background-color="dark"] .caja .texto-eje {
 }
 
 #mapaResumen {
-  height: 420px;
+  min-height: 380px;
   width: 100%;
   border-radius: 8px;
-  z-index: 0; 
+  z-index: 0; /* evita que los tiles queden por encima del sidebar/topbar */
 }
