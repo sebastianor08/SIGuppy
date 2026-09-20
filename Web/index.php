@@ -202,7 +202,6 @@
   </div>
 
   <script src="../Web/assets/js/plugin/leaflet/leaflet.js"></script>
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <?php
   $basePath = '../';

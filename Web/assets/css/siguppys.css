@@ -1,8 +1,3 @@
-/* =========================================================
-   SIGuppys — estilos propios
-   Se agregan sobre kaiadmin.min.css, sin tocar el archivo base.
-   ========================================================= */
-
 
 :root {
   --sig-blue: #1d7af3;
@@ -387,15 +382,6 @@
     max-width: 320px;
   }
 
-/* =========================================================
-   Modo oscuro — ajustes para los elementos propios de SIGuppys
-   =========================================================
-   El esqueleto del modo oscuro (fondos, texto, tarjetas) ya lo
-   trae kaiadmin.css activando data-background-color="dark" en el
-   body / sidebar / logo-header / navbar; assets/js/siguppys-nav.js
-   se encarga de poner y quitar ese atributo. Aquí solo adaptamos
-   las piezas que agregamos nosotros (marca, selector de rol,
-   placeholders, tabla de acciones). */
 body[data-background-color="dark"] .siguppys-logo-header {
   border-bottom-color: rgba(255, 255, 255, 0.08);
 }
@@ -676,9 +662,6 @@ body[data-daltonismo="deuteranopia"] {
   }
 
 
-/* =========================================================
-   Formulario de Seguimiento de Zoocriadero
-   ========================================================= */
 .sig-followup-card {
   border-radius: 14px;
 }
@@ -690,9 +673,6 @@ body[data-daltonismo="deuteranopia"] {
   color: #6b7280;
 }
 
-/* =========================================================
-   Modo oscuro — Modales, formularios y componentes flotantes
-   ========================================================= */
 body[data-background-color="dark"] .modal-content,
 body[data-background-color="dark2"] .modal-content {
   background-color: #202940;
@@ -833,16 +813,6 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
   border-color: #36405a !important;
 }
 
-/* ============================================================
-   Anula el "flyout" de kaiadmin: al pasar el mouse sobre el
-   sidebar colapsado (icono), el template lo expande flotando
-   ENCIMA del contenido (sidebar_minimize_hover) en vez de
-   empujarlo. Si esa clase queda pegada tras un segundo clic,
-   se ve como si el sidebar tapara los reportes. Con esto, el
-   sidebar colapsado se queda colapsado (75px) siempre, y solo
-   cambia de tamaño con el clic del botón de colapsar/expandir,
-   nunca por hover.
-   ============================================================ */
 .sidebar_minimize_hover .sidebar,
 .sidebar_minimize.sidebar_minimize_hover .sidebar {
   width: 75px;
@@ -961,18 +931,6 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
     display: none;
   }
 
-  /* ============================================================
-  Por debajo de 991.5px (el mismo punto que usa kaiadmin para
-  su menú móvil), el sidebar SIEMPRE debe comportarse como
-  menú móvil: oculto por defecto, visible solo con el botón
-  que agrega "nav_open" a <html>. Sin esto, si el sidebar
-  quedó en modo "iconos" (sidebar_minimize) o en la vista
-  previa de hover a un ancho de pantalla más grande, esas
-  clases quedan pegadas y el menú no se adapta al redimensionar
-  la ventana del navegador: se queda empujando el contenido en
-  vez de esconderse. Esta regla ignora esas clases por completo
-  y deja que solo mande el tamaño real de la pantalla.
-   ============================================================ */
   @media (max-width: 991.5px) {
     .sidebar {
       transform: translate3d(-270px, 0, 0) !important;
@@ -993,15 +951,6 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
   }
 
 
-  /* ============================================================
-  Módulo Reportes: modo oscuro
-  Los 6 reportes (View/Reportes/*.php) traen su propio <style>
-  con clases propias (.caja, .tarjeta, .numero, tablas, badges,
-  donuts, barras...) en vez de las .card nativas de kaiadmin, así
-  que no heredan el modo oscuro solas. Estas reglas les agregan
-  la versión oscura usando los mismos colores que ya usa kaiadmin
-  para .card (#202940) y para el texto atenuado (#8d9498/#b9babf).
-   ============================================================ */
   body[data-background-color="dark"] .caja {
     background-color: #202940;
     color: rgba(169, 175, 187, 0.82);
@@ -1012,9 +961,6 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
     background-color: rgba(255, 255, 255, 0.04);
   }
 
-  /* Filtros: los <select>/<input type="date"> sin clase de Bootstrap
-  se quedan blancos en modo oscuro porque kaiadmin solo teoriza
-   dark mode para .form-control/.form-select. */
   body[data-background-color="dark"] .fila-filtros select,
   body[data-background-color="dark"] .fila-filtros input[type="date"] {
     background-color: #1a2035;
@@ -1039,10 +985,6 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
     background-color: rgba(47, 125, 243, 0.15);
   }
 
-  /* Textos secundarios (encabezados de tarjeta, pies de tabla, notas
-  de gráficas, descripciones) que venían en gris fijo (#555/#666/
-  #777/#888/#999/#444/#333) y quedaban casi invisibles sobre fondo
-   oscuro. */
   body[data-background-color="dark"] .caja .tarjeta p,
   body[data-background-color="dark"] .caja .cabecera-tarjeta p,
   body[data-background-color="dark"] .caja .pie-tabla,
@@ -1065,8 +1007,6 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
     border-bottom-color: rgba(181, 181, 181, 0.14);
   }
 
-  /* Iconos redondos de las tarjetas resumen: el fondo pastel claro
-   pasa a una versión translúcida del mismo color de acento. */
   body[data-background-color="dark"] .caja .icono-azul {
     background-color: rgba(47, 125, 250, 0.18);
   }
@@ -1087,14 +1027,10 @@ body[data-background-color="dark2"] .sig-followup-card input[readonly] {
     background-color: rgba(108, 92, 231, 0.2);
   }
 
-  /* Gráfica de dona: el círculo del centro debe verse del mismo
-   color que la tarjeta que lo contiene, no blanco/gris claro. */
   body[data-background-color="dark"] .caja .donut-centro {
     background-color: #202940;
   }
 
-  /* Barra de progreso de cumplimiento y ejes de las gráficas hechas
-   solo con CSS/SVG. */
 body[data-background-color="dark"] .caja .barra-fondo {
   background-color: rgba(255, 255, 255, 0.12);
 }
@@ -1108,10 +1044,6 @@ body[data-background-color="dark"] .caja .texto-eje {
   fill: #8d9498;
 }
 
-/* ============================================================
-   Exportar a PDF: el botón "Generar Reportes" (.btn-reportes) llama
-   a window.print(). Estas reglas dejan solo el reporte en la hoja.
-   ============================================================ */
 @media print {
   .sidebar,
   .main-header,
@@ -1182,13 +1114,6 @@ body[data-background-color="dark"] .caja .texto-eje {
   }
 }
 
-
-/* ============================================================
-   Exportar a PDF en modo nocturno: el PDF siempre sale en claro,
-   pero SOLO al imprimir. La pantalla no cambia nada. Estas reglas
-   repiten los selectores del modo oscuro de los reportes (mismo
-   peso) y van después, así que ganan al imprimir.
-   ============================================================ */
 @media print {
   body[data-background-color="dark"],
   body[data-background-color="dark"] .wrapper,
@@ -1285,4 +1210,11 @@ body[data-background-color="dark"] .caja .texto-eje {
   body[data-background-color="dark"] .caja .texto-eje {
     fill: #999 !important;
   }
+}
+
+#mapaResumen {
+  height: 420px;
+  width: 100%;
+  border-radius: 8px;
+  z-index: 0; 
 }
