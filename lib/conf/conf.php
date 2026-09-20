@@ -5,7 +5,7 @@
     // ejecutar BD_Dengue_SIGuppy.sql.
     $host     = "127.0.0.1";
     $user     = "postgres";
-    $password = "2008";         
+    $password = "lenin2007";         
     $database = "BD_Dengue_SIGuppy";
     $port     = "5432";
 
