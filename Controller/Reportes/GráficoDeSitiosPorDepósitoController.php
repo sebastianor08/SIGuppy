@@ -14,19 +14,18 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
 
     // TRAEMOS LOS SITIOS CON SU TIPO DE DEPÓSITO
     $sql = "SELECT 'ST-' || LPAD(s.id_sitio::text, 3, '0') AS id,
-                d.direccion AS nombre,
-                b.nombre AS zoocriadero,
-                td.nombre AS tipo,
-                COUNT(st.id_seguimiento_terreno) AS tanques,
-                CASE WHEN s.estado = 1 THEN 'Activo' ELSE 'Inactivo' END AS estado,
-                TO_CHAR(s.creado_en, 'DD/MM/YYYY') AS fecha
-            FROM sitio s
-            INNER JOIN tipo_deposito td ON td.id_tipo_deposito = s.id_tipo_deposito
-            INNER JOIN direccion d ON d.id_direccion = s.id_direccion
-            INNER JOIN barrio b ON b.id_barrio = d.id_barrio
-            LEFT JOIN seguimiento_terreno st ON st.id_sitio = s.id_sitio
-            GROUP BY s.id_sitio, d.direccion, b.nombre, td.nombre, s.estado, s.creado_en
-            ORDER BY s.id_sitio";
+               d.direccion AS nombre,
+               b.nombre AS zoocriadero,
+               'N/A' AS tipo,
+               COUNT(st.id_seguimiento_terreno) AS tanques,
+               CASE WHEN s.estado = 1 THEN 'Activo' ELSE 'Inactivo' END AS estado,
+               TO_CHAR(s.fecha, 'DD/MM/YYYY') AS fecha
+        FROM sitio s
+        INNER JOIN direccion d ON d.id_direccion = s.id_direccion
+        INNER JOIN barrio b ON b.id_barrio = d.id_barrio
+        LEFT JOIN seguimiento_terreno st ON st.id_sitio = s.id_sitio
+        GROUP BY s.id_sitio, d.direccion, b.nombre, s.estado, s.fecha
+        ORDER BY s.id_sitio";
 
     $resultado = pg_query($conexion, $sql);
 
