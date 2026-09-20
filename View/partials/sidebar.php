@@ -8,11 +8,6 @@
       session_start();
   }
 
-  // Si hay un rol real de sesión (login ya deja $_SESSION['id_rol']),
-  // se respeta el permiso "Ver" de ese rol para decidir qué aparece en
-  // el menú. Sin sesión (como en las pruebas directas que se han hecho
-  // hasta ahora) se muestra todo, igual que el resto del sistema
-  // mientras no haya un login obligatorio en cada página.
   $idRolSesionSidebar = $_SESSION['id_rol'] ?? null;
   $rolesModeloSidebar = null;
   if ($idRolSesionSidebar) {
@@ -65,9 +60,9 @@
         </li>
 
         <li class="nav-item">
-          <a href="<?php echo $rutaBase; ?>Web/index.php" data-page="resumen">
+          <a href="<?php echo $rutaBase; ?>Web/index.php" data-page="Inicio">
             <i class="fas fa-home"></i>
-            <p>Resumen</p>
+            <p>Inicio</p>
           </a>
         </li>
 
