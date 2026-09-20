@@ -2,113 +2,151 @@
 
 include_once __DIR__ . '/../MasterModel.php';
 
-// ============================================================
-// Modelo del módulo Depósitos.
-// Tabla principal: sitio (id_sitio, id_tipo_deposito, id_direccion, estado, creado_en)
-// Relaciones: sitio -> tipo_deposito, sitio -> direccion -> barrio/ciudad
-// (Antes este modelo consultaba una tabla "deposito" que nunca existió
-// en la base de datos; el dato real vive en "sitio".)
-// ============================================================
+// Tabla principal: deposito
+//   id_deposito bigint (identity), id_tipo_deposito bigint NOT NULL -> tipo_deposito,
+//   id_sitio bigint NOT NULL -> sitio, descripcion varchar(200) NULL,
+//   estado smallint NOT NULL DEFAULT 1
+//
+// Un depósito pertenece a un SITIO (que a su vez tiene su dirección) y es de
+// un TIPO de depósito. La dirección NO se guarda en el depósito: se obtiene
+// por deposito -> sitio -> direccion.
 class DepositoModel extends MasterModel
 {
     public function listar()
     {
         return $this->selectAll(
-            "SELECT s.id_sitio,
-                    s.id_tipo_deposito, td.nombre AS tipo_deposito,
-                    td.descripcion AS descripcion,
-                    s.id_direccion, d.direccion, b.nombre AS barrio, c.nombre AS ciudad,
-                    s.estado,
-                    TO_CHAR(s.creado_en, 'YYYY-MM-DD') AS creado_en
-             FROM sitio s
-             INNER JOIN tipo_deposito td ON td.id_tipo_deposito = s.id_tipo_deposito
+            "SELECT
+                dep.id_deposito,
+                dep.id_tipo_deposito,
+                td.nombre AS tipo_deposito,
+                dep.id_sitio,
+                s.nombre AS sitio,
+                dep.descripcion,
+                dep.estado,
+                d.direccion,
+                b.nombre AS barrio,
+                co.nombre AS comuna,
+                ci.nombre AS ciudad
+             FROM deposito dep
+             INNER JOIN tipo_deposito td ON td.id_tipo_deposito = dep.id_tipo_deposito
+             INNER JOIN sitio s ON s.id_sitio = dep.id_sitio
              INNER JOIN direccion d ON d.id_direccion = s.id_direccion
-             LEFT JOIN barrio b ON b.id_barrio = d.id_barrio
-             LEFT JOIN ciudad c ON c.id_ciudad = d.id_ciudad
-             ORDER BY s.id_sitio DESC"
+             INNER JOIN barrio b ON b.id_barrio = d.id_barrio
+             INNER JOIN comuna co ON co.id_comuna = d.id_comuna
+             INNER JOIN ciudad ci ON ci.id_ciudad = d.id_ciudad
+             ORDER BY dep.id_deposito DESC"
         );
     }
 
-    public function buscar($idSitio)
+    public function buscar($idDeposito)
     {
-        return $this->selectOne("SELECT * FROM sitio WHERE id_sitio = $1", [$idSitio]);
+        return $this->selectOne(
+            "SELECT id_deposito, id_tipo_deposito, id_sitio, descripcion, estado
+             FROM deposito
+             WHERE id_deposito = $1",
+            [$idDeposito]
+        );
     }
 
-    public function tiposActivos()
+    // ---- Catálogos para los <select> del formulario ----
+    // Se devuelven con su estado; el JS muestra solo los habilitados
+    // (más el que ya tiene asignado el depósito que se está editando).
+
+    public function tipos()
     {
         return $this->selectAll(
-            "SELECT id_tipo_deposito, nombre, descripcion
-             FROM tipo_deposito WHERE estado = 1 ORDER BY nombre"
+            "SELECT id_tipo_deposito, nombre, estado
+             FROM tipo_deposito
+             ORDER BY nombre"
         );
     }
 
-    // Direcciones disponibles para asociar a un sitio/depósito.
-    public function direcciones()
+    public function sitios()
     {
         return $this->selectAll(
-            "SELECT d.id_direccion, d.direccion, b.nombre AS barrio, c.nombre AS ciudad
-             FROM direccion d
-             LEFT JOIN barrio b ON b.id_barrio = d.id_barrio
-             LEFT JOIN ciudad c ON c.id_ciudad = d.id_ciudad
-             ORDER BY d.direccion"
+            "SELECT
+                s.id_sitio,
+                s.nombre,
+                s.estado,
+                d.direccion,
+                b.nombre AS barrio,
+                ci.nombre AS ciudad
+             FROM sitio s
+             INNER JOIN direccion d ON d.id_direccion = s.id_direccion
+             INNER JOIN barrio b ON b.id_barrio = d.id_barrio
+             INNER JOIN ciudad ci ON ci.id_ciudad = d.id_ciudad
+             ORDER BY s.nombre"
         );
     }
 
-    public function barrioPerteneceAComuna($nombreBarrio, $nombreComuna)
+    // ---- Validaciones de llaves foráneas ----
+    // Un tipo/sitio es válido si existe y está habilitado. Al editar se
+    // acepta además el que el depósito ya tenía ($idActual), para poder
+    // cambiar solo la descripción aunque ese tipo/sitio se haya inhabilitado.
+
+    public function tipoDisponible($idTipo, $idActual = null)
     {
-        return $this->selectValue(
-            "SELECT 1 FROM barrio b
-             INNER JOIN comuna c ON c.id_comuna = b.id_comuna
-             WHERE b.nombre = $1 AND c.nombre = $2",
-            [$nombreBarrio, $nombreComuna]
+        return $this->selectOne(
+            "SELECT 1
+             FROM tipo_deposito
+             WHERE id_tipo_deposito = $1
+               AND (estado = 1 OR id_tipo_deposito = $2)",
+            [$idTipo, $idActual]
         ) !== null;
     }
 
-    public function tipoExiste($idTipo)
+    public function sitioDisponible($idSitio, $idActual = null)
     {
-        return $this->selectValue(
-            "SELECT 1 FROM tipo_deposito WHERE id_tipo_deposito = $1 AND estado = 1",
-            [$idTipo]
+        return $this->selectOne(
+            "SELECT 1
+             FROM sitio
+             WHERE id_sitio = $1
+               AND (estado = 1 OR id_sitio = $2)",
+            [$idSitio, $idActual]
         ) !== null;
     }
 
-    public function direccionExiste($idDireccion)
-    {
-        return $this->selectValue(
-            "SELECT 1 FROM direccion WHERE id_direccion = $1",
-            [$idDireccion]
-        ) !== null;
-    }
+    // ---- Escritura ----
 
     public function crear($datos)
     {
+        // No se envía estado: la BD asigna 1 (activo) por DEFAULT.
         return $this->selectValue(
-            "INSERT INTO sitio (id_tipo_deposito, id_direccion, estado)
-             VALUES ($1, $2, 1)
-             RETURNING id_sitio",
-            [
-                $datos['id_tipo_deposito'],
-                $datos['id_direccion'],
-            ]
+            "INSERT INTO deposito (id_tipo_deposito, id_sitio, descripcion)
+             VALUES ($1, $2, $3)
+             RETURNING id_deposito",
+            [$datos['id_tipo_deposito'], $datos['id_sitio'], $datos['descripcion']]
         );
     }
 
-    public function actualizar($idSitio, $datos)
+    public function actualizar($idDeposito, $datos)
     {
-        return $this->update(
-            "UPDATE sitio
-             SET id_tipo_deposito = $1, id_direccion = $2
-             WHERE id_sitio = $3",
+        $resultado = $this->update(
+            "UPDATE deposito
+             SET id_tipo_deposito = $1,
+                 id_sitio = $2,
+                 descripcion = $3
+             WHERE id_deposito = $4",
             [
                 $datos['id_tipo_deposito'],
-                $datos['id_direccion'],
-                $idSitio,
+                $datos['id_sitio'],
+                $datos['descripcion'],
+                $idDeposito
             ]
         );
+
+        return $resultado !== false;
     }
 
-    public function cambiarEstado($idSitio, $estado)
+    public function cambiarEstado($idDeposito, $estado)
     {
-        return $this->update("UPDATE sitio SET estado = $1 WHERE id_sitio = $2", [$estado, $idSitio]);
+        $resultado = $this->update(
+            "UPDATE deposito
+             SET estado = $1
+             WHERE id_deposito = $2",
+            [$estado, $idDeposito]
+        );
+
+        return $resultado !== false;
     }
 }
