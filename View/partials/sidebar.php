@@ -139,6 +139,9 @@
               <?php if (sigPuedeVer('Tipo Depósitos')): ?>
               <li><a href="<?php echo $rutaBase; ?>View/TipoDeposito/TipoDepositoView.php" data-page="terreno-tipo-depositos"><span class="sub-item">Tipo Depósitos</span></a></li>
               <?php endif; ?>
+              <?php if (sigPuedeVer('Sitio')): ?>
+              <li><a href="<?php echo $rutaBase; ?>View/Sitio/SitioView.php" data-page="terreno-sitio"><span class="sub-item">Sitio</span></a></li>
+              <?php endif; ?>
             </ul>
           </div>
         </li>
