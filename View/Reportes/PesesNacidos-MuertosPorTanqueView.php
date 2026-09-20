@@ -242,6 +242,25 @@ include '../partials/head.php';
                         margin-right: 8px;
                     }
 
+                    .btn-excel {
+                        background-color: #ffffff;
+                        color: #21a666;
+                        border: 1px solid #21a666;
+                        padding: 10px 18px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: bold;
+                        margin-right: 8px;
+                    }
+
+                    .btn-excel:hover {
+                        background-color: rgba(33, 166, 102, 0.1);
+                    }
+
+                    body[data-background-color="dark"] .btn-excel {
+                        background-color: transparent;
+                    }
+
                     /* Tarjetas de resumen (Nacidos / Muertos / Tasa) */
                     .tarjetas-resumen {
                         display: flex;

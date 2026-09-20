@@ -18,6 +18,9 @@
 
 <!-- SIGuppys: resaltado de menú activo, modo oscuro/daltonismo y selector de rol -->
 <script src="<?php echo $basePath; ?>Web/assets/js/siguppys-nav.js"></script>
+<!-- SIGuppys: el botón "Generar Reportes" (.btn-reportes) exporta a PDF con window.print() -->
+<script src="<?php echo $basePath; ?>Web/assets/js/siguppys-exportar-pdf.js?v=<?php echo filemtime(__DIR__ . '/../../Web/assets/js/siguppys-exportar-pdf.js'); ?>"></script>
+<script src="<?php echo $basePath; ?>Web/assets/js/siguppys-exportar-excel.js?v=<?php echo filemtime(__DIR__ . '/../../Web/assets/js/siguppys-exportar-excel.js'); ?>"></script>
 <?php foreach($pageScripts as $script): ?>
 <script src="<?php echo $basePath . $script; ?>"></script>
 <?php endforeach; ?>

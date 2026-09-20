@@ -46,9 +46,6 @@
         </span>
       </a>
       <div class="nav-toggle">
-        <button class="btn btn-toggle toggle-sidebar">
-          <i class="gg-menu-right"></i>
-        </button>
         <button class="btn btn-toggle sidenav-toggler">
           <i class="gg-menu-left"></i>
         </button>
@@ -190,6 +187,13 @@
           <a href="<?php echo $rutaBase; ?>View/Configuraciones/configuraciones.php" data-page="configuraciones">
             <i class="fas fa-cogs"></i>
             <p>Configuraciones</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="<?php echo $rutaBase; ?>View/AcercaDe/AcercaDeView.php" data-page="acerca-de">
+            <i class="fas fa-info-circle"></i>
+            <p>Acerca de</p>
           </a>
         </li>
       </ul>

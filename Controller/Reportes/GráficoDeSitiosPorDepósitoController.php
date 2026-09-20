@@ -13,10 +13,6 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
     }
 
     // TRAEMOS LOS SITIOS CON SU TIPO DE DEPÓSITO
-
-    // OJO con dos nombres que se dejaron igual para no cambiar la vista:
-    //   'zoocriadero' -> en realidad guarda el BARRIO del sitio
-    //   'tanques'     -> en realidad guarda cuántas VISITAS tiene el sitio
     $sql = "SELECT 'ST-' || LPAD(s.id_sitio::text, 3, '0') AS id,
                 d.direccion AS nombre,
                 b.nombre AS zoocriadero,
@@ -38,9 +34,7 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
         die("Error en la consulta: " . pg_last_error($conexion));
     }
 
-    // ---------------------------------------------------------
-    // 3. GUARDAMOS CADA FILA DENTRO DEL ARREGLO $sitios
-    // ---------------------------------------------------------
+    //  GUARDAMOS CADA FILA DENTRO DEL ARREGLO $sitios
     $sitios = [];
     while ($fila = pg_fetch_assoc($resultado)) {
         $fila['tanques'] = (int) $fila['tanques'];
