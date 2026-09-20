@@ -1,5 +1,6 @@
 <?php
 
+
 include_once '../Model/Zoocriadero/ZoocriaderoModel.php';
 include_once __DIR__ . '/../../lib/geocodificador.php';
 
@@ -175,7 +176,8 @@ class ZoocriaderoController
             jsonResponse(['ok' => false, 'message' => 'El barrio seleccionado no pertenece a esa comuna.'], 422);
         }
 
-       
+        // Si no llegan coordenadas manuales, se geocodifica la dirección
+        // automáticamente (Nominatim/OpenStreetMap).
         if (!is_numeric($latitud) || !is_numeric($longitud)) {
             $punto = geocodificarDireccion($direccion, $barrio, $comuna);
             $latitud = $punto['lat'] ?? 0;
