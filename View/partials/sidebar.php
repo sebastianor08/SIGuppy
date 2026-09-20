@@ -189,6 +189,13 @@
             <p>Configuraciones</p>
           </a>
         </li>
+
+        <li class="nav-item">
+          <a href="<?php echo $rutaBase; ?>View/AcercaDe/AcercaDeView.php" data-page="acerca-de">
+            <i class="fas fa-info-circle"></i>
+            <p>Acerca de</p>
+          </a>
+        </li>
       </ul>
     </div>
   </div>
