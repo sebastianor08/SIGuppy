@@ -57,7 +57,7 @@
             </div>
           </div>
           <div class="row">
-            <div class="col-sm-6 col-md-3">
+            <div class="col-sm-6 col-md-4">
               <div class="card card-stats card-round">
                 <div class="card-body">
                   <div class="row align-items-center">
@@ -69,14 +69,14 @@
                     <div class="col col-stats ms-3 ms-sm-0">
                       <div class="numbers">
                         <p class="card-category">Zoocriaderos activos</p>
-                        <h4 class="card-title">4</h4>
+                        <h4 class="card-title" id="kpiZoocriaderosActivos">…</h4>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="col-sm-6 col-md-3">
+            <div class="col-sm-6 col-md-4">
               <div class="card card-stats card-round">
                 <div class="card-body">
                   <div class="row align-items-center">
@@ -88,14 +88,14 @@
                     <div class="col col-stats ms-3 ms-sm-0">
                       <div class="numbers">
                         <p class="card-category">Seguimientos este mes</p>
-                        <h4 class="card-title">27</h4>
+                        <h4 class="card-title" id="kpiSeguimientosMes">…</h4>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="col-sm-6 col-md-3">
+            <div class="col-sm-6 col-md-4">
               <div class="card card-stats card-round">
                 <div class="card-body">
                   <div class="row align-items-center">
@@ -107,26 +107,7 @@
                     <div class="col col-stats ms-3 ms-sm-0">
                       <div class="numbers">
                         <p class="card-category">Depósitos inspeccionados</p>
-                        <h4 class="card-title">138</h4>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-sm-6 col-md-3">
-              <div class="card card-stats card-round">
-                <div class="card-body">
-                  <div class="row align-items-center">
-                    <div class="col-icon">
-                      <div class="icon-big text-center icon-danger bubble-shadow-small">
-                        <i class="fas fa-triangle-exclamation"></i>
-                      </div>
-                    </div>
-                    <div class="col col-stats ms-3 ms-sm-0">
-                      <div class="numbers">
-                        <p class="card-category">Alertas pendientes</p>
-                        <h4 class="card-title">3</h4>
+                        <h4 class="card-title" id="kpiDepositosInspeccionados">…</h4>
                       </div>
                     </div>
                   </div>
@@ -135,9 +116,9 @@
             </div>
           </div>
 
-          <div class="row">
+          <div class="row align-items-stretch">
             <div class="col-md-7">
-              <div class="card">
+              <div class="card h-100">
                 <div class="card-header">
                   <div class="d-flex justify-content-between align-items-center">
                     <h4 class="card-title">Zoocriaderos con seguimiento reciente</h4>
@@ -154,27 +135,8 @@
                           <th class="text-center">Estado</th>
                         </tr>
                       </thead>
-                      <tbody>
-                        <tr>
-                          <td>Zoocriadero Central</td>
-                          <td>Comuna 10 · Guabal</td>
-                          <td class="text-center"><span class="badge-estado activo">Activo</span></td>
-                        </tr>
-                        <tr>
-                          <td>Zoocriadero Norte</td>
-                          <td>Comuna 2 · Granada</td>
-                          <td class="text-center"><span class="badge-estado activo">Activo</span></td>
-                        </tr>
-                        <tr>
-                          <td>Zoocriadero Aguablanca</td>
-                          <td>Comuna 15 · Mojica</td>
-                          <td class="text-center"><span class="badge-estado activo">Activo</span></td>
-                        </tr>
-                        <tr>
-                          <td>Zoocriadero Ladera</td>
-                          <td>Comuna 18 · Meléndez</td>
-                          <td class="text-center"><span class="badge-estado inactivo">Inhabilitado</span></td>
-                        </tr>
+                      <tbody id="resumenZoocriaderosBody">
+                        <tr class="sig-empty-row"><td colspan="3">Cargando...</td></tr>
                       </tbody>
                     </table>
                   </div>
@@ -182,13 +144,13 @@
               </div>
             </div>
             <div class="col-md-5">
-              <div class="card">
+              <div class="card h-100">
                 <div class="card-header">
                   <h4 class="card-title">Mapa de zoocriaderos y depósitos</h4>
                 </div>
-                <div class="card-body">
+                <div class="card-body d-flex flex-column">
 
-                  <div id="mapaResumen"></div>
+                  <div id="mapaResumen" class="flex-grow-1"></div>
                   <div id="mapaFiltros" class="mt-2">
                     <span class="text-muted small">Cargando puntos del mapa…</span>
                   </div>
@@ -202,10 +164,9 @@
   </div>
 
   <script src="../Web/assets/js/plugin/leaflet/leaflet.js"></script>
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <?php
   $basePath = '../';
-  $pageScripts = ['Web/assets/js/siguppys-mapa-resumen.js'];
+  $pageScripts = ['Web/assets/js/siguppys-resumen.js', 'Web/assets/js/siguppys-mapa-resumen.js'];
   include '../View/partials/footer.php';
   ?>

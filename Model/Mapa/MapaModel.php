@@ -17,11 +17,16 @@ class MapaModel extends MasterModel
     public function depositos()
     {
         return $this->selectAll(
-            "SELECT s.id_sitio AS id, td.nombre AS tipo_deposito, s.direccion, s.comuna, s.barrio,
-                    s.latitud, s.longitud
+            "SELECT s.id_sitio AS id, td.nombre AS tipo_deposito,
+                    d.direccion, c.nombre AS comuna, b.nombre AS barrio,
+                    d.latitud, d.longitud
              FROM sitio s
              INNER JOIN tipo_deposito td ON td.id_tipo_deposito = s.id_tipo_deposito
-             WHERE s.estado = 1 AND s.latitud IS NOT NULL AND s.longitud IS NOT NULL"
+             INNER JOIN direccion d       ON d.id_direccion = s.id_direccion
+             LEFT JOIN comuna c           ON c.id_comuna = d.id_comuna
+             LEFT JOIN barrio b           ON b.id_barrio = d.id_barrio
+             WHERE s.estado = 1 AND d.latitud IS NOT NULL AND d.longitud IS NOT NULL
+               AND d.latitud <> 0 AND d.longitud <> 0"
         );
     }
 }
