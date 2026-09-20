@@ -6,10 +6,11 @@ include_once __DIR__ . '/../MasterModel.php';
 // Modelo del módulo Tanques.
 // Tablas: tanque, zoocriadero, tipo_tanque
 //
-// La CREACIÓN de tanques se sigue haciendo desde el módulo
-// Zoocriadero (botón "Registrar Tanque"). Este módulo es para
-// ver TODOS los tanques de TODOS los zoocriaderos en un solo
-// listado, editarlos y habilitar/inhabilitarlos.
+// La CREACIÓN de tanques (antes solo posible desde el módulo
+// Zoocriadero) ahora se hace también desde este módulo, con su
+// propio botón "Registrar Tanque". Este módulo sigue siendo además
+// el lugar para ver TODOS los tanques de TODOS los zoocriaderos en
+// un solo listado, editarlos y habilitar/inhabilitarlos.
 // ============================================================
 class TanqueModel extends MasterModel
 {
@@ -83,6 +84,21 @@ class TanqueModel extends MasterModel
             "SELECT 1 FROM tanque WHERE id_zoocriadero = $1 AND numero_tanque = $2",
             [$idZoocriadero, $numero]
         ) !== null;
+    }
+
+    // ---------------- CREATE ----------------
+    public function crear($datos)
+    {
+        return $this->selectValue(
+            "INSERT INTO tanque (id_zoocriadero, id_tipo_tanque, numero_tanque, estado)
+             VALUES ($1, $2, $3, 1)
+             RETURNING id_tanque",
+            [
+                $datos['id_zoocriadero'],
+                $datos['id_tipo_tanque'],
+                $datos['numero_tanque'],
+            ]
+        );
     }
 
     // ---------------- UPDATE ----------------

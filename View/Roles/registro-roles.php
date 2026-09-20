@@ -137,7 +137,7 @@
                   <div class="row">
                     <div class="col-md-4">
                       <div class="form-group">
-                        <label for="nombre_rol">Nombre:</label>
+                        <label for="nombre_rol">Nombre: </label>
                         <input type="text" class="form-control" id="nombre_rol" name="nombre_rol"
                                maxlength="50" minlength="3" required placeholder="Ej: Auxiliar"
                                value="<?php echo h($nombre); ?>">

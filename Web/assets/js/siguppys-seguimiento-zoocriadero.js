@@ -1,4 +1,3 @@
-
 (function () {
   "use strict";
 
@@ -23,6 +22,14 @@
   var muertosMachoInput = document.getElementById("numero_muertos_macho");
   var totalNacidosMuertosEl = document.getElementById("totalNacidosMuertos");
 
+  var labelPh = document.querySelector('label[for="ph"]');
+  var labelTemperatura = document.querySelector('label[for="temperatura"]');
+  var labelSembrados = document.querySelector('label[for="numero_sembrados"]');
+  var labelNacidosHembra = document.querySelector('label[for="numero_nacidos_hembra"]');
+  var labelNacidosMacho = document.querySelector('label[for="numero_nacidos_macho"]');
+  var labelMuertosHembra = document.querySelector('label[for="numero_muertos_hembra"]');
+  var labelMuertosMacho = document.querySelector('label[for="numero_muertos_macho"]');
+
   function actualizarTotales() {
     var totalNacidos = (Number(nacidosHembraInput.value) || 0) + (Number(nacidosMachoInput.value) || 0);
     var totalMuertos = (Number(muertosHembraInput.value) || 0) + (Number(muertosMachoInput.value) || 0);
@@ -31,6 +38,7 @@
   [nacidosHembraInput, nacidosMachoInput, muertosHembraInput, muertosMachoInput].forEach(function (input) {
     input.addEventListener("input", actualizarTotales);
   });
+
   var obsInput = document.getElementById("observaciones");
   var obsCount = document.getElementById("observacionesCount");
   var message = document.getElementById("seguimientoMessage");
@@ -41,6 +49,19 @@
 
   var zoocriaderos = [];
   var historial = [];
+
+  function fijarFechaDeHoy() {
+    var hoy = new Date();
+    var year = hoy.getFullYear();
+    var month = String(hoy.getMonth() + 1).padStart(2, "0");
+    var day = String(hoy.getDate()).padStart(2, "0");
+    var fechaActual = year + "-" + month + "-" + day;
+
+    fechaInput.value = fechaActual;
+    fechaInput.min = fechaActual;
+    fechaInput.max = fechaActual;
+  }
+  fijarFechaDeHoy();
 
   function escapeHtml(value) {
     return String(value == null ? "" : value).replace(/[&<>"']/g, function (c) {
@@ -67,7 +88,92 @@
     return data;
   }
 
-  // ---------- Carga de catálogos ----------
+  var accionesPH = [
+    "Aplicar tratamiento",
+    "Cambiar agua",
+    "Cosechar peces",
+    "Equilibrar pH",
+    "Limpiar filtro",
+    "Limpiar tanque",
+    "Retirar peces muertos",
+  ];
+
+  // Acciones que exigen medir Temperatura
+  var accionesTemperatura = ["Cambiar agua", "Medir temperatura"];
+
+  // Acciones que exigen registrar peces sembrados
+  var accionesSembrados = ["Sembrar alevinos"];
+
+  var accionesConteo = ["Contar peces", "Clasificar por tallas"];
+
+  function actualizarAsterisco(label, mostrar) {
+    if (!label) return;
+    var span = label.querySelector(".asterisco-req");
+
+    if (mostrar) {
+      if (!span) {
+        span = document.createElement("span");
+        span.className = "asterisco-req text-danger ms-1";
+        span.textContent = "*";
+        label.appendChild(span);
+      }
+    } else if (span) {
+      span.remove();
+    }
+  }
+
+  function aplicarEstadoCampo(input, label, esObligatorio, valorInactivo) {
+    if (!input) return;
+    if (valorInactivo === undefined) valorInactivo = "";
+
+    if (esObligatorio) {
+      input.disabled = false;
+      input.required = true;
+      actualizarAsterisco(label, true);
+    } else {
+      input.value = valorInactivo; // Limpia (u opcionalmente resetea) el valor previo
+      input.disabled = true; // Bloquea el campo si la acción no lo requiere
+      input.required = false;
+      actualizarAsterisco(label, false);
+    }
+  }
+
+
+  function marcarObligatorio(input, label, esObligatorio) {
+    if (!input) return;
+    input.required = esObligatorio;
+    actualizarAsterisco(label, esObligatorio);
+  }
+
+  function gestionarReglasNegocio() {
+    if (!accionSelect) return;
+
+    // Obtener el texto visible de la opción seleccionada
+    var opcion = accionSelect.options[accionSelect.selectedIndex];
+    var accionSeleccionada = opcion ? opcion.text.trim() : "";
+
+    // Evaluar campo pH
+    aplicarEstadoCampo(phInput, labelPh, accionesPH.includes(accionSeleccionada));
+
+    // Evaluar campo Temperatura
+    aplicarEstadoCampo(temperaturaInput, labelTemperatura, accionesTemperatura.includes(accionSeleccionada));
+
+    // Evaluar campo Peces sembrados: solo tiene sentido si la acción es "Sembrar alevinos"
+    aplicarEstadoCampo(sembradosInput, labelSembrados, accionesSembrados.includes(accionSeleccionada), "0");
+
+    var requiereConteo = accionesConteo.includes(accionSeleccionada);
+    marcarObligatorio(nacidosHembraInput, labelNacidosHembra, requiereConteo);
+    marcarObligatorio(nacidosMachoInput, labelNacidosMacho, requiereConteo);
+    marcarObligatorio(muertosHembraInput, labelMuertosHembra, requiereConteo);
+    marcarObligatorio(muertosMachoInput, labelMuertosMacho, requiereConteo);
+
+    actualizarTotales();
+  }
+
+  if (accionSelect) {
+    accionSelect.addEventListener("change", gestionarReglasNegocio);
+  }
+
   async function loadZoocriaderos() {
     var result = await getJson(AJAX_URL + "?" + MODULO + "&funcion=zoocriaderos");
     zoocriaderos = result.data || [];
@@ -89,6 +195,7 @@
           return '<option value="' + a.id_actividad + '">' + escapeHtml(a.nombre) + "</option>";
         })
         .join("");
+    gestionarReglasNegocio();
   }
 
   async function loadTanques(idZoocriadero, seleccionado) {
@@ -119,7 +226,6 @@
     tanqueSelect.disabled = tanques.length === 0;
   }
 
-  // ---------- Historial ----------
   async function loadHistorial() {
     historialBody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">Cargando...</td></tr>';
     try {
@@ -164,7 +270,6 @@
       .join("");
   }
 
-  // ---------- Ver detalle (solo lectura) ----------
   function abrirDetalle(idSeguimiento) {
     var s = historial.find(function (x) { return String(x.id_seguimiento) === String(idSeguimiento); });
     if (!s) return;
@@ -201,7 +306,6 @@
     bootstrap.Modal.getOrCreateInstance(document.getElementById("seguimientoDetailModal")).show();
   }
 
-  // ---------- Modo edición ----------
   async function cargarEnFormulario(idSeguimiento) {
     var s = historial.find(function (x) { return String(x.id_seguimiento) === String(idSeguimiento); });
     if (!s) return;
@@ -228,14 +332,7 @@
     obsCount.textContent = obsInput.value.length;
     accionSelect.value = s.id_actividad || "";
 
-    // El cambio de accionSelect.value de arriba no dispara 'change', así que
-    // las reglas de pH/Temperatura/Sembrados no se recalculan solas: se pide
-    // explícitamente (ver seguimiento-zoocriadero.php). Se hace DESPUÉS de
-    // fijar ph/temperatura/sembrados para que, si la acción cargada los
-    // requiere, queden habilitados con el valor que trae el registro.
-    if (typeof window.sigRecalcularReglasSeguimiento === "function") {
-      window.sigRecalcularReglasSeguimiento();
-    }
+    gestionarReglasNegocio();
 
     tituloEl.textContent = "Editar Seguimiento de Zoocriadero";
     saveButton.innerHTML = '<i class="fas fa-save me-1"></i>Guardar cambios';
@@ -250,20 +347,15 @@
     obsCount.textContent = "0";
     tanqueSelect.disabled = true;
     tanqueSelect.innerHTML = '<option value="">Seleccione primero un zoocriadero</option>';
-    fechaInput.value = new Date().toISOString().slice(0, 10);
+    fijarFechaDeHoy();
     tituloEl.textContent = "Registrar Seguimiento de Zoocriadero";
     saveButton.innerHTML = '<i class="fas fa-save me-1"></i>Guardar';
     btnCancelarEdicion.classList.add("d-none");
 
-    // form.reset() no dispara 'change' en id_actividad: sin esto, pH,
-    // Temperatura y Peces sembrados podían quedar habilitados/deshabilitados
-    // con el estado de la edición anterior en vez de con el select ya vacío.
-    if (typeof window.sigRecalcularReglasSeguimiento === "function") {
-      window.sigRecalcularReglasSeguimiento();
-    }
+    gestionarReglasNegocio();
   }
 
-  // ---------- Eventos ----------
+  // ================= Eventos =================
   zooSelect.addEventListener("change", async function () {
     clearMessage();
     var selected = zoocriaderos.find(function (z) {
@@ -355,9 +447,7 @@
       }
     }
   });
-
-  // ---------- Arranque ----------
-  fechaInput.value = new Date().toISOString().slice(0, 10);
+  gestionarReglasNegocio();
 
   Promise.all([loadZoocriaderos(), loadAcciones(), loadHistorial()]).catch(function (error) {
     showMessage(error.message + " Verifica que PHP pueda conectarse a PostgreSQL.", "danger");

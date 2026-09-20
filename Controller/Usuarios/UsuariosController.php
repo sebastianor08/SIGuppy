@@ -5,7 +5,6 @@ include_once '../Model/Usuarios/UsuarioModel.php';
 class UsuariosController
 {
 
-    // ---------- Lecturas ----------
 
     public function lista()
     {
@@ -99,20 +98,24 @@ class UsuariosController
         ]);
     }
 
-    // ---------- Validación compartida por create y update ----------
     private function validarUsuario($body, $obj, $idExcluir)
     {
         $nombre = limpiar($body['nombre'] ?? '');
         $apellido = limpiar($body['apellido'] ?? '');
-        $correo = strtolower(trim($body['correo'] ?? ''));
+        $correo = normalizarCorreo($body['correo'] ?? '');
         $documento = normalizarDocumento($body['documento'] ?? '');
         $idRol = filter_var($body['id_rol'] ?? null, FILTER_VALIDATE_INT);
         $idTipoDocumento = filter_var($body['id_tipodocumento'] ?? null, FILTER_VALIDATE_INT);
 
+        if (!$idTipoDocumento || !$obj->tipoDocumentoExiste($idTipoDocumento)) {
+            jsonResponse(['ok' => false, 'message' => 'Debe seleccionar un tipo de documento válido.'], 422);
+        }
+        $nombreTipoDocumento = $obj->nombreTipoDocumento($idTipoDocumento);
+
         foreach ([
-            validarTexto($nombre, 'Nombres', 2, 80),
-            validarTexto($apellido, 'Apellidos', 2, 80),
-            validarDocumento($documento, 'Número de documento'),
+            validarNombrePropio($nombre, 'Nombres', 2, 50),
+            validarNombrePropio($apellido, 'Apellidos', 2, 50),
+            validarDocumentoPorTipo($documento, $nombreTipoDocumento, 'Número de documento'),
             validarCorreo($correo),
         ] as $error) {
             if ($error !== null) {
@@ -127,9 +130,6 @@ class UsuariosController
             jsonResponse(['ok' => false, 'message' => 'Ya existe un usuario registrado con ese número de documento.'], 422);
         }
 
-        if (!$idTipoDocumento || !$obj->tipoDocumentoExiste($idTipoDocumento)) {
-            jsonResponse(['ok' => false, 'message' => 'Debe seleccionar un tipo de documento válido.'], 422);
-        }
         if (!$idRol || !$obj->rolExiste($idRol)) {
             jsonResponse(['ok' => false, 'message' => 'Debe seleccionar un rol válido.'], 422);
         }

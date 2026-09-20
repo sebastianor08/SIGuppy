@@ -15,6 +15,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
+    // Validación de formato: evita llegar a la base de datos con un correo
+    // mal escrito y dar un mensaje más claro que "credenciales incorrectas".
+    if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+        header("Location: ../../View/login/login.php?error=invalid_email");
+        exit();
+    }
+
     try {
         $masterModel = new MasterModel();
 
@@ -88,11 +95,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         error_log("Error en Login: " . $e->getMessage());
         header("Location: ../../View/login/login.php?error=system");
         exit();
     }
 
-    //pruebs
+
 }
