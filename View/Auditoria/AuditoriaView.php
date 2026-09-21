@@ -1,4 +1,9 @@
 <?php
+// La sesión se exige ANTES de consultar la base de datos (antes se
+// validaba recién en head.php, con los datos ya consultados).
+$basePath = '../../';
+require_once __DIR__ . '/../../lib/requiere_sesion.php';
+
 require_once __DIR__ . '/../../Controller/Auditoria/AuditoriaController.php';
 
 $datos = obtenerDatosAuditoria();
@@ -49,12 +54,12 @@ include '../partials/head.php';
                     <div class="card-body">
                         <form method="GET" class="row g-3 align-items-end">
                             <div class="col-md-3">
-                                <label class="form-label">Tabla / módulo</label>
-                                <select name="tabla" class="form-select">
-                                    <option value="">Todas</option>
-                                    <?php foreach ($tablasDisponibles as $t): ?>
-                                        <option value="<?= htmlspecialchars($t['modulo']) ?>" <?= $filtros['tabla'] === $t['modulo'] ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($t['modulo']) ?>
+                                <label class="form-label">Módulo</label>
+                                <select name="id_modulo" class="form-select">
+                                    <option value="">Todos</option>
+                                    <?php foreach ($modulosDisponibles as $m): ?>
+                                        <option value="<?= htmlspecialchars($m['id_modulo']) ?>" <?= (string) $filtros['modulo'] === (string) $m['id_modulo'] ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($m['nombre']) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
@@ -139,7 +144,7 @@ include '../partials/head.php';
                                                 <tr>
                                                     <td><?= htmlspecialchars($mov['fecha_hora']) ?></td>
                                                     <td><?= htmlspecialchars($mov['usuario_responsable']) ?></td>
-                                                    <td><?= htmlspecialchars($mov['modulo']) ?></td>
+                                                    <td><?= htmlspecialchars(AuditoriaModel::etiquetaModulo($mov['modulo'], $mov['ambito'] ?? null)) ?></td>
                                                     <td>
                                                         <span class="badge <?= $badgesOperacion[$mov['accion']] ?? 'bg-secondary' ?>">
                                                             <?= htmlspecialchars($etiquetasOperacion[$mov['accion']] ?? $mov['accion']) ?>
@@ -151,7 +156,7 @@ include '../partials/head.php';
                                         </tbody>
                                     </table>
                                 </div>
-                                <p class="small text-muted mt-3 mb-0">Se muestran hasta 300 movimientos más recientes de actividad, tipo de depósito, sitio y actividades de terreno.</p>
+                                <p class="small text-muted mt-3 mb-0">Se muestran hasta 300 movimientos más recientes de todos los módulos.</p>
                             </div>
                         </div>
                     </div>
@@ -208,6 +213,26 @@ include '../partials/head.php';
 $pageScripts = [];
 include '../partials/footer.php';
 ?>
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+    var clave  = 'sigAuditoriaTab';
+    var tabs   = document.querySelectorAll('#auditoriaTabs [data-bs-target]');
+
+    tabs.forEach(function (btn) {
+        btn.addEventListener('shown.bs.tab', function () {
+            try { sessionStorage.setItem(clave, btn.getAttribute('data-bs-target')); } catch (e) {}
+        });
+    });
+
+    var guardada = null;
+    try { guardada = sessionStorage.getItem(clave); } catch (e) {}
+    if (guardada) {
+        var btn = document.querySelector('#auditoriaTabs [data-bs-target="' + guardada + '"]');
+        if (btn && !btn.classList.contains('active')) { btn.click(); }
+    }
+});
+</script>
 </body>
 
 </html>

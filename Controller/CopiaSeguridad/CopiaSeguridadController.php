@@ -202,13 +202,15 @@ class CopiaSeguridadController {
     }
 
     // ---------- Usuario que ejecuta la acción ----------
-    // Mismo patrón que SeguimientoZoocriaderoController: usa la sesión
-    // si ya existe, y no rompe nada mientras el login real no esté conectado.
+    // El login (Controller/login/login_process.php) guarda en la sesión
+    // 'id_usuario' y 'usuario' (nombre completo). Antes se leían 'id' y
+    // 'nombre', que nunca existen, y por eso "Ejecutado por" siempre
+    // decía "Sistema" y id_usuario quedaba en NULL.
     private function idUsuarioActual() {
-        return isset($_SESSION['id']) ? (int) $_SESSION['id'] : null;
+        return isset($_SESSION['id_usuario']) ? (int) $_SESSION['id_usuario'] : null;
     }
 
     private function nombreUsuarioActual() {
-        return $_SESSION['nombre'] ?? 'Sistema';
+        return $_SESSION['usuario'] ?? 'Sistema';
     }
 }

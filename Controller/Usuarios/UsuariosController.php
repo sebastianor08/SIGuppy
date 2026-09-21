@@ -1,6 +1,7 @@
 <?php
 
 include_once '../Model/Usuarios/UsuarioModel.php';
+include_once __DIR__ . '/../../lib/Mailer.php';
 
 class UsuariosController
 {
@@ -43,10 +44,25 @@ class UsuariosController
             jsonResponse(['ok' => false, 'message' => 'No se pudo registrar: ' . $obj->ultimoError()], 500);
         }
 
+        // Envía al correo del nuevo usuario su usuario (= el correo) y la contraseña
+        // recién definida. Es lo último que se hace: si el correo falla (sin internet,
+        // credenciales de Gmail vencidas...) el usuario YA quedó creado, así que solo
+        // se avisa en el mensaje en vez de devolver error.
+        $correoEnviado = enviarCredencialesUsuario(
+            $datos['correo'],
+            $datos['nombre'] . ' ' . $datos['apellido'],
+            $datos['correo'],
+            $contrasena
+        );
+
         jsonResponse([
             'ok' => true,
-            'message' => 'Usuario registrado correctamente.',
+            'message' => $correoEnviado
+                ? 'Usuario registrado correctamente. Sus credenciales se enviaron a ' . $datos['correo'] . '.'
+                : 'Usuario registrado correctamente, pero NO se pudo enviar el correo con sus credenciales. '
+                    . 'Entréguele la contraseña manualmente y revise la configuración de correo (lib/conf/mail.php).',
             'id_usuario' => (int) $id,
+            'correo_enviado' => $correoEnviado,
         ], 201);
     }
 

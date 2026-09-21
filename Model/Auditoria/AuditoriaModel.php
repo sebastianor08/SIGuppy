@@ -4,16 +4,13 @@ include_once __DIR__ . '/../MasterModel.php';
 
 class AuditoriaModel extends MasterModel
 {
-    // Auditoría general: cualquier módulo con trigger, más los inicios
-    // de sesión (modulo = 'login').
     public function listarGeneral($filtros = [])
     {
         $condiciones = ["1 = 1"];
         $parametros  = [];
 
-        if (!empty($filtros['tabla'])) {
-            $parametros[]  = $filtros['tabla'];
-            $condiciones[] = "a.modulo = $" . count($parametros);
+        if (!empty($filtros['modulo'])) {
+            $condiciones[] = $this->condicionModulo($filtros['modulo'], $parametros);
         }
         if (!empty($filtros['operacion'])) {
             $parametros[]  = $filtros['operacion'];
@@ -32,7 +29,9 @@ class AuditoriaModel extends MasterModel
             $condiciones[] = "a.fecha_hora <= $" . count($parametros);
         }
 
-        $sql = "SELECT a.id_auditoria, a.modulo, a.accion, a.id_registro, a.id_usuario,
+        $sql = "SELECT a.id_auditoria, a.modulo,
+                       COALESCE(a.datos_nuevos, a.datos_anteriores) ->> 'ambito' AS ambito,
+                       a.accion, a.id_registro, a.id_usuario,
                        COALESCE(u.nombre || ' ' || u.apellido, 'Usuario no identificado') AS usuario_responsable,
                        TO_CHAR(a.fecha_hora, 'DD/MM/YYYY HH24:MI') AS fecha_hora,
                        a.detalle
@@ -45,9 +44,7 @@ class AuditoriaModel extends MasterModel
         return $this->selectAll($sql, $parametros);
     }
 
-    // Auditoría de seguimiento de zoocriaderos: mismo `auditoria`,
-    // filtrado a ese módulo (antes se leía de una tabla separada,
-    // auditoria_seguimiento_zoocriadero, que ningún trigger llenaba).
+
     public function listarSeguimientoZoocriadero($filtros = [])
     {
         $condiciones = ["a.modulo = 'seguimiento_zoocriadero'"];
@@ -83,11 +80,93 @@ class AuditoriaModel extends MasterModel
         return $this->selectAll($sql, $parametros);
     }
 
-    // Para llenar el <select> de "Tabla / módulo" en los filtros
-    public function tablasDisponibles()
+    private static $etiquetasTablas = [
+        'actividad'                => 'Actividades',
+        'actividad_terreno'        => 'Actividades de terreno',
+        'actividad_zoocriadero'    => 'Actividades de zoocriadero',
+        'deposito'                 => 'Depósitos',
+        'direccion'                => 'Direcciones',
+        'login'                    => 'Inicios de sesión',
+        'modulo_accion_permitida'  => 'Acciones permitidas por módulo',
+        'rol'                      => 'Roles',
+        'rol_permiso'              => 'Permisos de roles',
+        'seguimiento_deposito'     => 'Seguimiento de depósitos',
+        'seguimiento_terreno'      => 'Seguimiento de terreno',
+        'seguimiento_zoocriadero'  => 'Seguimiento de zoocriaderos',
+        'sitio'                    => 'Sitios',
+        'tanque'                   => 'Tanques',
+        'territorio_priorizado'    => 'Territorios priorizados',
+        'tipo_deposito'            => 'Tipos de depósito',
+        'usuario'                  => 'Usuarios',
+        'zoocriadero'              => 'Zoocriaderos',
+    ];
+
+    public static function etiquetaModulo($tabla, $ambito = null)
+    {
+        if ($tabla === 'actividad') {
+            if ($ambito === 'zoocriadero') {
+                return 'Acciones de zoocriadero';
+            }
+            if ($ambito === 'terreno') {
+                return 'Actividades de terreno';
+            }
+        }
+
+        return self::$etiquetasTablas[$tabla]
+            ?? ucfirst(str_replace('_', ' ', (string) $tabla));
+    }
+
+
+    private static $reglasPorModulo = [
+        1  => [['tablas' => ['zoocriadero']]],                                  // Zoocriaderos
+        7  => [['tablas' => ['actividad'], 'ambito' => 'terreno']],             // Actividades
+        8  => [['tablas' => ['seguimiento_zoocriadero', 'actividad_zoocriadero']]], // Seguimiento de Zoocriadero
+        9  => [['tablas' => ['tipo_deposito']]],                                // Tipo Depósitos
+        10 => [['tablas' => ['sitio', 'direccion']]],                           // Sitio
+        11 => [['tablas' => ['actividad'], 'ambito' => 'zoocriadero']],         // Acciones de Zoocriadero
+        12 => [['tablas' => ['deposito']]],                                     // Depósitos
+        17 => [],                                                               // Copia de seguridad (usa su propia tabla de historial)
+        18 => [],                                                               // Reportes (solo consulta)
+        19 => [['tablas' => ['usuario']]],                                      // Gestión de Usuarios
+        20 => [['tablas' => ['tanque']]],                                       // Tanque Zoocriadero
+        21 => [['tablas' => ['rol', 'rol_permiso', 'modulo_accion_permitida']]], // Roles y Permisos
+        22 => [['tablas' => ['rol']]],                                          // Consultar Roles (habilitar/inhabilitar)
+        23 => [['tablas' => ['usuario']]],                                      // Consultar Usuarios
+        25 => [['tablas' => ['seguimiento_deposito']]],                         // Seguimiento de Depósito
+    ];
+
+
+    private function condicionModulo($idModulo, array &$parametros)
+    {
+        $reglas = self::$reglasPorModulo[(int) $idModulo] ?? [];
+
+        if (count($reglas) === 0) {
+            return "1 = 0";
+        }
+
+        $alternativas = [];
+        foreach ($reglas as $regla) {
+            $parametros[] = '{' . implode(',', $regla['tablas']) . '}';
+            $clausula     = "a.modulo = ANY($" . count($parametros) . "::text[])";
+
+            if (!empty($regla['ambito'])) {
+                $parametros[] = $regla['ambito'];
+                $clausula    .= " AND COALESCE(a.datos_nuevos, a.datos_anteriores) ->> 'ambito' = $" . count($parametros);
+            }
+
+            $alternativas[] = "(" . $clausula . ")";
+        }
+
+        return "(" . implode(' OR ', $alternativas) . ")";
+    }
+
+    public function modulosDisponibles()
     {
         return $this->selectAll(
-            "SELECT DISTINCT modulo FROM auditoria ORDER BY modulo"
+            "SELECT id_modulo, nombre
+             FROM modulo
+             WHERE id_modulo <> 13
+             ORDER BY nombre"
         );
     }
 

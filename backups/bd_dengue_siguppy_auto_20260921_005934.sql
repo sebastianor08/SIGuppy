@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict nwmPqod3KEjc3kXgD0EvBYIDRrv6JCWT4LgDsJWlbndXzyOfjx7smhDitHZMWde
+\restrict RXx76Mf3yJKREhDiHoPmYcAGdlHLYgua4hT8TMIucb03ReFxqArEsUOvrK6LBIA
 
 -- Dumped from database version 18.4
 -- Dumped by pg_dump version 18.4
@@ -47,10 +47,11 @@ DECLARE
     v_id_registro bigint;
     v_pk_column   text;
     v_row         jsonb;
+    v_accion      text;
+    v_detalle     text;
+    v_estado_antes text;
+    v_estado_despues text;
 BEGIN
-    -- El usuario actual lo debe fijar la aplicación antes de la consulta con:
-    --   SELECT set_config('app.id_usuario', '<id_del_usuario_logueado>', true);
-    -- Si la app no lo fija, el registro queda con id_usuario = NULL.
     BEGIN
         v_id_usuario := NULLIF(current_setting('app.id_usuario', true), '')::bigint;
     EXCEPTION WHEN OTHERS THEN
@@ -82,9 +83,28 @@ BEGIN
         RETURN OLD;
 
     ELSIF TG_OP = 'UPDATE' THEN
+        -- Si el único cambio relevante es la columna `estado` (el patrón
+        -- 1 = activo / 0 = inhabilitado que usan casi todas las tablas),
+        -- se registra como HABILITAR/INHABILITAR en vez de un UPDATE
+        -- genérico, para poder filtrar "quién inhabilitó X" directamente.
+        v_estado_antes   := to_jsonb(OLD) ->> 'estado';
+        v_estado_despues := to_jsonb(NEW) ->> 'estado';
+
+        IF v_estado_antes IS DISTINCT FROM v_estado_despues AND v_estado_despues IS NOT NULL THEN
+            IF v_estado_despues = '0' THEN
+                v_accion  := 'INHABILITAR';
+                v_detalle := 'Inhabilitación de registro en ' || TG_TABLE_NAME;
+            ELSE
+                v_accion  := 'HABILITAR';
+                v_detalle := 'Habilitación de registro en ' || TG_TABLE_NAME;
+            END IF;
+        ELSE
+            v_accion  := 'UPDATE';
+            v_detalle := 'Actualización de registro en ' || TG_TABLE_NAME;
+        END IF;
+
         INSERT INTO public.auditoria (modulo, accion, id_registro, id_usuario, datos_anteriores, datos_nuevos, detalle)
-        VALUES (TG_TABLE_NAME, 'UPDATE', v_id_registro, v_id_usuario, to_jsonb(OLD), to_jsonb(NEW),
-                'Actualización de registro en ' || TG_TABLE_NAME);
+        VALUES (TG_TABLE_NAME, v_accion, v_id_registro, v_id_usuario, to_jsonb(OLD), to_jsonb(NEW), v_detalle);
         RETURN NEW;
 
     ELSIF TG_OP = 'INSERT' THEN
@@ -163,6 +183,72 @@ $$;
 
 
 ALTER FUNCTION public.fn_registrar_login(p_id_usuario bigint, p_correo character varying, p_exitoso boolean, p_detalle character varying) OWNER TO postgres;
+
+--
+-- Name: fn_validar_seguimiento_deposito(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.fn_validar_seguimiento_deposito() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    v_hoy               date := (CURRENT_TIMESTAMP AT TIME ZONE 'America/Bogota')::date;
+    v_estado_deposito   smallint;
+    v_estado_sitio      smallint;
+    v_ambito            character varying;
+    v_estado_actividad  smallint;
+BEGIN
+    IF NEW.fecha > v_hoy THEN
+        RAISE EXCEPTION 'La fecha del seguimiento (%) no puede ser futura.', NEW.fecha
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF TG_OP = 'INSERT' OR NEW.id_deposito IS DISTINCT FROM OLD.id_deposito THEN
+        SELECT d.estado, s.estado
+          INTO v_estado_deposito, v_estado_sitio
+          FROM public.deposito d
+          JOIN public.sitio s ON s.id_sitio = d.id_sitio
+         WHERE d.id_deposito = NEW.id_deposito;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'El depósito % no existe.', NEW.id_deposito
+                USING ERRCODE = 'foreign_key_violation';
+        END IF;
+
+        IF v_estado_deposito <> 1 OR v_estado_sitio <> 1 THEN
+            RAISE EXCEPTION 'El depósito % (o su sitio) está inhabilitado y no admite nuevos seguimientos.', NEW.id_deposito
+                USING ERRCODE = 'check_violation';
+        END IF;
+    END IF;
+
+    IF TG_OP = 'INSERT' OR NEW.id_actividad IS DISTINCT FROM OLD.id_actividad THEN
+        SELECT a.ambito, a.estado
+          INTO v_ambito, v_estado_actividad
+          FROM public.actividad a
+         WHERE a.id_actividad = NEW.id_actividad;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'La actividad % no existe.', NEW.id_actividad
+                USING ERRCODE = 'foreign_key_violation';
+        END IF;
+
+        IF v_ambito <> 'terreno' THEN
+            RAISE EXCEPTION 'La actividad % no es de terreno (ámbito: %).', NEW.id_actividad, v_ambito
+                USING ERRCODE = 'check_violation';
+        END IF;
+
+        IF v_estado_actividad <> 1 THEN
+            RAISE EXCEPTION 'La actividad % está inhabilitada.', NEW.id_actividad
+                USING ERRCODE = 'check_violation';
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.fn_validar_seguimiento_deposito() OWNER TO postgres;
 
 SET default_tablespace = '';
 
@@ -423,6 +509,40 @@ ALTER TABLE public.comuna ALTER COLUMN id_comuna ADD GENERATED BY DEFAULT AS IDE
 
 
 --
+-- Name: copia_seguridad_historial; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.copia_seguridad_historial (
+    id_historial bigint NOT NULL,
+    fecha_hora timestamp without time zone DEFAULT now() NOT NULL,
+    tipo_operacion character varying(20) NOT NULL,
+    nombre_archivo character varying(255),
+    id_usuario bigint,
+    usuario_nombre character varying(150) DEFAULT 'Sistema'::character varying NOT NULL,
+    estado character varying(10) NOT NULL,
+    detalle text,
+    CONSTRAINT copia_seguridad_historial_estado_check CHECK (((estado)::text = ANY ((ARRAY['exito'::character varying, 'error'::character varying])::text[]))),
+    CONSTRAINT copia_seguridad_historial_tipo_operacion_check CHECK (((tipo_operacion)::text = ANY ((ARRAY['descarga'::character varying, 'restauracion'::character varying, 'automatica'::character varying])::text[])))
+);
+
+
+ALTER TABLE public.copia_seguridad_historial OWNER TO postgres;
+
+--
+-- Name: copia_seguridad_historial_id_historial_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.copia_seguridad_historial ALTER COLUMN id_historial ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.copia_seguridad_historial_id_historial_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: departamento; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -616,6 +736,43 @@ CREATE TABLE public.rol_permiso (
 
 
 ALTER TABLE public.rol_permiso OWNER TO postgres;
+
+--
+-- Name: seguimiento_deposito; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.seguimiento_deposito (
+    id_seguimiento_deposito bigint NOT NULL,
+    id_deposito bigint NOT NULL,
+    id_usuario bigint NOT NULL,
+    id_actividad bigint NOT NULL,
+    fecha date NOT NULL,
+    presencia_larvas smallint DEFAULT 0 NOT NULL,
+    numero_peces_sembrados integer DEFAULT 0 NOT NULL,
+    observaciones character varying(300),
+    estado smallint DEFAULT 1 NOT NULL,
+    creado_en timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT seguimiento_deposito_estado_chk CHECK ((estado = ANY (ARRAY[0, 1]))),
+    CONSTRAINT seguimiento_deposito_larvas_chk CHECK ((presencia_larvas = ANY (ARRAY[0, 1]))),
+    CONSTRAINT seguimiento_deposito_peces_chk CHECK ((numero_peces_sembrados >= 0))
+);
+
+
+ALTER TABLE public.seguimiento_deposito OWNER TO postgres;
+
+--
+-- Name: seguimiento_deposito_id_seguimiento_deposito_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.seguimiento_deposito ALTER COLUMN id_seguimiento_deposito ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.seguimiento_deposito_id_seguimiento_deposito_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
 
 --
 -- Name: seguimiento_terreno; Type: TABLE; Schema: public; Owner: postgres
@@ -1033,144 +1190,217 @@ COPY public.actividad_zoocriadero (id_actividad_zoocriadero, id_seguimiento, id_
 --
 
 COPY public.auditoria (id_auditoria, modulo, accion, id_registro, id_usuario, datos_anteriores, datos_nuevos, detalle, fecha_hora) FROM stdin;
-1	usuario	INSERT	1	\N	\N	{"correo": "juan@gmail.com", "estado": 1, "id_rol": 2, "nombre": "david", "apellido": "gomez", "creado_en": "2026-09-18T21:29:31.045752", "documento": "1109545513", "contrasena": "$2y$10$xVZk9DlIgoFE4LfHKwjShuoAS5eEWi9TVLimOklMKTmEvvwfukb2S", "id_usuario": 1, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	Creación de registro en usuario	2026-09-18 21:29:31.045752
-2	zoocriadero	INSERT	1	\N	\N	{"barrio": "Ciudadela Floralia", "comuna": "Comuna 6", "estado": 1, "nombre": "Zoocriadero Aguablanca", "latitud": 3.49529440, "longitud": -76.49458530, "creado_en": "2026-09-18T21:39:27.702052", "direccion": "Cra 31 # 22-71", "id_zoocriadero": 1, "id_persona_cargo": null}	Creación de registro en zoocriadero	2026-09-18 21:39:27.702052
-3	zoocriadero	INSERT	2	\N	\N	{"barrio": "Ciudadela Floralia", "comuna": "Comuna 6", "estado": 1, "nombre": "Zoocriadero Aguablanca", "latitud": 3.49529440, "longitud": -76.49458530, "creado_en": "2026-09-18T21:39:28.122364", "direccion": "Cra 31 # 22-71", "id_zoocriadero": 2, "id_persona_cargo": null}	Creación de registro en zoocriadero	2026-09-18 21:39:28.122364
-4	zoocriadero	UPDATE	2	\N	{"barrio": "Ciudadela Floralia", "comuna": "Comuna 6", "estado": 1, "nombre": "Zoocriadero Aguablanca", "latitud": 3.49529440, "longitud": -76.49458530, "creado_en": "2026-09-18T21:39:28.122364", "direccion": "Cra 31 # 22-71", "id_zoocriadero": 2, "id_persona_cargo": null}	{"barrio": "Guillermo Valencia", "comuna": "Comuna 4", "estado": 1, "nombre": "Zoocriadero CDTI", "latitud": 3.49529440, "longitud": -76.49458530, "creado_en": "2026-09-18T21:39:28.122364", "direccion": "Cra 31 # 22-7123", "id_zoocriadero": 2, "id_persona_cargo": null}	Actualización de registro en zoocriadero	2026-09-18 21:39:43.907415
-5	tanque	INSERT	1	\N	\N	{"estado": 1, "id_tanque": 1, "numero_tanque": 1, "id_tipo_tanque": 10, "id_zoocriadero": 1}	Creación de registro en tanque	2026-09-18 21:39:54.539332
-6	tanque	INSERT	2	\N	\N	{"estado": 1, "id_tanque": 2, "numero_tanque": 1, "id_tipo_tanque": 7, "id_zoocriadero": 2}	Creación de registro en tanque	2026-09-18 21:40:16.196439
-7	seguimiento_zoocriadero	INSERT	1	\N	\N	{"ph": null, "fecha": "2026-09-18", "estado": 1, "id_tanque": 1, "id_usuario": 1, "temperatura": null, "observaciones": "Comieron bien", "id_seguimiento": 1, "id_zoocriadero": 1, "numero_muertos": 0, "numero_nacidos": 0, "numero_sembrados": 0, "numero_muertos_macho": 0, "numero_nacidos_macho": 0, "numero_muertos_hembra": 0, "numero_nacidos_hembra": 0}	Creación de registro en seguimiento_zoocriadero	2026-09-18 21:40:32.611427
-8	actividad_zoocriadero	INSERT	1	\N	\N	{"id_actividad": 30, "id_seguimiento": 1, "id_actividad_zoocriadero": 1}	Creación de registro en actividad_zoocriadero	2026-09-18 21:40:32.611427
-9	rol	UPDATE	2	\N	{"estado": 1, "id_rol": 2, "nombre_rol": "Administrador", "descripcion": "Director(a) del Grupo ETV"}	{"estado": 1, "id_rol": 2, "nombre_rol": "Administrador", "descripcion": "Director(a) del Grupo ETV"}	Actualización de registro en rol	2026-09-19 10:46:15.185601
-10	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 5, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-19 10:46:15.185601
-11	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 17, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-19 10:46:15.185601
-12	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 18, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-19 10:46:15.185601
-13	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 23, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-19 10:46:15.185601
-14	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 23, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-19 10:46:15.185601
-15	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 23, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-19 10:46:15.185601
-16	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 18, "id_accion_permiso": 5}	Creación de registro en rol_permiso	2026-09-19 10:46:15.185601
-17	usuario	INSERT	2	\N	\N	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	Creación de registro en usuario	2026-09-19 10:47:39.645976
-18	usuario	UPDATE	2	\N	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	Actualización de registro en usuario	2026-09-19 10:47:50.047219
-19	rol	UPDATE	2	\N	{"estado": 1, "id_rol": 2, "nombre_rol": "Administrador", "descripcion": "Director(a) del Grupo ETV"}	{"estado": 1, "id_rol": 2, "nombre_rol": "Administrador", "descripcion": "Director(a) del Grupo ETV"}	Actualización de registro en rol	2026-09-19 10:49:15.060024
-20	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 5, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-19 10:49:15.060024
-21	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 17, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-19 10:49:15.060024
-22	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 18, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-19 10:49:15.060024
-23	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 18, "id_accion_permiso": 5}	\N	Eliminación de registro en rol_permiso	2026-09-19 10:49:15.060024
-24	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 23, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-19 10:49:15.060024
-25	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 23, "id_accion_permiso": 3}	\N	Eliminación de registro en rol_permiso	2026-09-19 10:49:15.060024
-26	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 23, "id_accion_permiso": 4}	\N	Eliminación de registro en rol_permiso	2026-09-19 10:49:15.060024
-27	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 1, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-28	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 5, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-29	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 17, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-30	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 18, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-31	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 19, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-32	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 21, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-33	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 22, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-34	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 23, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-35	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 19, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-36	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 21, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-37	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 19, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-38	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 23, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-39	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 19, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-40	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 22, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-41	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 23, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-42	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 18, "id_accion_permiso": 5}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-43	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 1, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-44	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 19, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-19 10:49:15.060024
-45	usuario	UPDATE	2	\N	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	Actualización de registro en usuario	2026-09-19 10:49:25.885438
-46	usuario	INSERT	3	\N	\N	{"correo": "tovar232@gmail.com", "estado": 1, "id_rol": 4, "nombre": "miguel tovar", "apellido": "sol", "creado_en": "2026-09-19T12:37:25.003653", "documento": "1109541234", "contrasena": "$2y$10$vkcZBDuN66/hpyx60945p.d2LVcx7Y4yqaXCXYmIxPiCZl8GMWVYO", "id_usuario": 3, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	Creación de registro en usuario	2026-09-19 12:37:25.003653
-47	usuario	UPDATE	3	\N	{"correo": "tovar232@gmail.com", "estado": 1, "id_rol": 4, "nombre": "miguel tovar", "apellido": "sol", "creado_en": "2026-09-19T12:37:25.003653", "documento": "1109541234", "contrasena": "$2y$10$vkcZBDuN66/hpyx60945p.d2LVcx7Y4yqaXCXYmIxPiCZl8GMWVYO", "id_usuario": 3, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	{"correo": "tovar232@gmail.com", "estado": 1, "id_rol": 4, "nombre": "miguel tovar", "apellido": "sol", "creado_en": "2026-09-19T12:37:25.003653", "documento": "1109541234", "contrasena": "$2y$10$vkcZBDuN66/hpyx60945p.d2LVcx7Y4yqaXCXYmIxPiCZl8GMWVYO", "id_usuario": 3, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 1, "token_recuperacion": null}	Actualización de registro en usuario	2026-09-19 12:37:47.456419
-48	usuario	UPDATE	3	\N	{"correo": "tovar232@gmail.com", "estado": 1, "id_rol": 4, "nombre": "miguel tovar", "apellido": "sol", "creado_en": "2026-09-19T12:37:25.003653", "documento": "1109541234", "contrasena": "$2y$10$vkcZBDuN66/hpyx60945p.d2LVcx7Y4yqaXCXYmIxPiCZl8GMWVYO", "id_usuario": 3, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 1, "token_recuperacion": null}	{"correo": "tovar232@gmail.com", "estado": 1, "id_rol": 4, "nombre": "miguel tovar", "apellido": "sol", "creado_en": "2026-09-19T12:37:25.003653", "documento": "1109541234", "contrasena": "$2y$10$vkcZBDuN66/hpyx60945p.d2LVcx7Y4yqaXCXYmIxPiCZl8GMWVYO", "id_usuario": 3, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	Actualización de registro en usuario	2026-09-19 12:38:00.439896
-85	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 8, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-86	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 9, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-49	usuario	UPDATE	2	\N	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": "017888"}	Actualización de registro en usuario	2026-09-19 17:56:16.293834
-50	zoocriadero	INSERT	3	\N	\N	{"barrio": "San Nicolás", "comuna": "Comuna 3", "estado": 1, "nombre": "Zoocriadero San Nicolás", "latitud": 3.45582560, "longitud": -76.52281010, "creado_en": "2026-09-20T11:09:04.860354", "direccion": "Cll 20 # 8-15", "id_zoocriadero": 3, "id_persona_cargo": null}	Creación de registro en zoocriadero	2026-09-20 11:09:04.860354
-51	zoocriadero	INSERT	4	\N	\N	{"barrio": "Alfonso López I", "comuna": "Comuna 7", "estado": 1, "nombre": "Zoocriadero Alfonso López", "latitud": 3.46137040, "longitud": -76.48088930, "creado_en": "2026-09-20T11:09:59.686689", "direccion": "Cra 28 # 45-60", "id_zoocriadero": 4, "id_persona_cargo": null}	Creación de registro en zoocriadero	2026-09-20 11:09:59.686689
-52	usuario	UPDATE	2	\N	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": "017888"}	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 1, "token_recuperacion": "017888"}	Actualización de registro en usuario	2026-09-20 11:37:03.794521
-53	usuario	UPDATE	2	\N	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 1, "token_recuperacion": "017888"}	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": "017888"}	Actualización de registro en usuario	2026-09-20 11:37:12.344226
-54	usuario	UPDATE	2	\N	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": "017888"}	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": "017888"}	Actualización de registro en usuario	2026-09-20 11:37:25.374017
-55	usuario	UPDATE	2	\N	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": "017888"}	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 1, "token_recuperacion": "017888"}	Actualización de registro en usuario	2026-09-20 11:38:20.080413
-56	usuario	UPDATE	2	\N	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 1, "token_recuperacion": "017888"}	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "Jaider Alexis", "apellido": "Montaño Mondragon", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109545512", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": "017888"}	Actualización de registro en usuario	2026-09-20 11:38:27.315797
-57	sitio	INSERT	7	\N	\N	{"estado": 1, "id_sitio": 7, "creado_en": "2026-09-20T12:04:22.773839", "id_direccion": 8, "id_tipo_deposito": 11}	Creación de registro en sitio	2026-09-20 12:04:22.773839
-87	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 10, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-88	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 11, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-58	sitio	UPDATE	1	\N	{"estado": 1, "nombre": null, "id_sitio": 1, "creado_en": "2026-09-17T17:18:23.754599", "descripcion": null, "id_direccion": 1, "id_tipo_deposito": 1}	{"estado": 1, "nombre": "Sumidero / Alcantarilla", "id_sitio": 1, "creado_en": "2026-09-17T17:18:23.754599", "descripcion": "Depósito de aguas pluviales en vía pública", "id_direccion": 1, "id_tipo_deposito": 1}	Actualización de registro en sitio	2026-09-20 12:26:15.480004
-59	sitio	UPDATE	2	\N	{"estado": 1, "nombre": null, "id_sitio": 2, "creado_en": "2026-09-17T17:18:23.754599", "descripcion": null, "id_direccion": 2, "id_tipo_deposito": 2}	{"estado": 1, "nombre": "Lanta / Neumático desechado", "id_sitio": 2, "creado_en": "2026-09-17T17:18:23.754599", "descripcion": "Depósito artificial a la intemperie", "id_direccion": 2, "id_tipo_deposito": 2}	Actualización de registro en sitio	2026-09-20 12:26:15.480004
-60	sitio	UPDATE	3	\N	{"estado": 1, "nombre": null, "id_sitio": 3, "creado_en": "2026-09-17T17:18:23.754599", "descripcion": null, "id_direccion": 3, "id_tipo_deposito": 1}	{"estado": 1, "nombre": "Sumidero / Alcantarilla", "id_sitio": 3, "creado_en": "2026-09-17T17:18:23.754599", "descripcion": "Depósito de aguas pluviales en vía pública", "id_direccion": 3, "id_tipo_deposito": 1}	Actualización de registro en sitio	2026-09-20 12:26:15.480004
-61	sitio	UPDATE	4	\N	{"estado": 1, "nombre": null, "id_sitio": 4, "creado_en": "2026-09-17T17:18:23.754599", "descripcion": null, "id_direccion": 4, "id_tipo_deposito": 3}	{"estado": 1, "nombre": "Tanque de Agua Potable Destapado", "id_sitio": 4, "creado_en": "2026-09-17T17:18:23.754599", "descripcion": "Depósito doméstico residencial", "id_direccion": 4, "id_tipo_deposito": 3}	Actualización de registro en sitio	2026-09-20 12:26:15.480004
-62	sitio	UPDATE	5	\N	{"estado": 1, "nombre": null, "id_sitio": 5, "creado_en": "2026-09-17T17:18:23.754599", "descripcion": null, "id_direccion": 5, "id_tipo_deposito": 5}	{"estado": 1, "nombre": "Charco / Charca estancada", "id_sitio": 5, "creado_en": "2026-09-17T17:18:23.754599", "descripcion": "Acumulación natural en vía pública", "id_direccion": 5, "id_tipo_deposito": 5}	Actualización de registro en sitio	2026-09-20 12:26:15.480004
-63	sitio	UPDATE	6	\N	{"estado": 1, "nombre": null, "id_sitio": 6, "creado_en": "2026-09-17T17:18:23.754599", "descripcion": null, "id_direccion": 6, "id_tipo_deposito": 2}	{"estado": 1, "nombre": "Lanta / Neumático desechado", "id_sitio": 6, "creado_en": "2026-09-17T17:18:23.754599", "descripcion": "Depósito artificial a la intemperie", "id_direccion": 6, "id_tipo_deposito": 2}	Actualización de registro en sitio	2026-09-20 12:26:15.480004
-64	sitio	UPDATE	7	\N	{"estado": 1, "nombre": null, "id_sitio": 7, "creado_en": "2026-09-20T12:04:22.773839", "descripcion": null, "id_direccion": 8, "id_tipo_deposito": 11}	{"estado": 1, "nombre": "Floreros", "id_sitio": 7, "creado_en": "2026-09-20T12:04:22.773839", "descripcion": "Floreros de cementerio o de casa", "id_direccion": 8, "id_tipo_deposito": 11}	Actualización de registro en sitio	2026-09-20 12:26:15.480004
-65	sitio	UPDATE	7	\N	{"fecha": "2026-09-20T12:04:22.773839", "estado": 1, "nombre": "Floreros", "id_sitio": 7, "descripcion": "Floreros de cementerio o de casa", "id_direccion": 8}	{"fecha": "2026-09-20T12:04:22.773839", "estado": 1, "nombre": "Cerca", "id_sitio": 7, "descripcion": "Floreros de cementerio o de casa", "id_direccion": 8}	Actualización de registro en sitio	2026-09-20 12:32:18.388955
-66	rol	INSERT	5	\N	\N	{"estado": 1, "id_rol": 5, "nombre_rol": "Rol prueba", "descripcion": null}	Creación de registro en rol	2026-09-20 15:13:36.543827
-67	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 1, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-68	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 5, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-69	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 7, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-70	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 8, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-71	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 9, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-72	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 10, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-73	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 11, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-74	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 12, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-75	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 13, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-76	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 17, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-77	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 18, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-78	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 19, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-79	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 20, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-80	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 21, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-81	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 22, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-82	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 23, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-83	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 1, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-84	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 7, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-89	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 12, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-90	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 13, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-91	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 19, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-92	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 21, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-93	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 1, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-94	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 7, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-95	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 8, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-96	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 9, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-97	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 10, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-98	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 11, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-99	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 12, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-100	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 13, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-101	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 19, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-102	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 20, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-103	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 1, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-104	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 7, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-105	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 8, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-106	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 9, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-107	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 10, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-108	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 11, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-109	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 12, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-110	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 13, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-111	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 19, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-112	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 20, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-113	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 22, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-114	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 23, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-115	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 18, "id_accion_permiso": 5}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-116	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 1, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-117	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 7, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-118	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 8, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-119	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 9, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-120	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 10, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-121	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 11, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-122	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 12, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-123	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 13, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-124	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 19, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-125	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 5, "id_modulo": 20, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 15:13:36.543827
-126	usuario	INSERT	4	\N	\N	{"correo": "yeiner@gmail.com", "estado": 1, "id_rol": 5, "nombre": "YEINER FABIAN", "apellido": "OROZOC HINESTROZA", "creado_en": "2026-09-20T15:40:07.356712", "documento": "1028182541", "contrasena": "$2y$10$OO/LmIq6RVW2HIP5P4mQIuff3Pxb5bJ9zRWLgQJu4gKXK9XPPGzjK", "id_usuario": 4, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 3, "intentos_fallidos": 0, "token_recuperacion": null}	Creación de registro en usuario	2026-09-20 15:40:07.356712
-127	usuario	UPDATE	4	\N	{"correo": "yeiner@gmail.com", "estado": 1, "id_rol": 5, "nombre": "YEINER FABIAN", "apellido": "OROZOC HINESTROZA", "creado_en": "2026-09-20T15:40:07.356712", "documento": "1028182541", "contrasena": "$2y$10$OO/LmIq6RVW2HIP5P4mQIuff3Pxb5bJ9zRWLgQJu4gKXK9XPPGzjK", "id_usuario": 4, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 3, "intentos_fallidos": 0, "token_recuperacion": null}	{"correo": "yeiner@gmail.com", "estado": 1, "id_rol": 5, "nombre": "YEINER FABIAN", "apellido": "OROZOC HINESTROZA", "creado_en": "2026-09-20T15:40:07.356712", "documento": "1028182541", "contrasena": "$2y$10$OO/LmIq6RVW2HIP5P4mQIuff3Pxb5bJ9zRWLgQJu4gKXK9XPPGzjK", "id_usuario": 4, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 3, "intentos_fallidos": 1, "token_recuperacion": null}	Actualización de registro en usuario	2026-09-20 15:41:31.779057
-128	usuario	UPDATE	4	\N	{"correo": "yeiner@gmail.com", "estado": 1, "id_rol": 5, "nombre": "YEINER FABIAN", "apellido": "OROZOC HINESTROZA", "creado_en": "2026-09-20T15:40:07.356712", "documento": "1028182541", "contrasena": "$2y$10$OO/LmIq6RVW2HIP5P4mQIuff3Pxb5bJ9zRWLgQJu4gKXK9XPPGzjK", "id_usuario": 4, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 3, "intentos_fallidos": 1, "token_recuperacion": null}	{"correo": "yeiner@gmail.com", "estado": 1, "id_rol": 5, "nombre": "YEINER FABIAN", "apellido": "OROZOC HINESTROZA", "creado_en": "2026-09-20T15:40:07.356712", "documento": "1028182541", "contrasena": "$2y$10$OO/LmIq6RVW2HIP5P4mQIuff3Pxb5bJ9zRWLgQJu4gKXK9XPPGzjK", "id_usuario": 4, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 3, "intentos_fallidos": 0, "token_recuperacion": null}	Actualización de registro en usuario	2026-09-20 15:41:51.049224
-129	zoocriadero	INSERT	5	\N	\N	{"barrio": "José Manuel Marroquín II", "comuna": "Comuna 14", "estado": 1, "nombre": "charco azul", "latitud": 0.00000000, "longitud": 0.00000000, "creado_en": "2026-09-20T15:43:33.950062", "direccion": "Calle 13 # 24-05", "id_zoocriadero": 5, "id_persona_cargo": null}	Creación de registro en zoocriadero	2026-09-20 15:43:33.950062
-130	seguimiento_zoocriadero	INSERT	2	\N	\N	{"ph": null, "fecha": "2026-09-20", "estado": 1, "id_tanque": 1, "id_usuario": 1, "temperatura": null, "observaciones": "comen muy bien", "id_seguimiento": 2, "id_zoocriadero": 1, "numero_muertos": 0, "numero_nacidos": 0, "numero_sembrados": 0, "numero_muertos_macho": 0, "numero_nacidos_macho": 0, "numero_muertos_hembra": 0, "numero_nacidos_hembra": 0}	Creación de registro en seguimiento_zoocriadero	2026-09-20 15:45:07.192543
-131	actividad_zoocriadero	INSERT	2	\N	\N	{"id_actividad": 30, "id_seguimiento": 2, "id_actividad_zoocriadero": 2}	Creación de registro en actividad_zoocriadero	2026-09-20 15:45:07.192543
-132	usuario	UPDATE	4	\N	{"correo": "yeiner@gmail.com", "estado": 1, "id_rol": 5, "nombre": "YEINER FABIAN", "apellido": "OROZOC HINESTROZA", "creado_en": "2026-09-20T15:40:07.356712", "documento": "1028182541", "contrasena": "$2y$10$OO/LmIq6RVW2HIP5P4mQIuff3Pxb5bJ9zRWLgQJu4gKXK9XPPGzjK", "id_usuario": 4, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 3, "intentos_fallidos": 0, "token_recuperacion": null}	{"correo": "yeiner@gmail.com", "estado": 1, "id_rol": 3, "nombre": "yeisen", "apellido": "arroyo ocho", "creado_en": "2026-09-20T15:40:07.356712", "documento": "106565158", "contrasena": "$2y$10$OO/LmIq6RVW2HIP5P4mQIuff3Pxb5bJ9zRWLgQJu4gKXK9XPPGzjK", "id_usuario": 4, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	Actualización de registro en usuario	2026-09-20 15:56:00.691375
-133	usuario	UPDATE	4	\N	{"correo": "yeiner@gmail.com", "estado": 1, "id_rol": 3, "nombre": "yeisen", "apellido": "arroyo ocho", "creado_en": "2026-09-20T15:40:07.356712", "documento": "106565158", "contrasena": "$2y$10$OO/LmIq6RVW2HIP5P4mQIuff3Pxb5bJ9zRWLgQJu4gKXK9XPPGzjK", "id_usuario": 4, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	{"correo": "nicolito@gmail.com", "estado": 1, "id_rol": 3, "nombre": "yeisen", "apellido": "arroyo ocho", "creado_en": "2026-09-20T15:40:07.356712", "documento": "106565158", "contrasena": "$2y$10$OO/LmIq6RVW2HIP5P4mQIuff3Pxb5bJ9zRWLgQJu4gKXK9XPPGzjK", "id_usuario": 4, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	Actualización de registro en usuario	2026-09-20 15:56:14.814068
-134	usuario	INSERT	5	\N	\N	{"correo": "yeiner@gmail.com", "estado": 1, "id_rol": 5, "nombre": "yeiner fabian", "apellido": "orozco hinestroza", "creado_en": "2026-09-20T16:10:24.315047", "documento": "1028122541", "contrasena": "$2y$10$dj/WWhUQt4sn9eok/wWNn.DVrFhUAmwBKZkBV5OnyCC/hyXLUor2i", "id_usuario": 5, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 3, "intentos_fallidos": 0, "token_recuperacion": null}	Creación de registro en usuario	2026-09-20 16:10:24.315047
-135	usuario	UPDATE	5	\N	{"correo": "yeiner@gmail.com", "estado": 1, "id_rol": 5, "nombre": "yeiner fabian", "apellido": "orozco hinestroza", "creado_en": "2026-09-20T16:10:24.315047", "documento": "1028122541", "contrasena": "$2y$10$dj/WWhUQt4sn9eok/wWNn.DVrFhUAmwBKZkBV5OnyCC/hyXLUor2i", "id_usuario": 5, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 3, "intentos_fallidos": 0, "token_recuperacion": null}	{"correo": "yeiner@gmail.com", "estado": 1, "id_rol": 5, "nombre": "yeiner fabian", "apellido": "orozco hinestroza", "creado_en": "2026-09-20T16:10:24.315047", "documento": "1028122541", "contrasena": "$2y$10$dj/WWhUQt4sn9eok/wWNn.DVrFhUAmwBKZkBV5OnyCC/hyXLUor2i", "id_usuario": 5, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 3, "intentos_fallidos": 0, "token_recuperacion": null}	Actualización de registro en usuario	2026-09-20 16:11:31.482911
-136	zoocriadero	INSERT	6	\N	\N	{"barrio": "Comuneros II", "comuna": "Comuna 15", "estado": 1, "nombre": "7 de agosto", "latitud": 0.00000000, "longitud": 0.00000000, "creado_en": "2026-09-20T16:13:01.35188", "direccion": "Calle 13 # 24-05", "id_zoocriadero": 6, "id_persona_cargo": null}	Creación de registro en zoocriadero	2026-09-20 16:13:01.35188
-137	seguimiento_zoocriadero	INSERT	3	\N	\N	{"ph": null, "fecha": "2026-09-20", "estado": 1, "id_tanque": 1, "id_usuario": 1, "temperatura": null, "observaciones": "comen mucho y muy bien", "id_seguimiento": 3, "id_zoocriadero": 1, "numero_muertos": 0, "numero_nacidos": 0, "numero_sembrados": 0, "numero_muertos_macho": 0, "numero_nacidos_macho": 0, "numero_muertos_hembra": 0, "numero_nacidos_hembra": 0}	Creación de registro en seguimiento_zoocriadero	2026-09-20 16:14:18.290095
-138	actividad_zoocriadero	INSERT	3	\N	\N	{"id_actividad": 30, "id_seguimiento": 3, "id_actividad_zoocriadero": 3}	Creación de registro en actividad_zoocriadero	2026-09-20 16:14:18.290095
+1	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 1, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+2	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 5, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+3	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 17, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+4	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 18, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+5	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 19, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+6	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 21, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+7	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 22, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+8	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 23, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+9	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 19, "id_accion_permiso": 2}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+10	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 21, "id_accion_permiso": 2}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+11	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 19, "id_accion_permiso": 3}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+12	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 23, "id_accion_permiso": 3}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+13	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 19, "id_accion_permiso": 4}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+14	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 22, "id_accion_permiso": 4}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+15	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 23, "id_accion_permiso": 4}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+16	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 18, "id_accion_permiso": 5}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+17	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 1, "id_accion_permiso": 7}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+18	rol_permiso	DELETE	\N	\N	{"id_rol": 2, "id_modulo": 19, "id_accion_permiso": 7}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:05:55.527268
+19	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 12, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+20	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 10, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+21	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 9, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+22	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 8, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+23	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 7, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+24	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 1, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+25	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 12, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+26	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 10, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+27	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 9, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+28	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 8, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+29	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 7, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+30	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 1, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+31	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 12, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+32	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 10, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+33	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 9, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+34	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 8, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+35	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 7, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+36	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 1, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+37	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 12, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+38	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 10, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+39	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 9, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+40	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 8, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+41	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 7, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+42	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 1, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+43	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 23, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+44	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 22, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+45	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 21, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+46	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 19, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+47	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 11, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+48	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 7, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+49	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 21, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+50	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 19, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+51	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 11, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+52	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 7, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+53	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 23, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+54	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 19, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+55	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 11, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+56	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 7, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+57	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 19, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+58	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 11, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+59	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 7, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+60	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 23, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+61	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 22, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+62	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 19, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+63	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 11, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+64	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 2, "id_modulo": 7, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+65	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 1, "id_modulo": 18, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+66	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 1, "id_modulo": 8, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+67	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 1, "id_modulo": 1, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+68	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 1, "id_modulo": 8, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+69	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 1, "id_modulo": 1, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+70	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 1, "id_modulo": 8, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+71	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 1, "id_modulo": 1, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+72	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 1, "id_modulo": 18, "id_accion_permiso": 5}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+73	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 1, "id_modulo": 8, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+74	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 1, "id_modulo": 1, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+75	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 1, "id_modulo": 8, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+76	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 1, "id_modulo": 1, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+77	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 23, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+78	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 22, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+79	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 21, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+80	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 20, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+81	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 19, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+82	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 18, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+83	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 17, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+84	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 12, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+85	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 11, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+86	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 10, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+87	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 9, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+88	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 8, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+89	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 7, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+90	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 5, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+91	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 1, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+92	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 21, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+93	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 19, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+94	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 12, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+95	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 11, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+96	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 10, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+97	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 9, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+98	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 8, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+99	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 7, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+100	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 1, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+101	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 23, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+102	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 20, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+103	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 19, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+104	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 12, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+105	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 11, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+106	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 10, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+107	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 9, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+108	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 8, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+109	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 7, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+110	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 1, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+111	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 18, "id_accion_permiso": 5}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+112	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 20, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+113	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 19, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+114	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 12, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+115	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 11, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+116	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 10, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+117	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 9, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+118	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 8, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+119	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 7, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+120	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 1, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+121	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 23, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+122	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 22, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+123	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 20, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+124	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 19, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+125	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 12, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+126	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 11, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+127	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 10, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+128	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 9, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+129	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 8, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+130	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 7, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+131	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 1, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+132	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 20, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:05:55.527268
+133	usuario	INSERT	7	\N	\N	{"correo": "auxiliar.temporal@siguppys.local", "estado": 1, "id_rol": 3, "nombre": "Auxiliar", "apellido": "Temporal", "creado_en": "2026-09-20T19:05:55.527268", "documento": "900000001", "contrasena": "Siguppy#Temp2026", "id_usuario": 7, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	Creación de registro en usuario	2026-09-20 19:05:55.527268
+134	usuario	INSERT	8	\N	\N	{"correo": "administrador.temporal@siguppys.local", "estado": 1, "id_rol": 2, "nombre": "Administrador", "apellido": "Temporal", "creado_en": "2026-09-20T19:05:55.527268", "documento": "900000002", "contrasena": "Siguppy#Temp2026", "id_usuario": 8, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	Creación de registro en usuario	2026-09-20 19:05:55.527268
+135	usuario	INSERT	9	\N	\N	{"correo": "coordinador.temporal@siguppys.local", "estado": 1, "id_rol": 1, "nombre": "Coordinador", "apellido": "Temporal", "creado_en": "2026-09-20T19:05:55.527268", "documento": "900000003", "contrasena": "Siguppy#Temp2026", "id_usuario": 9, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	Creación de registro en usuario	2026-09-20 19:05:55.527268
+136	usuario	INSERT	10	\N	\N	{"correo": "superadmin.temporal@siguppys.local", "estado": 1, "id_rol": 4, "nombre": "Super", "apellido": "Administrador Temporal", "creado_en": "2026-09-20T19:05:55.527268", "documento": "900000004", "contrasena": "Siguppy#Temp2026", "id_usuario": 10, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	Creación de registro en usuario	2026-09-20 19:05:55.527268
+137	usuario	UPDATE	10	10	{"correo": "superadmin.temporal@siguppys.local", "estado": 1, "id_rol": 4, "nombre": "Super", "apellido": "Administrador Temporal", "creado_en": "2026-09-20T19:05:55.527268", "documento": "900000004", "contrasena": "Siguppy#Temp2026", "id_usuario": 10, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	{"correo": "superadmin.temporal@siguppys.local", "estado": 1, "id_rol": 4, "nombre": "Super", "apellido": "Administrador Temporal", "creado_en": "2026-09-20T19:05:55.527268", "documento": "900000004", "contrasena": "Siguppy#Temp2026", "id_usuario": 10, "token_expira": null, "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": null}	Actualización de registro en usuario	2026-09-20 19:06:19.112315
+138	login	LOGIN_EXITOSO	10	10	\N	{"correo": "superadmin.temporal@siguppys.local", "exitoso": true}	Inicio de sesión exitoso	2026-09-20 19:06:19.159369
+139	rol	UPDATE	3	\N	{"estado": 1, "id_rol": 3, "nombre_rol": "Auxiliar", "descripcion": "Personal de campo"}	{"estado": 1, "id_rol": 3, "nombre_rol": "Auxiliar", "descripcion": "Personal de campo"}	Actualización de registro en rol	2026-09-20 19:08:08.440103
+140	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 12, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+141	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 10, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+142	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 9, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+143	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 8, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+144	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 7, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+145	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 1, "id_accion_permiso": 1}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+146	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 12, "id_accion_permiso": 2}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+147	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 10, "id_accion_permiso": 2}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+148	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 9, "id_accion_permiso": 2}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+149	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 8, "id_accion_permiso": 2}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+150	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 7, "id_accion_permiso": 2}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+151	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 1, "id_accion_permiso": 2}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+152	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 12, "id_accion_permiso": 3}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+153	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 10, "id_accion_permiso": 3}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+154	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 9, "id_accion_permiso": 3}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+155	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 8, "id_accion_permiso": 3}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+156	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 7, "id_accion_permiso": 3}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+157	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 1, "id_accion_permiso": 3}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+158	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 12, "id_accion_permiso": 7}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+159	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 10, "id_accion_permiso": 7}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+160	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 9, "id_accion_permiso": 7}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+161	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 8, "id_accion_permiso": 7}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+162	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 7, "id_accion_permiso": 7}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+163	rol_permiso	DELETE	\N	\N	{"id_rol": 3, "id_modulo": 1, "id_accion_permiso": 7}	\N	Eliminación de registro en rol_permiso	2026-09-20 19:08:08.440103
+164	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 1, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+165	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 7, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+166	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 8, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+167	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 9, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+168	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 10, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+169	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 12, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+170	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 20, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+171	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 1, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+172	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 7, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+173	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 8, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+174	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 9, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+175	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 10, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+176	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 12, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+177	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 20, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+178	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 1, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+179	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 7, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+180	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 8, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+181	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 9, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+182	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 10, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+183	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 12, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+184	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 20, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+185	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 20, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+186	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 1, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+187	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 7, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+188	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 8, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+189	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 9, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+190	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 10, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+191	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 12, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+192	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 20, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:08:08.440103
+193	usuario	UPDATE	2	10	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 2, "nombre": "miguel", "apellido": "tovar", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109232423", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": "017888"}	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 4, "nombre": "miguel", "apellido": "tovar", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109232423", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": "017888"}	Actualización de registro en usuario	2026-09-20 19:46:16.961297
+194	usuario	UPDATE	2	2	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 4, "nombre": "miguel", "apellido": "tovar", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109232423", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": "017888"}	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 4, "nombre": "miguel", "apellido": "tovar", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109232423", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": "017888"}	Actualización de registro en usuario	2026-09-20 19:46:53.213271
+195	login	LOGIN_EXITOSO	2	2	\N	{"correo": "jaidermontano69@gmail.com", "exitoso": true}	Inicio de sesión exitoso	2026-09-20 19:46:53.220992
+196	modulo_accion_permitida	INSERT	\N	\N	\N	{"id_modulo": 25, "id_accion_permiso": 1}	Creación de registro en modulo_accion_permitida	2026-09-20 19:48:03.545925
+197	modulo_accion_permitida	INSERT	\N	\N	\N	{"id_modulo": 25, "id_accion_permiso": 2}	Creación de registro en modulo_accion_permitida	2026-09-20 19:48:03.545925
+198	modulo_accion_permitida	INSERT	\N	\N	\N	{"id_modulo": 25, "id_accion_permiso": 3}	Creación de registro en modulo_accion_permitida	2026-09-20 19:48:03.545925
+199	modulo_accion_permitida	INSERT	\N	\N	\N	{"id_modulo": 25, "id_accion_permiso": 4}	Creación de registro en modulo_accion_permitida	2026-09-20 19:48:03.545925
+200	modulo_accion_permitida	INSERT	\N	\N	\N	{"id_modulo": 25, "id_accion_permiso": 7}	Creación de registro en modulo_accion_permitida	2026-09-20 19:48:03.545925
+201	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 25, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:48:03.545925
+202	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 25, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:48:03.545925
+203	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 25, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:48:03.545925
+204	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 25, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:48:03.545925
+205	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 4, "id_modulo": 25, "id_accion_permiso": 4}	Creación de registro en rol_permiso	2026-09-20 19:48:03.545925
+206	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 25, "id_accion_permiso": 1}	Creación de registro en rol_permiso	2026-09-20 19:48:03.545925
+207	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 25, "id_accion_permiso": 2}	Creación de registro en rol_permiso	2026-09-20 19:48:03.545925
+208	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 25, "id_accion_permiso": 3}	Creación de registro en rol_permiso	2026-09-20 19:48:03.545925
+209	rol_permiso	INSERT	\N	\N	\N	{"id_rol": 3, "id_modulo": 25, "id_accion_permiso": 7}	Creación de registro en rol_permiso	2026-09-20 19:48:03.545925
+215	usuario	UPDATE	2	2	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 4, "nombre": "miguel", "apellido": "tovar", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109232423", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": "017888"}	{"correo": "jaidermontano69@gmail.com", "estado": 1, "id_rol": 4, "nombre": "miguel", "apellido": "tovar", "creado_en": "2026-09-19T10:47:39.645976", "documento": "1109232423", "contrasena": "$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W", "id_usuario": 2, "token_expira": "2026-09-19T23:11:16", "bloqueo_hasta": null, "id_tipodocumento": 1, "intentos_fallidos": 0, "token_recuperacion": "017888"}	Actualización de registro en usuario	2026-09-20 19:49:03.663079
+216	login	LOGIN_EXITOSO	2	2	\N	{"correo": "jaidermontano69@gmail.com", "exitoso": true}	Inicio de sesión exitoso	2026-09-20 19:49:03.697262
 \.
 
 
@@ -1499,6 +1729,15 @@ COPY public.comuna (id_comuna, nombre) FROM stdin;
 
 
 --
+-- Data for Name: copia_seguridad_historial; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.copia_seguridad_historial (id_historial, fecha_hora, tipo_operacion, nombre_archivo, id_usuario, usuario_nombre, estado, detalle) FROM stdin;
+1	2026-09-20 19:59:09.806133	descarga	bd_dengue_siguppy_20260920_195908.sql	2	miguel tovar	exito	\N
+\.
+
+
+--
 -- Data for Name: departamento; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1557,6 +1796,7 @@ COPY public.modulo (id_modulo, nombre, descripcion) FROM stdin;
 21	Roles y Permisos	Gestión de roles y sus permisos por módulo
 22	Consultar Roles	Revisar la información detallada de la funcion de los roles
 23	Consultar Usuarios	Consulta de usuarios: ver, editar e inhabilitar
+25	Seguimiento de Depósito	Visitas de seguimiento a un depósito y su ubicación en el mapa
 \.
 
 
@@ -1625,6 +1865,12 @@ COPY public.modulo_accion_permitida (id_modulo, id_accion_permiso) FROM stdin;
 8	4
 7	4
 1	4
+20	2
+25	1
+25	2
+25	3
+25	4
+25	7
 \.
 
 
@@ -1647,10 +1893,9 @@ COPY public.nomenclatura (id_nomenclatura, nomenclatura) FROM stdin;
 
 COPY public.rol (id_rol, nombre_rol, descripcion, estado) FROM stdin;
 1	Coordinador	Coordina control biológico y ecosalud	1
-3	Auxiliar	Personal de campo	1
 4	Super Administrador	Administra la base de datos y la configuración del sistema	1
 2	Administrador	Director(a) del Grupo ETV	1
-5	Rol prueba	\N	1
+3	Auxiliar	Personal de campo	1
 \.
 
 
@@ -1659,83 +1904,142 @@ COPY public.rol (id_rol, nombre_rol, descripcion, estado) FROM stdin;
 --
 
 COPY public.rol_permiso (id_rol, id_modulo, id_accion_permiso) FROM stdin;
-2	1	1
-2	5	1
-2	17	1
-2	18	1
-2	19	1
-2	21	1
-2	22	1
 2	23	1
-2	19	2
+2	22	1
+2	21	1
+2	19	1
+2	11	1
+2	7	1
 2	21	2
-2	19	3
+2	19	2
+2	11	2
+2	7	2
 2	23	3
-2	19	4
-2	22	4
-2	23	4
-2	18	5
-2	1	7
+2	19	3
+2	11	3
+2	7	3
 2	19	7
-5	1	1
-5	5	1
-5	7	1
-5	8	1
-5	9	1
-5	10	1
-5	11	1
-5	12	1
-5	13	1
-5	17	1
-5	18	1
-5	19	1
-5	20	1
-5	21	1
-5	22	1
-5	23	1
-5	1	2
-5	7	2
-5	8	2
-5	9	2
-5	10	2
-5	11	2
-5	12	2
-5	13	2
-5	19	2
-5	21	2
-5	1	3
-5	7	3
-5	8	3
-5	9	3
-5	10	3
-5	11	3
-5	12	3
-5	13	3
-5	19	3
-5	20	3
-5	1	4
-5	7	4
-5	8	4
-5	9	4
-5	10	4
-5	11	4
-5	12	4
-5	13	4
-5	19	4
-5	20	4
-5	22	4
-5	23	4
-5	18	5
-5	1	7
-5	7	7
-5	8	7
-5	9	7
-5	10	7
-5	11	7
-5	12	7
-5	13	7
-5	19	7
-5	20	7
+2	11	7
+2	7	7
+2	23	4
+2	22	4
+2	19	4
+2	11	4
+2	7	4
+1	18	1
+1	8	1
+1	1	1
+1	8	2
+1	1	2
+1	8	3
+1	1	3
+1	18	5
+1	8	7
+1	1	7
+1	8	4
+1	1	4
+4	23	1
+4	22	1
+4	21	1
+4	20	1
+4	19	1
+4	18	1
+4	17	1
+4	12	1
+4	11	1
+4	10	1
+4	9	1
+4	8	1
+4	7	1
+4	5	1
+4	1	1
+4	21	2
+4	19	2
+4	12	2
+4	11	2
+4	10	2
+4	9	2
+4	8	2
+4	7	2
+4	1	2
+4	23	3
+4	20	3
+4	19	3
+4	12	3
+4	11	3
+4	10	3
+4	9	3
+4	8	3
+4	7	3
+4	1	3
+4	18	5
+4	20	7
+4	19	7
+4	12	7
+4	11	7
+4	10	7
+4	9	7
+4	8	7
+4	7	7
+4	1	7
+4	23	4
+4	22	4
+4	20	4
+4	19	4
+4	12	4
+4	11	4
+4	10	4
+4	9	4
+4	8	4
+4	7	4
+4	1	4
+4	20	2
+3	1	1
+3	7	1
+3	8	1
+3	9	1
+3	10	1
+3	12	1
+3	20	1
+3	1	2
+3	7	2
+3	8	2
+3	9	2
+3	10	2
+3	12	2
+3	20	2
+3	1	3
+3	7	3
+3	8	3
+3	9	3
+3	10	3
+3	12	3
+3	20	3
+3	20	4
+3	1	7
+3	7	7
+3	8	7
+3	9	7
+3	10	7
+3	12	7
+3	20	7
+4	25	1
+4	25	2
+4	25	3
+4	25	7
+4	25	4
+3	25	1
+3	25	2
+3	25	3
+3	25	7
+\.
+
+
+--
+-- Data for Name: seguimiento_deposito; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.seguimiento_deposito (id_seguimiento_deposito, id_deposito, id_usuario, id_actividad, fecha, presencia_larvas, numero_peces_sembrados, observaciones, estado, creado_en) FROM stdin;
 \.
 
 
@@ -1852,10 +2156,13 @@ COPY public.tipo_tanque (id_tipo_tanque, nombre, descripcion, estado) FROM stdin
 
 COPY public.usuario (id_usuario, id_tipodocumento, id_rol, nombre, apellido, correo, contrasena, estado, creado_en, documento, intentos_fallidos, bloqueo_hasta, token_recuperacion, token_expira) FROM stdin;
 1	1	2	david	gomez	juan@gmail.com	$2y$10$xVZk9DlIgoFE4LfHKwjShuoAS5eEWi9TVLimOklMKTmEvvwfukb2S	1	2026-09-18 21:29:31.045752	1109545513	0	\N	\N	\N
+10	1	4	Super	Administrador Temporal	superadmin.temporal@siguppys.local	Siguppy#Temp2026	1	2026-09-20 19:05:55.527268	900000004	0	\N	\N	\N
 3	1	4	miguel tovar	sol	tovar232@gmail.com	$2y$10$vkcZBDuN66/hpyx60945p.d2LVcx7Y4yqaXCXYmIxPiCZl8GMWVYO	1	2026-09-19 12:37:25.003653	1109541234	0	\N	\N	\N
-2	1	2	Jaider Alexis	Montaño Mondragon	jaidermontano69@gmail.com	$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W	1	2026-09-19 10:47:39.645976	1109545512	0	\N	017888	2026-09-19 23:11:16
+2	1	4	miguel	tovar	jaidermontano69@gmail.com	$2y$10$SlVYZEBG3aDdWZM4JEr1feLl/RTyEtbVeM3meBB6b6sUbr2jm.v.W	1	2026-09-19 10:47:39.645976	1109232423	0	\N	017888	2026-09-19 23:11:16
 4	1	3	yeisen	arroyo ocho	nicolito@gmail.com	$2y$10$OO/LmIq6RVW2HIP5P4mQIuff3Pxb5bJ9zRWLgQJu4gKXK9XPPGzjK	1	2026-09-20 15:40:07.356712	106565158	0	\N	\N	\N
-5	3	5	yeiner fabian	orozco hinestroza	yeiner@gmail.com	$2y$10$dj/WWhUQt4sn9eok/wWNn.DVrFhUAmwBKZkBV5OnyCC/hyXLUor2i	1	2026-09-20 16:10:24.315047	1028122541	0	\N	\N	\N
+7	1	3	Auxiliar	Temporal	auxiliar.temporal@siguppys.local	Siguppy#Temp2026	1	2026-09-20 19:05:55.527268	900000001	0	\N	\N	\N
+8	1	2	Administrador	Temporal	administrador.temporal@siguppys.local	Siguppy#Temp2026	1	2026-09-20 19:05:55.527268	900000002	0	\N	\N	\N
+9	1	1	Coordinador	Temporal	coordinador.temporal@siguppys.local	Siguppy#Temp2026	1	2026-09-20 19:05:55.527268	900000003	0	\N	\N	\N
 \.
 
 
@@ -1905,7 +2212,7 @@ SELECT pg_catalog.setval('public.actividad_zoocriadero_id_actividad_zoocriadero_
 -- Name: auditoria_id_auditoria_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.auditoria_id_auditoria_seq', 138, true);
+SELECT pg_catalog.setval('public.auditoria_id_auditoria_seq', 216, true);
 
 
 --
@@ -1937,6 +2244,13 @@ SELECT pg_catalog.setval('public.comuna_id_comuna_seq', 22, true);
 
 
 --
+-- Name: copia_seguridad_historial_id_historial_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.copia_seguridad_historial_id_historial_seq', 1, true);
+
+
+--
 -- Name: departamento_id_departamento_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1961,7 +2275,7 @@ SELECT pg_catalog.setval('public.direccion_id_direccion_seq', 8, true);
 -- Name: modulo_id_modulo_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.modulo_id_modulo_seq', 24, true);
+SELECT pg_catalog.setval('public.modulo_id_modulo_seq', 25, true);
 
 
 --
@@ -1976,6 +2290,13 @@ SELECT pg_catalog.setval('public.nomenclatura_id_nomenclatura_seq', 5, true);
 --
 
 SELECT pg_catalog.setval('public.rol_id_rol_seq', 5, true);
+
+
+--
+-- Name: seguimiento_deposito_id_seguimiento_deposito_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.seguimiento_deposito_id_seguimiento_deposito_seq', 5, true);
 
 
 --
@@ -2038,7 +2359,7 @@ SELECT pg_catalog.setval('public.tipo_tanque_id_tipo_tanque_seq', 11, true);
 -- Name: usuario_id_usuario_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.usuario_id_usuario_seq', 5, true);
+SELECT pg_catalog.setval('public.usuario_id_usuario_seq', 10, true);
 
 
 --
@@ -2121,6 +2442,14 @@ ALTER TABLE ONLY public.comuna
 
 
 --
+-- Name: copia_seguridad_historial copia_seguridad_historial_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.copia_seguridad_historial
+    ADD CONSTRAINT copia_seguridad_historial_pkey PRIMARY KEY (id_historial);
+
+
+--
 -- Name: departamento departamento_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2182,6 +2511,14 @@ ALTER TABLE ONLY public.rol_permiso
 
 ALTER TABLE ONLY public.rol
     ADD CONSTRAINT rol_pkey PRIMARY KEY (id_rol);
+
+
+--
+-- Name: seguimiento_deposito seguimiento_deposito_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.seguimiento_deposito
+    ADD CONSTRAINT seguimiento_deposito_pkey PRIMARY KEY (id_seguimiento_deposito);
 
 
 --
@@ -2309,10 +2646,31 @@ CREATE INDEX idx_auditoria_usuario ON public.auditoria USING btree (id_usuario);
 
 
 --
+-- Name: idx_copia_seguridad_fecha; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_copia_seguridad_fecha ON public.copia_seguridad_historial USING btree (fecha_hora DESC);
+
+
+--
+-- Name: idx_seguimiento_deposito_deposito_fecha; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_seguimiento_deposito_deposito_fecha ON public.seguimiento_deposito USING btree (id_deposito, fecha DESC);
+
+
+--
 -- Name: uq_tipo_documento_nombre_ci; Type: INDEX; Schema: public; Owner: postgres
 --
 
 CREATE UNIQUE INDEX uq_tipo_documento_nombre_ci ON public.tipo_documento USING btree (lower((nombre)::text));
+
+
+--
+-- Name: actividad trg_auditoria_actividad; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER trg_auditoria_actividad AFTER INSERT OR DELETE OR UPDATE ON public.actividad FOR EACH ROW EXECUTE FUNCTION public.fn_auditoria_generica('id_actividad');
 
 
 --
@@ -2337,6 +2695,13 @@ CREATE TRIGGER trg_auditoria_deposito AFTER INSERT OR DELETE OR UPDATE ON public
 
 
 --
+-- Name: direccion trg_auditoria_direccion; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER trg_auditoria_direccion AFTER INSERT OR DELETE OR UPDATE ON public.direccion FOR EACH ROW EXECUTE FUNCTION public.fn_auditoria_generica('id_direccion');
+
+
+--
 -- Name: modulo_accion_permitida trg_auditoria_modulo_accion_permitida; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -2355,6 +2720,13 @@ CREATE TRIGGER trg_auditoria_rol AFTER INSERT OR DELETE OR UPDATE ON public.rol 
 --
 
 CREATE TRIGGER trg_auditoria_rol_permiso AFTER INSERT OR DELETE OR UPDATE ON public.rol_permiso FOR EACH ROW EXECUTE FUNCTION public.fn_auditoria_generica();
+
+
+--
+-- Name: seguimiento_deposito trg_auditoria_seguimiento_deposito; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER trg_auditoria_seguimiento_deposito AFTER INSERT OR DELETE OR UPDATE ON public.seguimiento_deposito FOR EACH ROW EXECUTE FUNCTION public.fn_auditoria_generica('id_seguimiento_deposito');
 
 
 --
@@ -2393,6 +2765,13 @@ CREATE TRIGGER trg_auditoria_territorio_priorizado AFTER INSERT OR DELETE OR UPD
 
 
 --
+-- Name: tipo_deposito trg_auditoria_tipo_deposito; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER trg_auditoria_tipo_deposito AFTER INSERT OR DELETE OR UPDATE ON public.tipo_deposito FOR EACH ROW EXECUTE FUNCTION public.fn_auditoria_generica('id_tipo_deposito');
+
+
+--
 -- Name: usuario trg_auditoria_usuario; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -2404,6 +2783,13 @@ CREATE TRIGGER trg_auditoria_usuario AFTER INSERT OR DELETE OR UPDATE ON public.
 --
 
 CREATE TRIGGER trg_auditoria_zoocriadero AFTER INSERT OR DELETE OR UPDATE ON public.zoocriadero FOR EACH ROW EXECUTE FUNCTION public.fn_auditoria_generica('id_zoocriadero');
+
+
+--
+-- Name: seguimiento_deposito trg_validar_seguimiento_deposito; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER trg_validar_seguimiento_deposito BEFORE INSERT OR UPDATE ON public.seguimiento_deposito FOR EACH ROW EXECUTE FUNCTION public.fn_validar_seguimiento_deposito();
 
 
 --
@@ -2591,6 +2977,30 @@ ALTER TABLE ONLY public.rol_permiso
 
 
 --
+-- Name: seguimiento_deposito seguimiento_deposito_id_actividad_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.seguimiento_deposito
+    ADD CONSTRAINT seguimiento_deposito_id_actividad_fkey FOREIGN KEY (id_actividad) REFERENCES public.actividad(id_actividad) DEFERRABLE;
+
+
+--
+-- Name: seguimiento_deposito seguimiento_deposito_id_deposito_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.seguimiento_deposito
+    ADD CONSTRAINT seguimiento_deposito_id_deposito_fkey FOREIGN KEY (id_deposito) REFERENCES public.deposito(id_deposito) DEFERRABLE;
+
+
+--
+-- Name: seguimiento_deposito seguimiento_deposito_id_usuario_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.seguimiento_deposito
+    ADD CONSTRAINT seguimiento_deposito_id_usuario_fkey FOREIGN KEY (id_usuario) REFERENCES public.usuario(id_usuario) DEFERRABLE;
+
+
+--
 -- Name: seguimiento_terreno seguimiento_terreno_id_sitio_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2697,5 +3107,5 @@ REVOKE USAGE ON SCHEMA public FROM PUBLIC;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict nwmPqod3KEjc3kXgD0EvBYIDRrv6JCWT4LgDsJWlbndXzyOfjx7smhDitHZMWde
+\unrestrict RXx76Mf3yJKREhDiHoPmYcAGdlHLYgua4hT8TMIucb03ReFxqArEsUOvrK6LBIA
 

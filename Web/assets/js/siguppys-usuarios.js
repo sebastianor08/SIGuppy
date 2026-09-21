@@ -470,6 +470,15 @@
     }
     if (!payload.id_rol) { alert("Debe seleccionar el rol."); return; }
 
+    // Al crear, el servidor también envía el correo con las credenciales (tarda unos
+    // segundos): se bloquea el botón para evitar un segundo envío por doble clic.
+    var btnGuardar = document.getElementById("usuarioSubmitBtn");
+    var textoBtn = btnGuardar ? btnGuardar.textContent : "";
+    if (btnGuardar) {
+      btnGuardar.disabled = true;
+      btnGuardar.textContent = id ? "Guardando..." : "Guardando y enviando correo...";
+    }
+
     try {
       var res;
       if (id) {
@@ -487,9 +496,15 @@
       }
       bootstrap.Modal.getOrCreateInstance(modalEl).hide();
       await recargar();
-      showMessage(res.message, "success");
+      // Si el usuario se creó pero el correo no salió, se muestra como advertencia.
+      showMessage(res.message, res.correo_enviado === false ? "warning" : "success");
     } catch (error) {
       alert(error.message);
+    } finally {
+      if (btnGuardar) {
+        btnGuardar.disabled = false;
+        btnGuardar.textContent = textoBtn;
+      }
     }
   }
 

@@ -7,7 +7,11 @@
 
     // Envío genérico. Devuelve true/false; nunca lanza excepción hacia
     // afuera (los controladores no necesitan try/catch para esto).
-    function enviarCorreo($destinatario, $nombreDestinatario, $asunto, $cuerpoHtml)
+    //
+    // $cuerpoTexto (opcional) es la versión en texto plano. Si no se envía, se
+    // deriva del HTML con strip_tags (suficiente para mensajes sin caracteres
+    // especiales, como el código de recuperación).
+    function enviarCorreo($destinatario, $nombreDestinatario, $asunto, $cuerpoHtml, $cuerpoTexto = null)
     {
         require __DIR__ . '/conf/mail.php';
 
@@ -21,6 +25,9 @@
             $mail->Password   = $mailPassword;
             $mail->SMTPSecure = $mailEncryption;
             $mail->Port       = $mailPort;
+            // Por defecto PHPMailer espera hasta 300 s si Gmail no responde (sin
+            // internet, firewall...): la petición del usuario se quedaría colgada.
+            $mail->Timeout    = 15;
             $mail->CharSet    = 'UTF-8';
 
             $mail->setFrom($mailUsername, $mailFromName);
@@ -29,7 +36,7 @@
             $mail->isHTML(true);
             $mail->Subject = $asunto;
             $mail->Body    = $cuerpoHtml;
-            $mail->AltBody = strip_tags($cuerpoHtml);
+            $mail->AltBody = ($cuerpoTexto !== null) ? $cuerpoTexto : strip_tags($cuerpoHtml);
 
             $mail->send();
             return true;
@@ -62,6 +69,52 @@
         ";
 
         return enviarCorreo($destinatario, $nombreDestinatario, $asunto, $cuerpo);
+    }
+
+    // Correo con las credenciales de un usuario recién creado. El "usuario" para
+    // iniciar sesión es el correo. Devuelve true/false como enviarCorreo().
+    function enviarCredencialesUsuario($destinatario, $nombreDestinatario, $usuario, $contrasena)
+    {
+        $asunto = "Tus credenciales de acceso - SIGuppys";
+
+        // Todo lo que se inserta en el HTML va escapado: la contraseña puede
+        // llevar símbolos como < > & que romperían el mensaje (o se interpretarían).
+        $nombreH     = htmlspecialchars($nombreDestinatario, ENT_QUOTES, 'UTF-8');
+        $usuarioH    = htmlspecialchars($usuario, ENT_QUOTES, 'UTF-8');
+        $contrasenaH = htmlspecialchars($contrasena, ENT_QUOTES, 'UTF-8');
+
+        $cuerpo = "
+            <div style='font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;'>
+                <h2 style='color:#2f7dfa; margin-bottom:4px;'>Bienvenido a SIGuppys</h2>
+                <p>Hola <strong>$nombreH</strong>,</p>
+                <p>Se creó tu cuenta en el sistema. Estas son tus credenciales de acceso:</p>
+                <table style='width:100%; border-collapse:collapse; background:#f1f3f8; border-radius:8px;'>
+                    <tr>
+                        <td style='padding:12px 16px; color:#666; width:110px;'>Usuario</td>
+                        <td style='padding:12px 16px; font-weight:bold;'>$usuarioH</td>
+                    </tr>
+                    <tr>
+                        <td style='padding:12px 16px; color:#666;'>Contraseña</td>
+                        <td style='padding:12px 16px; font-family:Consolas, monospace; font-weight:bold;'>$contrasenaH</td>
+                    </tr>
+                </table>
+                <p style='color:#888; font-size:13px;'>
+                    Por seguridad, no compartas este correo. Si quieres cambiar tu contraseña,
+                    usa la opción &quot;¿Olvidaste tu contraseña?&quot; en la pantalla de inicio de sesión.
+                </p>
+            </div>
+        ";
+
+        // Versión en texto plano SIN escapar, para que la contraseña salga exacta.
+        $texto = "Bienvenido a SIGuppys\n\n"
+            . "Hola $nombreDestinatario,\n"
+            . "Se creó tu cuenta en el sistema. Tus credenciales de acceso son:\n\n"
+            . "Usuario: $usuario\n"
+            . "Contraseña: $contrasena\n\n"
+            . "Por seguridad, no compartas este correo. Si quieres cambiar tu contraseña, "
+            . "usa la opción \"¿Olvidaste tu contraseña?\" en la pantalla de inicio de sesión.";
+
+        return enviarCorreo($destinatario, $nombreDestinatario, $asunto, $cuerpo, $texto);
     }
 
 ?>

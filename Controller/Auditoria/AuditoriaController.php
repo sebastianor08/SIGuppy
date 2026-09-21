@@ -7,7 +7,7 @@ function obtenerDatosAuditoria()
     $model = new AuditoriaModel();
 
     $filtros = [
-        'tabla'        => $_GET['tabla']        ?? '',
+        'modulo'       => $_GET['id_modulo']    ?? '',
         'operacion'    => $_GET['operacion']    ?? '',
         'id_usuario'   => $_GET['usuario']      ?? '',
         'fecha_inicio' => $_GET['fecha_inicio'] ?? '',
@@ -18,7 +18,7 @@ function obtenerDatosAuditoria()
         'filtros'                => $filtros,
         'movimientosGeneral'     => $model->listarGeneral($filtros),
         'movimientosSeguimiento' => $model->listarSeguimientoZoocriadero($filtros),
-        'tablasDisponibles'      => $model->tablasDisponibles(),
+        'modulosDisponibles'     => $model->modulosDisponibles(),
         'usuariosDisponibles'    => $model->usuariosDisponibles(),
     ];
 }
