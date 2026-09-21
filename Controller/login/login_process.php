@@ -1,13 +1,9 @@
 <?php
 ob_start();
 session_start();
-<<<<<<< HEAD
-require_once '../../Model/conexion.php'; // Tu conexión PDO a PostgreSQL
-=======
 
 // Carga el MasterModel (conexión nativa pgsql, sin PDO)
 require_once '../../Model/MasterModel.php';
->>>>>>> origin/DevDefinitivo
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $correo = trim($_POST['correo'] ?? '');
