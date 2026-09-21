@@ -2,11 +2,6 @@
 
 include_once __DIR__ . '/../MasterModel.php';
 
-// ============================================================
-// Modelo del módulo Roles y Permisos.
-// Trabaja con las tablas que ya existen en BD_Dengue_SIGuppy.sql:
-//   rol, modulo, accion_permiso, rol_permiso
-// ============================================================
 class RolesModel extends MasterModel{
 
     // Filas del formulario: Registrar / Consultar / Editar / Eliminar
@@ -18,11 +13,11 @@ class RolesModel extends MasterModel{
         );
     }
 
-    // Columnas del formulario: los módulos del sistema
     public function modulos(){
         return $this->selectAll(
             "SELECT id_modulo, nombre, descripcion
              FROM modulo
+             WHERE id_modulo <> 13
              ORDER BY id_modulo"
         );
     }
@@ -128,11 +123,6 @@ class RolesModel extends MasterModel{
         );
     }
 
-    // Combinaciones módulo-acción válidas (tabla modulo_accion_permitida):
-    // ['idModulo-idAccion' => true, ...]. Sirve para bloquear en el
-    // formulario las casillas que no tienen sentido para ese módulo
-    // (ej. "Exportar" en Zoocriaderos, o cualquier acción que no sea
-    // "Ver" en Auditoría).
     public function combinacionesPermitidas(){
         $filas = $this->selectAll(
             "SELECT id_modulo, id_accion_permiso FROM modulo_accion_permitida"
@@ -145,9 +135,6 @@ class RolesModel extends MasterModel{
         return $permitidas;
     }
 
-    // Para la sesión: ¿el rol $idRol tiene la acción $nombreAccion
-    // habilitada en el módulo $nombreModulo? Se usa en el sidebar para
-    // mostrar/ocultar cada opción de menú según el permiso "Ver".
     public function tienePermisoPorId($idRol, $nombreModulo, $nombreAccion){
         return $this->selectValue(
             "SELECT 1
@@ -188,9 +175,6 @@ class RolesModel extends MasterModel{
         ];
     }
 
-    // No se borra el rol físicamente: se inhabilita (estado = 0) o se
-    // habilita (estado = 1), igual que zoocriadero, tanque y las demás
-    // tablas del sistema. Así se conserva el histórico de usuarios/permisos.
     public function cambiarEstado($idRol, $estado){
         return $this->update(
             "UPDATE rol SET estado = $1 WHERE id_rol = $2",

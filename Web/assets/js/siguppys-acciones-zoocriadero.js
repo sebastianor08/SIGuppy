@@ -7,8 +7,8 @@
   var MODULO = "modulo=Acciones&controlador=Acciones";
 
   var PERMISOS = {
-    auxiliar: { crear: false, editar: false, inhabilitar: false },
-    coordinador: { crear: true, editar: true, inhabilitar: true },
+    auxiliar: { consultar: true, crear: false, editar: false, inhabilitar: false },
+    coordinador: { consultar: true, crear: true, editar: true, inhabilitar: true },
   };
 
   var data = []; 
@@ -92,11 +92,22 @@
  
   function renderAcciones(a) {
     var p = permisos();
-    var btns =
-      '<button type="button" class="btn-icon" data-action="editar" data-id="' + a.id + '" title="Editar">' +
-      '<i class="fas fa-pen"></i></button>' +
-      '<button type="button" class="btn-icon" data-action="ver" data-id="' + a.id +
-      '" title="Ver detalle"><i class="fas fa-eye"></i></button>';
+    var btns = "";
+
+    // El icono de lápiz (Editar) solo se muestra si el rol tiene permiso
+    // de "editar". El icono de ojo (Ver/Consultar) solo se muestra si el
+    // rol tiene permiso de "consultar". Antes ambos aparecían siempre,
+    // sin importar el rol.
+    if (p.editar) {
+      btns +=
+        '<button type="button" class="btn-icon" data-action="editar" data-id="' + a.id +
+        '" title="Editar"><i class="fas fa-pen"></i></button>';
+    }
+    if (p.consultar) {
+      btns +=
+        '<button type="button" class="btn-icon" data-action="ver" data-id="' + a.id +
+        '" title="Ver detalle"><i class="fas fa-eye"></i></button>';
+    }
 
     if (p.inhabilitar) {
       if (a.estado === 1) {

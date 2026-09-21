@@ -20,7 +20,8 @@ class MapaController
         $depositos = array_map(function ($d) {
             return [
                 'id' => (int) $d['id'], 'categoria' => 'deposito', 'tipo' => $d['tipo_deposito'],
-                'nombre' => $d['tipo_deposito'], 'direccion' => $d['direccion'],
+                'nombre' => ($d['descripcion'] !== null && $d['descripcion'] !== '') ? $d['descripcion'] : $d['tipo_deposito'],
+                'sitio' => $d['sitio'], 'direccion' => $d['direccion'],
                 'comuna' => $d['comuna'], 'barrio' => $d['barrio'],
                 'lat' => (float) $d['latitud'], 'lng' => (float) $d['longitud'],
             ];

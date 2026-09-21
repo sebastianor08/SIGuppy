@@ -2,8 +2,15 @@
 ob_start();
 session_start();
 
-// Carga el MasterModel (conexión nativa pgsql, sin PDO)
+
 require_once '../../Model/MasterModel.php';
+function registrarIntentoLogin($masterModel, $idUsuario, $correo, $exitoso, $detalle)
+{
+    $masterModel->select(
+        "SELECT fn_registrar_login($1, $2, $3, $4)",
+        [$idUsuario, $correo, $exitoso ? 'true' : 'false', $detalle]
+    );
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $correo = trim($_POST['correo'] ?? '');
@@ -15,8 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    // Validación de formato: evita llegar a la base de datos con un correo
-    // mal escrito y dar un mensaje más claro que "credenciales incorrectas".
     if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
         header("Location: ../../View/login/login.php?error=invalid_email");
         exit();
@@ -34,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Si no existe el usuario
         if (!$usuario) {
+            registrarIntentoLogin($masterModel, null, $correo, false, 'Correo no registrado');
             header("Location: ../../View/login/login.php?error=invalid");
             exit();
         }
@@ -48,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $diferencia = $ahora->diff($tiempoBloqueo);
                 $minutosRestantes = $diferencia->i + 1;
 
+                registrarIntentoLogin($masterModel, $usuario['id_usuario'], $correo, false, 'Cuenta bloqueada temporalmente');
                 header("Location: ../../View/login/login.php?error=blocked&minutos=" . $minutosRestantes);
                 exit();
             } else {
@@ -59,6 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ((int)$usuario['estado'] === 0) {
+            registrarIntentoLogin($masterModel, $usuario['id_usuario'], $correo, false, 'Cuenta inactiva');
             header("Location: ../../View/login/login.php?error=inactive");
             exit();
         }
@@ -66,12 +74,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $passwordValida = password_verify($contrasena, $usuario['contrasena']) || ($contrasena === $usuario['contrasena']);
 
         if ($passwordValida) {
-            $sqlReset = "UPDATE usuario SET intentos_fallidos = 0, bloqueo_hasta = NULL WHERE id_usuario = $1";
-            $masterModel->update($sqlReset, [$usuario['id_usuario']]);
-
             $_SESSION['id_usuario'] = $usuario['id_usuario'];
             $_SESSION['usuario']    = $usuario['nombre'] . ' ' . $usuario['apellido'];
             $_SESSION['id_rol']     = $usuario['id_rol'];
+            $masterModel->actualizarUsuarioAuditoria();
+
+            $sqlReset = "UPDATE usuario SET intentos_fallidos = 0, bloqueo_hasta = NULL WHERE id_usuario = $1";
+            $masterModel->update($sqlReset, [$usuario['id_usuario']]);
+
+            registrarIntentoLogin($masterModel, $usuario['id_usuario'], $correo, true, 'Inicio de sesión exitoso');
 
             header("Location: ../../Web/index.php");
             exit();
@@ -83,12 +94,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $sqlUpdate = "UPDATE usuario SET intentos_fallidos = $1, bloqueo_hasta = $2 WHERE id_usuario = $3";
                 $masterModel->update($sqlUpdate, [$intentos, $bloqueoHasta, $usuario['id_usuario']]);
 
+                registrarIntentoLogin($masterModel, $usuario['id_usuario'], $correo, false, 'Contraseña incorrecta: cuenta bloqueada por 5 intentos');
                 header("Location: ../../View/login/login.php?error=blocked&minutos=15");
                 exit();
             } else {
                 $sqlUpdate = "UPDATE usuario SET intentos_fallidos = $1 WHERE id_usuario = $2";
                 $masterModel->update($sqlUpdate, [$intentos, $usuario['id_usuario']]);
 
+                registrarIntentoLogin($masterModel, $usuario['id_usuario'], $correo, false, 'Contraseña incorrecta');
                 $restantes = 5 - $intentos;
                 header("Location: ../../View/login/login.php?error=invalid&intentos=" . $restantes);
                 exit();

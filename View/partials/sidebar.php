@@ -24,8 +24,8 @@
   }
 
   $sigMostrarReportes  = sigPuedeVer('Reportes');
-  $sigMostrarZoo       = sigPuedeVer('Zoocriaderos') || sigPuedeVer('Tanque Zoocriadero') || sigPuedeVer('Acciones');
-  $sigMostrarTerreno   = sigPuedeVer('Depósitos') || sigPuedeVer('Actividades') || sigPuedeVer('Tipo Depósitos');
+  $sigMostrarZoo       = sigPuedeVer('Zoocriaderos') || sigPuedeVer('Tanque Zoocriadero') || sigPuedeVer('Acciones de Zoocriadero');
+  $sigMostrarTerreno   = sigPuedeVer('Depósitos') || sigPuedeVer('Seguimiento de Depósito') || sigPuedeVer('Actividades') || sigPuedeVer('Tipo Depósitos');
   $sigMostrarUsuarios  = sigPuedeVer('Gestión de Usuarios') || sigPuedeVer('Roles y Permisos') || sigPuedeVer('Consultar Usuarios');
 ?>
 <div class="sidebar sidebar-style-2 siguppys-sidebar" data-background-color="white">
@@ -36,7 +36,7 @@
           <img src="<?php echo $rutaBase; ?>Web/assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
         </span>
         <span class="siguppys-brand">
-          <strong>SIGuppys</strong>
+          <strong>SIGuppy</strong>
           <small>Control Biológico contra el Dengue</small>
         </span>
       </a>
@@ -103,7 +103,7 @@
               <li><a href="<?php echo $rutaBase; ?>View/Tanque/tanques.php" data-page="tanques"><span
                     class="sub-item">Tanques</span></a></li>
               <?php endif; ?>
-              <?php if (sigPuedeVer('Acciones')): ?>
+              <?php if (sigPuedeVer('Acciones de Zoocriadero')): ?>
               <li><a href="<?php echo $rutaBase; ?>View/Acciones/acciones.php" data-page="acciones-zoocriadero"><span
                     class="sub-item">Acciones</span></a></li>
               <?php endif; ?>
@@ -124,6 +124,9 @@
             <ul class="nav nav-collapse">
               <?php if (sigPuedeVer('Depósitos')): ?>
               <li><a href="<?php echo $rutaBase; ?>View/Deposito/DepositoView.php" data-page="terreno-depositos"><span class="sub-item">Depósitos</span></a></li>
+              <?php endif; ?>
+              <?php if (sigPuedeVer('Seguimiento de Depósito')): ?>
+              <li><a href="<?php echo $rutaBase; ?>View/SeguimientoDeposito/SeguimientoDepositoView.php" data-page="terreno-seguimiento-deposito"><span class="sub-item">Seguimiento de Depósito</span></a></li>
               <?php endif; ?>
               <?php if (sigPuedeVer('Actividades')): ?>
               <li><a href="<?php echo $rutaBase; ?>View/Actividad/ActividadView.php" data-page="terreno-actividades"><span class="sub-item">Actividades</span></a></li>

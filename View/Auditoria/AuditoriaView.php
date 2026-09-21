@@ -9,9 +9,22 @@ $pageTitle = 'Auditoría';
 $bodyPage  = 'auditoria';
 
 $badgesOperacion = [
-    'INSERTAR'  => 'bg-success',
-    'ACTUALIZAR' => 'bg-primary',
-    'ELIMINAR'  => 'bg-danger',
+    'INSERT'         => 'bg-success',
+    'UPDATE'         => 'bg-primary',
+    'DELETE'         => 'bg-danger',
+    'HABILITAR'      => 'bg-success',
+    'INHABILITAR'    => 'bg-danger',
+    'LOGIN_EXITOSO'  => 'bg-info',
+    'LOGIN_FALLIDO'  => 'bg-warning',
+];
+$etiquetasOperacion = [
+    'INSERT'         => 'Insertar',
+    'UPDATE'         => 'Actualizar',
+    'DELETE'         => 'Eliminar',
+    'HABILITAR'      => 'Habilitar',
+    'INHABILITAR'    => 'Inhabilitar',
+    'LOGIN_EXITOSO'  => 'Inicio de sesión',
+    'LOGIN_FALLIDO'  => 'Inicio fallido',
 ];
 
 include '../partials/head.php';
@@ -40,8 +53,8 @@ include '../partials/head.php';
                                 <select name="tabla" class="form-select">
                                     <option value="">Todas</option>
                                     <?php foreach ($tablasDisponibles as $t): ?>
-                                        <option value="<?= htmlspecialchars($t['tabla_afectada']) ?>" <?= $filtros['tabla'] === $t['tabla_afectada'] ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($t['tabla_afectada']) ?>
+                                        <option value="<?= htmlspecialchars($t['modulo']) ?>" <?= $filtros['tabla'] === $t['modulo'] ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($t['modulo']) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
@@ -50,9 +63,11 @@ include '../partials/head.php';
                                 <label class="form-label">Operación</label>
                                 <select name="operacion" class="form-select">
                                     <option value="">Todas</option>
-                                    <option value="INSERTAR" <?= $filtros['operacion'] === 'INSERTAR' ? 'selected' : '' ?>>Insertar</option>
-                                    <option value="ACTUALIZAR" <?= $filtros['operacion'] === 'ACTUALIZAR' ? 'selected' : '' ?>>Actualizar</option>
-                                    <option value="ELIMINAR" <?= $filtros['operacion'] === 'ELIMINAR' ? 'selected' : '' ?>>Eliminar</option>
+                                    <?php foreach ($etiquetasOperacion as $valor => $etiqueta): ?>
+                                        <option value="<?= htmlspecialchars($valor) ?>" <?= $filtros['operacion'] === $valor ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($etiqueta) ?>
+                                        </option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -124,10 +139,10 @@ include '../partials/head.php';
                                                 <tr>
                                                     <td><?= htmlspecialchars($mov['fecha_hora']) ?></td>
                                                     <td><?= htmlspecialchars($mov['usuario_responsable']) ?></td>
-                                                    <td><?= htmlspecialchars($mov['tabla_afectada']) ?></td>
+                                                    <td><?= htmlspecialchars($mov['modulo']) ?></td>
                                                     <td>
-                                                        <span class="badge <?= $badgesOperacion[$mov['operacion']] ?? 'bg-secondary' ?>">
-                                                            <?= htmlspecialchars($mov['operacion']) ?>
+                                                        <span class="badge <?= $badgesOperacion[$mov['accion']] ?? 'bg-secondary' ?>">
+                                                            <?= htmlspecialchars($etiquetasOperacion[$mov['accion']] ?? $mov['accion']) ?>
                                                         </span>
                                                     </td>
                                                     <td><?= htmlspecialchars($mov['detalle']) ?></td>
@@ -168,8 +183,8 @@ include '../partials/head.php';
                                                     <td><?= htmlspecialchars($mov['usuario_responsable']) ?></td>
                                                     <td>#<?= htmlspecialchars($mov['id_seguimiento']) ?></td>
                                                     <td>
-                                                        <span class="badge <?= $badgesOperacion[$mov['operacion']] ?? 'bg-secondary' ?>">
-                                                            <?= htmlspecialchars($mov['operacion']) ?>
+                                                        <span class="badge <?= $badgesOperacion[$mov['accion']] ?? 'bg-secondary' ?>">
+                                                            <?= htmlspecialchars($etiquetasOperacion[$mov['accion']] ?? $mov['accion']) ?>
                                                         </span>
                                                     </td>
                                                     <td><?= htmlspecialchars($mov['detalle']) ?></td>

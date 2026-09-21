@@ -1225,3 +1225,36 @@ body[data-background-color="dark"] .caja .texto-eje {
   border-radius: 8px;
   z-index: 0; /* evita que los tiles queden por encima del sidebar/topbar */
 }
+
+/* ---- Seguimiento de Depósito: mapa y leyenda ---- */
+#mapaSeguimientoDeposito {
+  min-height: 420px;
+  width: 100%;
+  border-radius: 8px;
+  z-index: 0; /* evita que los tiles queden por encima del sidebar/topbar */
+}
+
+/* Puntos de la leyenda: misma forma/color que los marcadores del mapa
+   (rombo rojo = con larvas, círculo azul = sin larvas, círculo gris = sin seguimiento). */
+.sd-punto {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+  border: 1px solid #fff;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+  vertical-align: middle;
+}
+.sd-punto-positivo {
+  background: #e53935;
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+.sd-punto-negativo {
+  background: #1e88e5;
+  border-radius: 50%;
+}
+.sd-punto-sin {
+  background: #8d99a6;
+  border-radius: 50%;
+}

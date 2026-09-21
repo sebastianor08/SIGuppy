@@ -1,3 +1,7 @@
+<?php
+    $basePath = '../';
+    require_once __DIR__ . '/../lib/requiere_sesion.php';
+?>
 <!DOCTYPE html>
 <html lang="es">
 
