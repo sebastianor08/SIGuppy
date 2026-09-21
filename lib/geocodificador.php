@@ -1,5 +1,10 @@
 <?php
-
+// Geocodificación de direcciones colombianas usando Nominatim (OpenStreetMap).
+// Gratis, sin API key. Política de uso de Nominatim: máx. 1 solicitud/segundo
+// y es obligatorio mandar un User-Agent identificando la app.
+//
+// Devuelve ['lat' => float, 'lng' => float] o null si no encontró nada
+// o si el servidor no tiene salida a internet.
 
 function geocodificarDireccion($direccion, $barrio = null, $comuna = null, $ciudad = 'Santiago de Cali', $pais = 'Colombia') {
     $direccion = trim((string) $direccion);
@@ -26,7 +31,7 @@ function geocodificarDireccion($direccion, $barrio = null, $comuna = null, $ciud
 
     $respuesta = @file_get_contents($url, false, $contexto);
     if ($respuesta === false) {
-        return null; 
+        return null; // sin internet, timeout, etc. No se rompe el registro.
     }
 
     $datos = json_decode($respuesta, true);

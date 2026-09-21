@@ -1,51 +1,37 @@
-/* =========================================================
-   SIGuppys — Módulo Depósitos
-   =========================================================
-   Backend:
-     Web/ajax.php?modulo=Deposito&controlador=Deposito&funcion=...
-
-   Tabla principal:
-     sitio
-
-   Relaciones:
-     sitio -> tipo_deposito
-     sitio -> direccion
-   ========================================================= */
-
 (function () {
   "use strict";
 
-  if (document.body.getAttribute("data-page") !== "terreno-depositos") {
-    return;
-  }
+  if (document.body.getAttribute("data-page") !== "terreno-depositos") return;
 
   var AJAX_URL = "../../Web/ajax.php";
   var MODULO = "modulo=Deposito&controlador=Deposito";
 
-  var PERMISOS = {
-    auxiliar: {
-      crear: false,
-      editar: false,
-      inhabilitar: false
-    },
-    coordinador: {
-      crear: true,
-      editar: true,
-      inhabilitar: true
-    }
-  };
+  var tbody = document.getElementById("depositosTableBody");
+  var search = document.getElementById("depositosSearch");
+  var filtroEstado = document.getElementById("depositosEstadoFiltro");
+  var count = document.getElementById("depositosCount");
+  var message = document.getElementById("depositosMessage");
+
+  var btnCrear = document.getElementById("btnCrearDeposito");
+  var form = document.getElementById("depositoForm");
+  var idDeposito = document.getElementById("id_deposito");
+  var tipoSelect = document.getElementById("id_tipo_deposito");
+  var sitioSelect = document.getElementById("id_sitio");
+  var descripcion = document.getElementById("depositoDescripcion");
+  var descripcionCount = document.getElementById("depositoDescripcionCount");
+  var formMessage = document.getElementById("depositoFormMessage");
+  var modalLabel = document.getElementById("depositoModalLabel");
+  var guardar = document.getElementById("depositoSubmitBtn");
+
+  var formModalEl = document.getElementById("depositoModal");
+  var detailModalEl = document.getElementById("depositoDetailModal");
 
   var data = [];
   var tipos = [];
-  var direcciones = [];
+  var sitios = [];
 
-  var state = {
-    q: "",
-    estado: "todos"
-  };
-
-  function escapeHtml(str) {
-    return String(str == null ? "" : str).replace(/[&<>"']/g, function (c) {
+  function escapeHtml(value) {
+    return String(value == null ? "" : value).replace(/[&<>"']/g, function (c) {
       return {
         "&": "&amp;",
         "<": "&lt;",
@@ -56,768 +42,386 @@
     });
   }
 
-  function role() {
-    return (window.SIGuppys && window.SIGuppys.getRole()) || "auxiliar";
-  }
-
-  function permisos() {
-    return PERMISOS[role()];
-  }
-
-  function roleLabel() {
-    var roles = window.SIGuppys && window.SIGuppys.ROLES;
-
-    return (
-      roles &&
-      roles[role()] &&
-      roles[role()].label
-    ) || role();
-  }
-
-  function lockedTitle(accion) {
-    return (
-      "Tu rol (" +
-      roleLabel() +
-      ") no tiene permiso para " +
-      accion +
-      "."
-    );
-  }
-
   function showMessage(text, type) {
-    var box = document.getElementById("depositosMessage");
-
-    if (!box) return;
-
-    box.className = "alert mb-3 alert-" + type;
-    box.textContent = text;
+    message.className = "alert mb-3 alert-" + type;
+    message.textContent = text;
   }
 
-  function clearMessage() {
-    var box = document.getElementById("depositosMessage");
-
-    if (!box) return;
-
-    box.className = "alert d-none mb-3";
-    box.textContent = "";
+  function showFormMessage(text, type) {
+    formMessage.className = "alert mb-0 alert-" + type;
+    formMessage.textContent = text;
   }
 
-  async function getJson(funcion, extra) {
-    var url =
-      AJAX_URL +
-      "?" +
-      MODULO +
-      "&funcion=" +
-      funcion +
-      (extra || "");
+  function clearFormMessage() {
+    formMessage.className = "alert d-none mb-0";
+    formMessage.textContent = "";
+  }
 
+  async function getJson(url) {
     var response = await fetch(url, {
-      headers: {
-        Accept: "application/json"
-      }
+      headers: { Accept: "application/json" }
     });
 
     var result = await response.json().catch(function () {
       return null;
     });
 
-    if (
-      !response.ok ||
-      !result ||
-      result.ok === false
-    ) {
-      throw new Error(
-        (result && result.message) ||
-        "No fue posible consultar la información."
-      );
-    }
-
-    return result.data || [];
-  }
-
-  async function postJson(funcion, payload) {
-    var response = await fetch(
-      AJAX_URL +
-        "?" +
-        MODULO +
-        "&funcion=" +
-        funcion,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json"
-        },
-        body: JSON.stringify(payload)
-      }
-    );
-
-    var result = await response.json().catch(function () {
-      return null;
-    });
-
-    if (
-      !response.ok ||
-      !result ||
-      result.ok === false
-    ) {
-      throw new Error(
-        (result && result.message) ||
-        "No fue posible guardar."
-      );
+    if (!response.ok || !result || result.ok === false) {
+      throw new Error((result && result.message) || "No fue posible consultar la información.");
     }
 
     return result;
   }
 
-  function normalizar(d) {
-    return {
-      id: Number(d.id_sitio),
-      id_tipo_deposito: Number(d.id_tipo_deposito),
-      tipo_deposito: d.tipo_deposito || "",
-      descripcion: d.descripcion || "",
-      id_direccion: Number(d.id_direccion),
-      direccion: d.direccion || "",
-      barrio: d.barrio || "",
-      estado: Number(d.estado),
-      creado_en: d.creado_en || ""
-    };
+  async function postJson(funcion, payload) {
+    var response = await fetch(AJAX_URL + "?" + MODULO + "&funcion=" + funcion, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    var result = await response.json().catch(function () {
+      return null;
+    });
+
+    if (!response.ok || !result || result.ok === false) {
+      throw new Error((result && result.message) || "No fue posible guardar la información.");
+    }
+
+    return result;
   }
 
-  function renderAcciones(d) {
-    var p = permisos();
+  function buscarPorId(id) {
+    return data.find(function (x) {
+      return String(x.id_deposito) === String(id);
+    });
+  }
 
-    var btns = "";
+  function ubicacion(deposito) {
+    return [deposito.direccion, deposito.barrio, deposito.ciudad]
+      .filter(function (parte) {
+        return parte;
+      })
+      .join(" · ");
+  }
 
-    if (p.editar) {
-      btns +=
-        '<button type="button" class="btn-icon" ' +
-        'data-action="editar" data-id="' +
-        d.id +
-        '" title="Editar">' +
-        '<i class="fas fa-pen"></i>' +
-        "</button>";
-    }
-
-    if (p.inhabilitar) {
-      if (d.estado === 1) {
-        btns +=
-          '<button type="button" class="btn-icon text-danger" ' +
-          'data-action="inhabilitar" data-id="' +
-          d.id +
-          '" title="Inhabilitar">' +
-          '<i class="fas fa-ban"></i>' +
-          "</button>";
-      } else {
-        btns +=
-          '<button type="button" class="btn-icon text-success" ' +
-          'data-action="habilitar" data-id="' +
-          d.id +
-          '" title="Habilitar">' +
-          '<i class="fas fa-check-circle"></i>' +
-          "</button>";
-      }
-    }
-
-    /*
-     * Para el auxiliar se conserva la tabla, pero no se muestran
-     * acciones porque no tiene permisos de edición.
-     */
-    if (!btns) {
-      return '<div class="table-actions"></div>';
-    }
+  function renderAcciones(deposito) {
+    var estado = Number(deposito.estado);
 
     return (
       '<div class="table-actions">' +
-      btns +
+      '<button type="button" class="btn-icon" data-action="ver" data-id="' +
+      deposito.id_deposito +
+      '" title="Ver detalle"><i class="fas fa-eye"></i></button>' +
+      '<button type="button" class="btn-icon" data-action="editar" data-id="' +
+      deposito.id_deposito +
+      '" title="Editar"><i class="fas fa-pen"></i></button>' +
+      '<button type="button" class="btn-icon ' +
+      (estado === 1 ? "text-danger" : "text-success") +
+      '" data-action="estado" data-id="' +
+      deposito.id_deposito +
+      '" data-estado="' +
+      (estado === 1 ? 0 : 1) +
+      '" title="' +
+      (estado === 1 ? "Inhabilitar" : "Habilitar") +
+      '">' +
+      '<i class="fas ' +
+      (estado === 1 ? "fa-ban" : "fa-check-circle") +
+      '"></i></button>' +
       "</div>"
     );
   }
 
-  function renderRow(d) {
-    var estado =
-      d.estado === 1
+  function renderRow(deposito) {
+    var estado = Number(deposito.estado);
+    var estadoBadge =
+      estado === 1
         ? '<span class="badge-estado activo">Activo</span>'
-        : '<span class="badge-estado inactivo">Inactivo</span>';
-
-    var direccion =
-      escapeHtml(d.direccion);
-
-    if (d.barrio) {
-      direccion +=
-        '<div class="small text-muted">' +
-        escapeHtml(d.barrio) +
-        "</div>";
-    }
+        : '<span class="badge-estado inactivo">Inhabilitado</span>';
 
     return (
       "<tr>" +
-
+      '<td><span class="fw-bold">' +
+      escapeHtml(deposito.tipo_deposito) +
+      "</span></td>" +
       "<td>" +
-      '<span class="fw-bold">' +
-      escapeHtml(d.tipo_deposito) +
-      "</span>" +
+      escapeHtml(deposito.descripcion) +
       "</td>" +
-
-      '<td class="deposito-descripcion">' +
-      '<span class="descripcion">' +
-      escapeHtml(d.descripcion) +
-      "</span>" +
+      "<td>" +
+      escapeHtml(deposito.sitio) +
+      '<div class="small text-muted">' +
+      escapeHtml(ubicacion(deposito)) +
+      "</div>" +
       "</td>" +
-
-      '<td class="deposito-direccion">' +
-      direccion +
-      "</td>" +
-
       '<td class="text-center">' +
-      estado +
+      estadoBadge +
       "</td>" +
-
       '<td class="text-center">' +
-      renderAcciones(d) +
+      renderAcciones(deposito) +
       "</td>" +
-
       "</tr>"
     );
   }
 
   function filteredData() {
-    var q = state.q.trim().toLowerCase();
+    var q = search.value.trim().toLowerCase();
+    var estadoFiltro = filtroEstado.value;
 
     return data.filter(function (d) {
-      var texto =
-        (
-          d.tipo_deposito +
-          " " +
-          d.descripcion +
-          " " +
-          d.direccion +
-          " " +
-          d.barrio
-        ).toLowerCase();
+      var texto = [
+        d.tipo_deposito,
+        d.descripcion,
+        d.sitio,
+        d.direccion,
+        d.barrio,
+        d.comuna,
+        d.ciudad
+      ]
+        .join(" ")
+        .toLowerCase();
 
-      var matchesQ =
-        !q ||
-        texto.indexOf(q) !== -1;
+      var coincideTexto = !q || texto.indexOf(q) !== -1;
+      var coincideEstado =
+        estadoFiltro === "todos" ||
+        (estadoFiltro === "activo" && Number(d.estado) === 1) ||
+        (estadoFiltro === "inactivo" && Number(d.estado) === 0);
 
-      var matchesEstado =
-        state.estado === "todos" ||
-        (
-          state.estado === "activo" &&
-          d.estado === 1
-        ) ||
-        (
-          state.estado === "inactivo" &&
-          d.estado === 0
-        );
-
-      return matchesQ && matchesEstado;
+      return coincideTexto && coincideEstado;
     });
   }
 
   function render() {
-    var tbody =
-      document.getElementById(
-        "depositosTableBody"
-      );
-
     var rows = filteredData();
 
     if (!rows.length) {
       tbody.innerHTML =
-        '<tr class="sig-empty-row">' +
-        '<td colspan="5">' +
-        '<i class="fas fa-folder-open mb-2 d-block" ' +
-        'style="font-size:22px;color:#ccc;"></i>' +
-        "No hay depósitos que coincidan con el filtro." +
-        "</td>" +
-        "</tr>";
+        '<tr><td colspan="5" class="text-center text-muted py-4">No hay depósitos que coincidan con el filtro.</td></tr>';
     } else {
-      tbody.innerHTML =
-        rows.map(renderRow).join("");
+      tbody.innerHTML = rows.map(renderRow).join("");
     }
 
-    var count =
-      document.getElementById(
-        "depositosCount"
-      );
-
-    if (count) {
-      count.textContent =
-        rows.length +
-        " de " +
-        data.length +
-        " depósitos";
-    }
-
-    renderCreateButton();
+    count.textContent = rows.length + " de " + data.length + " depósitos";
   }
 
-  function renderCreateButton() {
-    var btn =
-      document.getElementById(
-        "btnCrearDeposito"
-      );
+  function abrirDetalle(id) {
+    var d = buscarPorId(id);
 
-    if (!btn) return;
+    if (!d) return;
 
-    if (permisos().crear) {
-      btn.disabled = false;
-      btn.classList.remove("btn-locked");
-      btn.title = "";
-    } else {
-      btn.disabled = true;
-      btn.classList.add("btn-locked");
-      btn.title = lockedTitle(
-        "crear depósitos"
-      );
-    }
+    document.getElementById("depositoDetailBody").innerHTML =
+      '<dl class="row mb-0">' +
+      '<dt class="col-5">Tipo de depósito</dt><dd class="col-7">' + escapeHtml(d.tipo_deposito) + "</dd>" +
+      '<dt class="col-5">Descripción</dt><dd class="col-7">' + escapeHtml(d.descripcion) + "</dd>" +
+      '<dt class="col-5">Sitio</dt><dd class="col-7">' + escapeHtml(d.sitio) + "</dd>" +
+      '<dt class="col-5">Dirección</dt><dd class="col-7">' + escapeHtml(d.direccion) + "</dd>" +
+      '<dt class="col-5">Barrio</dt><dd class="col-7">' + escapeHtml(d.barrio) + "</dd>" +
+      '<dt class="col-5">Comuna</dt><dd class="col-7">' + escapeHtml(d.comuna) + "</dd>" +
+      '<dt class="col-5">Ciudad</dt><dd class="col-7">' + escapeHtml(d.ciudad) + "</dd>" +
+      '<dt class="col-5">Estado</dt><dd class="col-7">' + (Number(d.estado) === 1 ? "Activo" : "Inhabilitado") + "</dd>" +
+      "</dl>";
+
+    bootstrap.Modal.getOrCreateInstance(detailModalEl).show();
   }
 
-  function fillTipos(selectedId) {
-    var select =
-      document.getElementById(
-        "idTipoDeposito"
-      );
-
+  function fillSelect(select, opciones, placeholder, seleccionado) {
     select.innerHTML =
-      '<option value="">Seleccione un tipo</option>' +
-      tipos
-        .map(function (t) {
-          var selected =
-            String(t.id_tipo_deposito) ===
-            String(selectedId)
-              ? " selected"
-              : "";
-
+      '<option value="">' +
+      escapeHtml(placeholder) +
+      "</option>" +
+      opciones
+        .map(function (o) {
           return (
-            '<option value="' +
-            t.id_tipo_deposito +
-            '"' +
-            selected +
-            ">" +
-            escapeHtml(t.nombre) +
-            "</option>"
+            '<option value="' + escapeHtml(o.value) + '">' + escapeHtml(o.text) + "</option>"
           );
         })
         .join("");
+
+    select.value = seleccionado ? String(seleccionado) : "";
   }
 
-  function fillDirecciones(selectedId) {
-    var select =
-      document.getElementById(
-        "idDireccion"
-      );
+  // Solo se ofrecen los habilitados, más el que ya tiene el depósito que se
+  // está editando (aunque después se haya inhabilitado) para no perderlo.
+  function llenarTipos(seleccionado) {
+    var opciones = tipos
+      .filter(function (t) {
+        return Number(t.estado) === 1 || String(t.id_tipo_deposito) === String(seleccionado);
+      })
+      .map(function (t) {
+        return {
+          value: t.id_tipo_deposito,
+          text: t.nombre + (Number(t.estado) === 1 ? "" : " (inhabilitado)")
+        };
+      });
 
-    if (!direcciones.length) {
-      select.innerHTML =
-        '<option value="">No hay direcciones registradas</option>';
+    fillSelect(
+      tipoSelect,
+      opciones,
+      opciones.length ? "Seleccione el tipo de depósito" : "No hay tipos de depósito habilitados",
+      seleccionado
+    );
+  }
+
+  function llenarSitios(seleccionado) {
+    var opciones = sitios
+      .filter(function (s) {
+        return Number(s.estado) === 1 || String(s.id_sitio) === String(seleccionado);
+      })
+      .map(function (s) {
+        return {
+          value: s.id_sitio,
+          text:
+            s.nombre +
+            " — " +
+            ubicacion(s) +
+            (Number(s.estado) === 1 ? "" : " (inhabilitado)")
+        };
+      });
+
+    fillSelect(
+      sitioSelect,
+      opciones,
+      opciones.length ? "Seleccione el sitio" : "No hay sitios habilitados",
+      seleccionado
+    );
+  }
+
+  async function cargarCatalogos() {
+    var result = await getJson(AJAX_URL + "?" + MODULO + "&funcion=catalogos");
+
+    tipos = result.data.tipos || [];
+    sitios = result.data.sitios || [];
+  }
+
+  async function abrirFormulario(deposito) {
+    var editando = !!deposito;
+
+    try {
+      await cargarCatalogos();
+    } catch (error) {
+      showMessage(error.message, "danger");
       return;
     }
-
-    select.innerHTML =
-      '<option value="">Seleccione una dirección</option>' +
-      direcciones
-        .map(function (d) {
-          var selected =
-            String(d.id_direccion) ===
-            String(selectedId)
-              ? " selected"
-              : "";
-
-          var texto =
-            d.direccion;
-
-          if (d.barrio) {
-            texto +=
-              " · " +
-              d.barrio;
-          }
-
-          if (d.ciudad) {
-            texto +=
-              " · " +
-              d.ciudad;
-          }
-
-          return (
-            '<option value="' +
-            d.id_direccion +
-            '"' +
-            selected +
-            ">" +
-            escapeHtml(texto) +
-            "</option>"
-          );
-        })
-        .join("");
-  }
-
-  function openCreateModal() {
-    var form =
-      document.getElementById(
-        "depositoForm"
-      );
 
     form.reset();
+    clearFormMessage();
 
-    form.elements[
-      "id_sitio"
-    ].value = "";
+    idDeposito.value = editando ? deposito.id_deposito : "";
+    llenarTipos(editando ? deposito.id_tipo_deposito : "");
+    llenarSitios(editando ? deposito.id_sitio : "");
+    descripcion.value = editando ? deposito.descripcion || "" : "";
+    descripcionCount.textContent = descripcion.value.length;
 
-    document.getElementById(
-      "depositoModalLabel"
-    ).textContent =
-      "Crear Depósito";
+    modalLabel.textContent = editando ? "Editar Depósito" : "Registrar Depósito";
+    guardar.disabled = false;
+    guardar.innerHTML = '<i class="fas fa-save me-1"></i>' + (editando ? "Guardar cambios" : "Guardar");
 
-    document.getElementById(
-      "depositoSubmitBtn"
-    ).textContent =
-      "Guardar";
-
-    fillTipos("");
-    fillDirecciones("");
+    bootstrap.Modal.getOrCreateInstance(formModalEl).show();
   }
 
-  function openEditModal(id) {
-    var d = data.find(function (item) {
-      return item.id === id;
-    });
+  async function cambiarEstado(id, estado) {
+    var deposito = buscarPorId(id);
+    var texto = estado === 1 ? "habilitar" : "inhabilitar";
+    var etiqueta = deposito ? ' "' + deposito.tipo_deposito + '" (' + deposito.sitio + ")" : "";
 
-    if (!d) return;
+    if (!window.confirm("¿Desea " + texto + " el depósito" + etiqueta + "?")) return;
 
-    var form =
-      document.getElementById(
-        "depositoForm"
-      );
+    try {
+      var result = await postJson("postEstado", {
+        id_deposito: Number(id),
+        estado: Number(estado)
+      });
 
-    form.elements[
-      "id_sitio"
-    ].value = d.id;
-
-    document.getElementById(
-      "depositoModalLabel"
-    ).textContent =
-      "Editar Depósito";
-
-    document.getElementById(
-      "depositoSubmitBtn"
-    ).textContent =
-      "Guardar Cambios";
-
-    fillTipos(
-      d.id_tipo_deposito
-    );
-
-    fillDirecciones(
-      d.id_direccion
-    );
-
-    bootstrap.Modal
-      .getOrCreateInstance(
-        document.getElementById(
-          "depositoModal"
-        )
-      )
-      .show();
+      showMessage(result.message, "success");
+      await cargar();
+    } catch (error) {
+      showMessage(error.message, "danger");
+    }
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function cargar() {
+    tbody.innerHTML =
+      '<tr><td colspan="5" class="text-center text-muted py-4">Cargando...</td></tr>';
 
-    if (!permisos().crear &&
-        !e.target.elements.id_sitio.value) {
+    try {
+      var result = await getJson(AJAX_URL + "?" + MODULO + "&funcion=lista");
+      data = result.data || [];
+      render();
+    } catch (error) {
+      tbody.innerHTML =
+        '<tr><td colspan="5" class="text-center text-danger py-4">' +
+        escapeHtml(error.message) +
+        "</td></tr>";
+    }
+  }
+
+  search.addEventListener("input", render);
+  filtroEstado.addEventListener("change", render);
+
+  descripcion.addEventListener("input", function () {
+    descripcionCount.textContent = this.value.length;
+  });
+
+  btnCrear.addEventListener("click", function () {
+    abrirFormulario(null);
+  });
+
+  tbody.addEventListener("click", function (event) {
+    var button = event.target.closest("[data-action]");
+    if (!button) return;
+
+    var action = button.getAttribute("data-action");
+    var id = button.getAttribute("data-id");
+
+    if (action === "ver") {
+      abrirDetalle(id);
+    } else if (action === "editar") {
+      var deposito = buscarPorId(id);
+      if (deposito) abrirFormulario(deposito);
+    } else if (action === "estado") {
+      cambiarEstado(id, Number(button.getAttribute("data-estado")));
+    }
+  });
+
+  form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    clearFormMessage();
+
+    if (!form.checkValidity()) {
+      form.reportValidity();
       return;
     }
 
-    if (!permisos().editar &&
-        e.target.elements.id_sitio.value) {
-      return;
-    }
-
-    var form = e.target;
-
-    var id = form.elements.id_sitio.value;
+    var editando = idDeposito.value !== "";
 
     var payload = {
-      id_tipo_deposito:
-        Number(
-          form.elements
-            .id_tipo_deposito.value
-        ),
-      id_direccion:
-        Number(
-          form.elements
-            .id_direccion.value
-        )
+      id_tipo_deposito: Number(tipoSelect.value),
+      id_sitio: Number(sitioSelect.value),
+      descripcion: descripcion.value.trim()
     };
 
-    if (
-      !payload.id_tipo_deposito ||
-      !payload.id_direccion
-    ) {
-      showMessage(
-        "Debe seleccionar el tipo de depósito y la dirección.",
-        "warning"
-      );
-      return;
+    if (editando) {
+      payload.id_deposito = Number(idDeposito.value);
     }
+
+    guardar.disabled = true;
+    guardar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando...';
 
     try {
-      var response;
+      var result = await postJson(editando ? "postUpdate" : "postCreate", payload);
 
-      if (id) {
-        payload.id_sitio =
-          Number(id);
-
-        response = await postJson(
-          "postUpdate",
-          payload
-        );
-      } else {
-        response = await postJson(
-          "postCreate",
-          payload
-        );
-      }
-
-      bootstrap.Modal
-        .getOrCreateInstance(
-          document.getElementById(
-            "depositoModal"
-          )
-        )
-        .hide();
-
-      await recargar();
-
-      showMessage(
-        response.message,
-        "success"
-      );
-
+      bootstrap.Modal.getOrCreateInstance(formModalEl).hide();
+      showMessage(result.message, "success");
+      await cargar();
     } catch (error) {
-      showMessage(
-        error.message,
-        "danger"
-      );
+      showFormMessage(error.message, "danger");
+      guardar.disabled = false;
+      guardar.innerHTML =
+        '<i class="fas fa-save me-1"></i>' + (editando ? "Guardar cambios" : "Guardar");
     }
-  }
+  });
 
-  async function toggleEstado(
-    id,
-    nuevoEstado
-  ) {
-    if (!permisos().inhabilitar) {
-      return;
-    }
-
-    var d = data.find(function (item) {
-      return item.id === id;
-    });
-
-    if (!d) return;
-
-    var accion =
-      nuevoEstado === 1
-        ? "habilitar"
-        : "inhabilitar";
-
-    if (
-      !confirm(
-        "¿Seguro que deseas " +
-        accion +
-        ' el depósito "' +
-        d.tipo_deposito +
-        '"?'
-      )
-    ) {
-      return;
-    }
-
-    try {
-      var response =
-        await postJson(
-          "postEstado",
-          {
-            id_sitio: id,
-            estado: nuevoEstado
-          }
-        );
-
-      await recargar();
-
-      showMessage(
-        response.message,
-        "success"
-      );
-
-    } catch (error) {
-      showMessage(
-        error.message,
-        "danger"
-      );
-    }
-  }
-
-  async function recargar() {
-    var lista =
-      await getJson("lista");
-
-    data =
-      lista.map(normalizar);
-
-    render();
-  }
-
-  document
-    .getElementById(
-      "depositosTableBody"
-    )
-    .addEventListener(
-      "click",
-      function (e) {
-        var btn =
-          e.target.closest(
-            "[data-action]"
-          );
-
-        if (!btn) return;
-
-        var id =
-          Number(
-            btn.getAttribute(
-              "data-id"
-            )
-          );
-
-        var action =
-          btn.getAttribute(
-            "data-action"
-          );
-
-        if (
-          action === "editar" &&
-          permisos().editar
-        ) {
-          openEditModal(id);
-        }
-
-        if (
-          action === "inhabilitar"
-        ) {
-          toggleEstado(id, 0);
-        }
-
-        if (
-          action === "habilitar"
-        ) {
-          toggleEstado(id, 1);
-        }
-      }
-    );
-
-  document
-    .getElementById(
-      "btnCrearDeposito"
-    )
-    .addEventListener(
-      "click",
-      function () {
-        if (!permisos().crear) {
-          return;
-        }
-
-        openCreateModal();
-
-        bootstrap.Modal
-          .getOrCreateInstance(
-            document.getElementById(
-              "depositoModal"
-            )
-          )
-          .show();
-      }
-    );
-
-  document
-    .getElementById(
-      "depositoForm"
-    )
-    .addEventListener(
-      "submit",
-      handleSubmit
-    );
-
-  document
-    .getElementById(
-      "depositosSearch"
-    )
-    .addEventListener(
-      "input",
-      function () {
-        state.q = this.value;
-        render();
-      }
-    );
-
-  document
-    .getElementById(
-      "depositosEstadoFiltro"
-    )
-    .addEventListener(
-      "change",
-      function () {
-        state.estado = this.value;
-        render();
-      }
-    );
-
-  document.addEventListener(
-    "siguppys:role-changed",
-    function () {
-      render();
-    }
-  );
-
-  (async function init() {
-    try {
-      var resultados =
-        await Promise.all([
-          getJson("lista"),
-          getJson("tipos"),
-          getJson("direcciones")
-        ]);
-
-      data =
-        resultados[0].map(
-          normalizar
-        );
-
-      tipos = resultados[1];
-      direcciones =
-        resultados[2];
-
-      clearMessage();
-
-      render();
-
-    } catch (error) {
-      document.getElementById(
-        "depositosTableBody"
-      ).innerHTML =
-        '<tr class="sig-empty-row">' +
-        '<td colspan="5">' +
-        "No se pudieron cargar los depósitos." +
-        "</td>" +
-        "</tr>";
-
-      showMessage(
-        error.message +
-        " Verifica la conexión con PostgreSQL.",
-        "danger"
-      );
-    }
-  })();
-
+  cargar();
 })();

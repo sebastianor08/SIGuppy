@@ -38,7 +38,7 @@
     <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/kaiadmin.min.css">
 
     <!-- Estilos propios de SIGuppys: solo AGREGAN reglas encima del kaiadmin.css original -->
-    <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/siguppys.css">
+    <link rel="stylesheet" href="<?php echo $basePath; ?>Web/assets/css/siguppys.css?v=<?php echo filemtime(__DIR__ . '/../../Web/assets/css/siguppys.css'); ?>">
     <?php if(!empty($extraStyles)): ?>
     <style>
 <?php echo $extraStyles; ?>

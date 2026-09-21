@@ -24,7 +24,7 @@ include '../partials/head.php';
                         <div class="fila-filtros">
                             <div>
                                 <label>Tipo de actividad</label>
-                                <select name="tipo">
+                                <select name="tipo" class="form-select">
                                     <option value="">Todos</option>
                                     <?php foreach ($listaTipos as $tipo): ?>
                                         <option value="<?= $tipo ?>" <?= $filtroTipo === $tipo ? 'selected' : '' ?>>
@@ -35,7 +35,7 @@ include '../partials/head.php';
                             </div>
                             <div>
                                 <label>Zoocriadero</label>
-                                <select name="zoocriadero">
+                                <select name="zoocriadero" class="form-select">
                                     <option value="">Todas</option>
                                     <?php foreach ($listaZoocriaderos as $zoo): ?>
                                         <option value="<?= $zoo ?>" <?= $filtroZoocriadero === $zoo ? 'selected' : '' ?>>
@@ -46,11 +46,11 @@ include '../partials/head.php';
                             </div>
                             <div>
                                 <label>Fecha Inicio</label>
-                                <input type="date" name="fecha_inicio" value="<?= $filtroFechaInicio ?>">
+                                <input type="date" name="fecha_inicio" class="form-control" value="<?= $filtroFechaInicio ?>">
                             </div>
                             <div>
                                 <label>Fecha Fin</label>
-                                <input type="date" name="fecha_fin" value="<?= $filtroFechaFin ?>">
+                                <input type="date" name="fecha_fin" class="form-control" value="<?= $filtroFechaFin ?>">
                             </div>
                             <div>
                                 <button type="submit" class="btn-aplicar">Aplicar Filtros</button>
@@ -231,6 +231,25 @@ include '../partials/head.php';
                         cursor: pointer;
                         font-weight: bold;
                         margin-left: 8px;
+                    }
+
+                    .btn-excel {
+                        background-color: #ffffff;
+                        color: #21a666;
+                        border: 1px solid #21a666;
+                        padding: 10px 18px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: bold;
+                        margin-left: 8px;
+                    }
+
+                    .btn-excel:hover {
+                        background-color: rgba(33, 166, 102, 0.1);
+                    }
+
+                    body[data-background-color="dark"] .btn-excel {
+                        background-color: transparent;
                     }
 
                     .tarjetas {

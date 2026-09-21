@@ -1,0 +1,11 @@
+{
+    "description": "PhpSpreadsheet para exportar reportes a Excel (independiente del composer.json de la raiz)",
+    "require": {
+        "phpoffice/phpspreadsheet": "^5.8"
+    },
+    "config": {
+        "platform": {
+            "php": "8.1.10"
+        }
+    }
+}

@@ -53,7 +53,7 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 <label>Auxiliar</label>
 
                                 <!--select crea una lista desplegable.-->
-                                <select name="auxiliar">
+                                <select name="auxiliar" class="form-select">
 
                                     <!--value="" esta para que no envíe ningún auxiliar en específico.-->
                                     <option value="">Todos</option>
@@ -82,7 +82,7 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 <label>Fecha Fin</label>
 
                                 <!--input de tipo date permite seleccionar una fecha mediante el calendario del navegador. -->
-                                <input type="date" name="fecha_fin" value="<?= $filtroFechaFin ?>">
+                                <input type="date" name="fecha_fin" class="form-control" value="<?= $filtroFechaFin ?>">
                             </div>
 
                             <!--Botones para aplicar filtros y generar reportes.-->
@@ -320,6 +320,25 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                         cursor: pointer;
                         font-weight: bold;
                         margin-right: 8px;
+                    }
+
+                    .btn-excel {
+                        background-color: #ffffff;
+                        color: #21a666;
+                        border: 1px solid #21a666;
+                        padding: 10px 18px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: bold;
+                        margin-right: 8px;
+                    }
+
+                    .btn-excel:hover {
+                        background-color: rgba(33, 166, 102, 0.1);
+                    }
+
+                    body[data-background-color="dark"] .btn-excel {
+                        background-color: transparent;
                     }
 
                     .tarjetas {

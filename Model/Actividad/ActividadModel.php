@@ -2,11 +2,13 @@
 
 include_once __DIR__ . '/../MasterModel.php';
 
-// ============================================================
-// Modelo del módulo Actividades (Terreno).
-// Reutiliza la misma tabla "actividad" que el módulo Acciones,
-// pero delimitada por ambito = 'terreno'.
-// ============================================================
+// Tabla: actividad
+//   id_actividad bigint (identity), ambito varchar(20) NOT NULL,
+//   nombre varchar(60) NOT NULL, descripcion varchar(200) NULL,
+//   estado smallint NOT NULL DEFAULT 1
+//
+// La misma tabla la usa el módulo Acciones (ambito = 'zoocriadero').
+// Este módulo trabaja SOLO con ambito = 'terreno'.
 class ActividadModel extends MasterModel
 {
     const AMBITO = 'terreno';
@@ -25,7 +27,9 @@ class ActividadModel extends MasterModel
     public function buscar($idActividad)
     {
         return $this->selectOne(
-            "SELECT * FROM actividad WHERE id_actividad = $1 AND ambito = $2",
+            "SELECT id_actividad, nombre, descripcion, estado
+             FROM actividad
+             WHERE id_actividad = $1 AND ambito = $2",
             [$idActividad, self::AMBITO]
         );
     }
@@ -39,6 +43,7 @@ class ActividadModel extends MasterModel
                 [self::AMBITO, $nombre, $idExcluir]
             ) !== null;
         }
+
         return $this->selectValue(
             "SELECT 1 FROM actividad WHERE ambito = $1 AND LOWER(nombre) = LOWER($2)",
             [self::AMBITO, $nombre]
@@ -47,29 +52,37 @@ class ActividadModel extends MasterModel
 
     public function crear($datos)
     {
+        // No se envía estado: la BD asigna 1 (activo) por DEFAULT.
         return $this->selectValue(
-            "INSERT INTO actividad (ambito, nombre, descripcion, estado)
-             VALUES ($1, $2, $3, $4)
+            "INSERT INTO actividad (ambito, nombre, descripcion)
+             VALUES ($1, $2, $3)
              RETURNING id_actividad",
-            [self::AMBITO, $datos['nombre'], $datos['descripcion'], $datos['estado']]
+            [self::AMBITO, $datos['nombre'], $datos['descripcion']]
         );
     }
 
     public function actualizar($idActividad, $datos)
     {
-        return $this->update(
+        $resultado = $this->update(
             "UPDATE actividad
-             SET nombre = $1, descripcion = $2, estado = $3
-             WHERE id_actividad = $4 AND ambito = $5",
-            [$datos['nombre'], $datos['descripcion'], $datos['estado'], $idActividad, self::AMBITO]
+             SET nombre = $1,
+                 descripcion = $2
+             WHERE id_actividad = $3 AND ambito = $4",
+            [$datos['nombre'], $datos['descripcion'], $idActividad, self::AMBITO]
         );
+
+        return $resultado !== false;
     }
 
     public function cambiarEstado($idActividad, $estado)
     {
-        return $this->update(
-            "UPDATE actividad SET estado = $1 WHERE id_actividad = $2 AND ambito = $3",
+        $resultado = $this->update(
+            "UPDATE actividad
+             SET estado = $1
+             WHERE id_actividad = $2 AND ambito = $3",
             [$estado, $idActividad, self::AMBITO]
         );
+
+        return $resultado !== false;
     }
 }

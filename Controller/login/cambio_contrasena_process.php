@@ -1,48 +1,50 @@
 <?php
+ob_start();
 session_start();
-require_once '../../model/conexion.php';
+require_once '../../Model/MasterModel.php';
+require_once '../../lib/validaciones.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nueva = trim($_POST['nueva_contrasena'] ?? '');
-    $confirmar = trim($_POST['confirmar_contrasena'] ?? '');
-    $id_usuario = $_SESSION['id_recuperar'] ?? null;
+    $idUsuario = $_SESSION['id_recuperar'] ?? null;
 
-    if (!$id_usuario) {
-        header("Location: ../../login.php");
+    if (!$idUsuario) {
+        header("Location: ../../View/login/login.php");
         exit();
     }
 
-    // Validar que coincidan las dos contraseñas
-    if ($nueva !== $confirmar || empty($nueva)) {
-        header("Location: ../../cambio_contrasena.php?error=no_coinciden");
+    $nueva = trim($_POST['nueva_contrasena'] ?? '');
+    $confirmar = trim($_POST['confirmar_contrasena'] ?? '');
+
+    if ($nueva !== $confirmar) {
+        header("Location: ../../View/login/cambio_contrasena.php?error=no_coinciden");
+        exit();
+    }
+
+    $errorClave = validarContrasena($nueva);
+    if ($errorClave !== null) {
+        header("Location: ../../View/login/cambio_contrasena.php?error=requisitos&mensaje=" . urlencode($errorClave));
         exit();
     }
 
     try {
-        // Encriptar la contraseña con password_hash (Buena práctica de seguridad)
-        $passwordHash = password_hash($nueva, PASSWORD_BCRYPT);
+        $masterModel = new MasterModel();
+        $hash = password_hash($nueva, PASSWORD_BCRYPT);
 
-        // Actualizar en PostgreSQL y limpiar tokens e intentos
-        $sql = "UPDATE usuario 
-                SET contrasena = :contrasena, token_recuperacion = NULL, intentos_fallidos = 0, bloqueo_hasta = NULL 
-                WHERE id_usuario = :id";
-        
-        $stmt = $conexion->prepare($sql);
-        $stmt->execute([
-            ':contrasena' => $passwordHash,
-            ':id' => $id_usuario
-        ]);
+        $sql = "UPDATE usuario
+                SET contrasena = $1, token_recuperacion = NULL, token_expira = NULL,
+                    intentos_fallidos = 0, bloqueo_hasta = NULL
+                WHERE id_usuario = $2";
+        $masterModel->update($sql, [$hash, $idUsuario]);
 
-        // Destruir la variable de sesión temporal de recuperación
+        // Ya se usó: se descarta la sesión temporal de recuperación
         unset($_SESSION['id_recuperar']);
 
-        // Redirigir al login con éxito
-        header("Location: ../../login.php?status=changed");
+        header("Location: ../../View/login/login.php?status=changed");
         exit();
 
-    } catch (PDOException $e) {
-        error_log("Error: " . $e->getMessage());
-        header("Location: ../../cambio_contrasena.php?error=no_coinciden");
+    } catch (Throwable $e) {
+        error_log("Error cambiando contraseña: " . $e->getMessage());
+        header("Location: ../../View/login/cambio_contrasena.php?error=sistema");
         exit();
     }
 }

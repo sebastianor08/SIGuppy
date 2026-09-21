@@ -20,13 +20,9 @@
 
     <div class="login-card">
         <div class="top-header">
-            <img src="../../Web/assets/img/logo-secretaria-salud.png" class="logo-secretaria" alt="">
+            <img src="../../Web/assets/img/logo-secretaria-salud-transparente.png" class="logo-secretaria" alt="">
         </div>
 
-        <div class="text-center mb-3">
-            <img src="../../Web/assets/img/SIGUPPY.png" class="logo-siguppy" alt="SIGuppy">
-            <div class="slogan-text mt-1"></div>
-        </div>
 
         <div class="mb-4">
             <h4 class="fw-bold text-dark mb-1">¿Has olvidado tu contraseña?</h4>
@@ -37,9 +33,13 @@
             <div class="alert alert-danger py-2 small text-center mb-3">
                 El correo electrónico no se encuentra registrado.
             </div>
+        <?php elseif (isset($_GET['status']) && $_GET['status'] == 'system'): ?>
+            <div class="alert alert-danger py-2 small text-center mb-3">
+                No se pudo enviar el correo. Intenta de nuevo más tarde.
+            </div>
         <?php endif; ?>
 
-        <form action="controller/recuperar_process.php" method="POST">
+        <form action="../../Controller/login/recuperar_process.php" method="POST">
             <div class="form-group mb-4 px-0">
                 <label for="correo" class="form-label fw-bold small text-secondary">Correo electrónico</label>
                 <div class="input-group">
@@ -67,7 +67,7 @@
         </div>
     </div>
 
-    <script src="Web/assets/js/core/bootstrap.min.js"></script>
+    <script src="../../Web/assets/js/core/bootstrap.min.js"></script>
 
     <?php if (isset($_GET['status']) && $_GET['status'] == 'enviado'): ?>
     <script>

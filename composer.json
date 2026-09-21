@@ -1,5 +1,10 @@
 {
+<<<<<<< HEAD
     "require-dev": {
         "phpunit/phpunit": "^12.5"
+=======
+    "require": {
+        "phpmailer/phpmailer": "^7.1"
+>>>>>>> origin/DevDefinitivo
     }
 }

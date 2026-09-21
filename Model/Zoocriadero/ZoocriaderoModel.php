@@ -2,13 +2,8 @@
 
 include_once __DIR__ . '/../MasterModel.php';
 
-// ============================================================
-// Modelo del módulo Zoocriaderos.
-// Tablas: zoocriadero, tanque, tipo_tanque, comuna, barrio
-// ============================================================
 class ZoocriaderoModel extends MasterModel{
 
-    // Listado para la tabla: cuántos tanques activos tiene cada zoocriadero.
     public function listar(){
         return $this->selectAll(
             "SELECT z.id_zoocriadero,
@@ -135,15 +130,6 @@ class ZoocriaderoModel extends MasterModel{
             "SELECT 1 FROM tanque WHERE id_zoocriadero = $1 AND numero_tanque = $2",
             [$idZoocriadero, $numero]
         ) !== null;
-    }
-
-    public function crearTanque($idZoocriadero, $idTipoTanque, $numero){
-        return $this->selectValue(
-            "INSERT INTO tanque (id_zoocriadero, id_tipo_tanque, numero_tanque, estado)
-             VALUES ($1, $2, $3, 1)
-             RETURNING id_tanque",
-            [$idZoocriadero, $idTipoTanque, $numero]
-        );
     }
 
     public function tipoTanqueExiste($idTipoTanque){

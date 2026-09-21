@@ -1,28 +1,39 @@
 <?php
+ob_start();
 session_start();
-require_once '../../model/conexion.php';
+
+// Carga el MasterModel (conexión nativa pgsql, sin PDO)
+require_once '../../Model/MasterModel.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $codigo = trim($_POST['codigo'] ?? '');
 
-    if (empty($codigo)) {
-        header("Location: ../../validar_codigo.php?error=codigo_invalido");
+    if ($codigo === '') {
+        header("Location: ../../View/login/validar_codigo.php?error=codigo_invalido");
         exit();
     }
 
-    // Verificar si el token/código existe en PostgreSQL
-    $sql = "SELECT id_usuario FROM usuario WHERE token_recuperacion = :codigo";
-    $stmt = $conexion->prepare($sql);
-    $stmt->execute([':codigo' => $codigo]);
-    $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+    try {
+        $masterModel = new MasterModel();
 
-    if ($usuario) {
+        // El código debe existir y no haber vencido
+        $sql = "SELECT id_usuario FROM usuario
+                WHERE token_recuperacion = $1 AND token_expira > NOW()";
+        $usuario = $masterModel->selectOne($sql, [$codigo]);
+
+        if (!$usuario) {
+            header("Location: ../../View/login/validar_codigo.php?error=codigo_invalido");
+            exit();
+        }
+
         // Guardamos temporalmente el ID de usuario validado en la sesión
         $_SESSION['id_recuperar'] = $usuario['id_usuario'];
-        header("Location: ../../cambio_contrasena.php");
+        header("Location: ../../View/login/cambio_contrasena.php");
         exit();
-    } else {
-        header("Location: ../../validar_codigo.php?error=codigo_invalido");
+
+    } catch (Exception $e) {
+        error_log("Error validando código de recuperación: " . $e->getMessage());
+        header("Location: ../../View/login/validar_codigo.php?error=codigo_invalido");
         exit();
     }
 }

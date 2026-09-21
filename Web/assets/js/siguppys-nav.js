@@ -82,6 +82,27 @@
     }
   }
 
+  // Con el botón de colapsar (los "tres puntos") quitado, la única
+  // forma de volver a expandir el sidebar colapsado es tocando
+  // cualquier ícono del menú. Si además ese ícono abre un submenú
+  // (Reportes, Zoocriaderos, Terreno, Usuarios), Bootstrap ya se
+  // encarga de mostrar ese submenú solo; aquí solo quitamos
+  // "sidebar_minimize" para que ese submenú deje de estar oculto
+  // por el CSS del modo íconos.
+  function initSidebarExpandOnClick() {
+    var sidebar = document.querySelector(".siguppys-sidebar");
+    if (!sidebar) return;
+    sidebar.addEventListener("click", function (e) {
+      var link = e.target.closest(".nav-item > a");
+      if (!link) return;
+      var wrapper = document.querySelector(".wrapper");
+      if (wrapper && wrapper.classList.contains("sidebar_minimize")) {
+        wrapper.classList.remove("sidebar_minimize");
+        wrapper.classList.remove("sidebar_minimize_hover");
+      }
+    });
+  }
+
   function getBoolPref(key) {
     try {
       return localStorage.getItem(key) === "1";
@@ -165,6 +186,7 @@
     highlightActiveNav();
     initRoleSwitcher();
     initPreferences();
+    initSidebarExpandOnClick();
   });
 
   window.SIGuppys = window.SIGuppys || {};
