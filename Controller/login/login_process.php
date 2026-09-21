@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../../model/conexion.php'; // Tu conexión PDO a PostgreSQL
+require_once '../../Model/conexion.php'; // Tu conexión PDO a PostgreSQL
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $correo = trim($_POST['correo'] ?? '');
