@@ -13,7 +13,7 @@ function obtenerDatosPecesNacidosMuertosPorTanque()
     // La tabla seguimiento_zoocriadero guarda el desglose por sexo de
     // nacidos y muertos en cada visita, así que no hay que contar filas.
     $sql = "SELECT z.nombre AS zoocriadero,
-                'Tanque ' || t.numero_tanque AS tanque,
+                t.nombre_tanque AS tanque,
                 TO_CHAR(sz.fecha, 'DD/MM/YYYY') AS fecha,
                 sz.numero_nacidos_hembra AS nacidos_hembra,
                 sz.numero_nacidos_macho AS nacidos_macho,
@@ -22,7 +22,7 @@ function obtenerDatosPecesNacidosMuertosPorTanque()
             FROM seguimiento_zoocriadero sz
             INNER JOIN tanque t ON t.id_tanque = sz.id_tanque
             INNER JOIN zoocriadero z ON z.id_zoocriadero = sz.id_zoocriadero
-            ORDER BY z.nombre, t.numero_tanque, sz.fecha";
+            ORDER BY z.nombre, t.nombre_tanque, sz.fecha";
 
     $resultado = pg_query($conexion, $sql);
 
@@ -47,6 +47,13 @@ function obtenerDatosPecesNacidosMuertosPorTanque()
     $filtroSexo        = $_GET['sexo']         ?? '';
     $filtroFechaInicio = $_GET['fecha_inicio'] ?? '';
     $filtroFechaFin    = $_GET['fecha_fin']    ?? '';
+
+    require_once __DIR__ . '/../../lib/validaciones.php';
+    $errorRangoFechas = validarRangoFechas($filtroFechaInicio, $filtroFechaFin, 'Fecha inicio', 'Fecha fin');
+    if ($errorRangoFechas !== null) {
+        $filtroFechaInicio = '';
+        $filtroFechaFin    = '';
+    }
 
     // --- VALORES ÚNICOS PARA LLENAR LOS SELECT ---
     $listaZoocriaderos = array_unique(array_column($registros, 'zoocriadero'));
@@ -146,6 +153,7 @@ function obtenerDatosPecesNacidosMuertosPorTanque()
         'filtroSexo'             => $filtroSexo,
         'filtroFechaInicio'      => $filtroFechaInicio,
         'filtroFechaFin'         => $filtroFechaFin,
+        'errorRangoFechas'       => $errorRangoFechas,
         'resumenPorTanque'       => $resumenPorTanque,
         'totalNacidos'           => $totalNacidos,
         'totalMuertos'           => $totalMuertos,

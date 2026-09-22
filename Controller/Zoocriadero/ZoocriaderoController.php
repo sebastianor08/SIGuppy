@@ -53,6 +53,7 @@ class ZoocriaderoController
 
     public function postCreate()
     {
+        sigExigirPermiso('Zoocriaderos', 'crear');
         $obj = new ZoocriaderoModel();
         $body = requestJsonBody();
         $datos = $this->validarZoocriadero($body, $obj);
@@ -71,6 +72,7 @@ class ZoocriaderoController
 
     public function postUpdate()
     {
+        sigExigirPermiso('Zoocriaderos', 'editar');
         $obj = new ZoocriaderoModel();
         $body = requestJsonBody();
 
@@ -93,6 +95,7 @@ class ZoocriaderoController
 
     public function postEstado()
     {
+        sigExigirPermiso('Zoocriaderos', 'inhabilitar');
         $obj = new ZoocriaderoModel();
         $body = requestJsonBody();
 

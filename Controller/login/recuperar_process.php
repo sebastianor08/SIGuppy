@@ -25,16 +25,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
 
-        // Código de 6 dígitos, igual que el de verificación de login,
-        // válido por 15 minutos (reutiliza token_recuperacion/token_expira)
-        $codigo = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $codigoExpira = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+        // Token de recuperación: 64 caracteres hexadecimales generados con
+        // random_bytes (criptográficamente seguro), no un código de 6
+        // dígitos. Válido por 30 minutos (reutiliza token_recuperacion /
+        // token_expira, que ya existían para el código anterior).
+        $codigo = bin2hex(random_bytes(32));
+        $minutosExpiracion = 30;
+        $codigoExpira = date('Y-m-d H:i:s', strtotime("+{$minutosExpiracion} minutes"));
 
         $sqlUpdate = "UPDATE usuario SET token_recuperacion = $1, token_expira = $2 WHERE id_usuario = $3";
         $masterModel->update($sqlUpdate, [$codigo, $codigoExpira, $usuario['id_usuario']]);
 
+        // Enlace absoluto: se arma a partir del host y la ruta con la que
+        // el navegador llegó a este script, para que funcione sin importar
+        // el dominio o subcarpeta donde esté instalado el sistema.
+        $protocolo    = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host         = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        // Este script vive en <raíz>/Controller/login/recuperar_process.php
+        $raizProyecto = str_replace('\\', '/', dirname(dirname(dirname($_SERVER['SCRIPT_NAME']))));
+        $raizProyecto = rtrim($raizProyecto, '/');
+        $baseUrl      = $protocolo . '://' . $host . $raizProyecto . '/';
+        $enlace       = $baseUrl . 'View/login/cambio_contrasena.php?token=' . $codigo;
+
         $nombreCompleto = $usuario['nombre'] . ' ' . $usuario['apellido'];
-        $enviado = enviarCodigoRecuperacion($usuario['correo'], $nombreCompleto, $codigo);
+        $enviado = enviarEnlaceRecuperacion($usuario['correo'], $nombreCompleto, $enlace, $minutosExpiracion);
 
         if (!$enviado) {
             header("Location: ../../View/login/recuperar.php?status=system");

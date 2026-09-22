@@ -110,12 +110,39 @@ class RegistrarSitioModel extends MasterModel
                 d.id_ciudad,
                 d.id_comuna,
                 d.id_barrio,
-                d.id_nomenclatura
+                d.id_nomenclatura,
+                d.latitud,
+                d.longitud
              FROM sitio s
              INNER JOIN direccion d ON d.id_direccion = s.id_direccion
              WHERE s.id_sitio = $1",
             [$idSitio]
         );
+    }
+
+    // Nombres de barrio y comuna: el geocodificador busca por texto, no por id.
+    public function nombresUbicacion($idBarrio, $idComuna)
+    {
+        return $this->selectOne(
+            "SELECT (SELECT nombre FROM barrio WHERE id_barrio = $1) AS barrio,
+                    (SELECT nombre FROM comuna WHERE id_comuna = $2) AS comuna",
+            [$idBarrio, $idComuna]
+        );
+    }
+
+    // Guarda las coordenadas de una dirección (o las deja en NULL si se envía null).
+    // Es lo que hace que los depósitos de este sitio aparezcan en el mapa.
+    public function guardarCoordenadas($idDireccion, $latitud, $longitud)
+    {
+        $resultado = $this->update(
+            "UPDATE direccion
+             SET latitud = $1,
+                 longitud = $2
+             WHERE id_direccion = $3",
+            [$latitud, $longitud, $idDireccion]
+        );
+
+        return $resultado !== false;
     }
 
     public function crearDireccion($datos)

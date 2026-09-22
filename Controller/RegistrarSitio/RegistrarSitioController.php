@@ -1,6 +1,7 @@
 <?php
 
 include_once '../Model/RegistrarSitio/RegistrarSitioModel.php';
+include_once __DIR__ . '/../../lib/geocodificador.php';
 
 class RegistrarSitioController
 {
@@ -79,12 +80,20 @@ class RegistrarSitioController
         $body = requestJsonBody();
         $datos = $this->validar($body, $obj);
 
+        // Ubica la dirección en el mapa. Si no hay internet o no la encuentra, el
+        // sitio se registra igual, solo que sin coordenadas (no sale en el mapa).
+        $punto = $this->geocodificar($obj, $datos);
+
         try {
             $obj->beginTransaction();
 
             $idDireccion = $obj->crearDireccion($datos);
             if (!$idDireccion) {
                 throw new Exception('No se pudo registrar la dirección: ' . $obj->ultimoError());
+            }
+
+            if ($punto !== null) {
+                $obj->guardarCoordenadas($idDireccion, $punto['lat'], $punto['lng']);
             }
 
             $datos['id_direccion'] = $idDireccion;
@@ -126,11 +135,24 @@ class RegistrarSitioController
 
         $datos = $this->validar($body, $obj);
 
+        // Se vuelve a ubicar la dirección solo si cambió o si aún no tiene coordenadas
+        // (así, editar un sitio que quedó sin ubicar lo reintenta). Si cambió y no se
+        // encuentra, se borran las coordenadas viejas para no dibujarlo en un lugar falso.
+        $cambioDireccion = $this->direccionCambio($actual, $datos);
+        $sinCoordenadas = ($actual['latitud'] === null || $actual['longitud'] === null);
+        $punto = ($cambioDireccion || $sinCoordenadas) ? $this->geocodificar($obj, $datos) : null;
+
         try {
             $obj->beginTransaction();
 
             if (!$obj->actualizarDireccion($actual['id_direccion'], $datos)) {
                 throw new Exception('No se pudo actualizar la dirección: ' . $obj->ultimoError());
+            }
+
+            if ($punto !== null) {
+                $obj->guardarCoordenadas($actual['id_direccion'], $punto['lat'], $punto['lng']);
+            } elseif ($cambioDireccion) {
+                $obj->guardarCoordenadas($actual['id_direccion'], null, null);
             }
 
             if (!$obj->actualizarSitio($idSitio, $datos)) {
@@ -148,6 +170,28 @@ class RegistrarSitioController
             'ok' => true,
             'message' => 'Sitio actualizado correctamente.'
         ]);
+    }
+
+    // Devuelve ['lat' => float, 'lng' => float] o null si no se pudo ubicar.
+    private function geocodificar($obj, $datos)
+    {
+        $nombres = $obj->nombresUbicacion($datos['id_barrio'], $datos['id_comuna']);
+
+        return geocodificarDireccion(
+            $datos['direccion'],
+            $nombres['barrio'] ?? null,
+            $nombres['comuna'] ?? null
+        );
+    }
+
+    // ¿La dirección del formulario es distinta a la guardada?
+    private function direccionCambio($actual, $datos)
+    {
+        return trim((string)$actual['direccion']) !== $datos['direccion']
+            || (int)$actual['id_barrio'] !== (int)$datos['id_barrio']
+            || (int)$actual['id_comuna'] !== (int)$datos['id_comuna']
+            || (int)$actual['id_ciudad'] !== (int)$datos['id_ciudad']
+            || (int)$actual['id_departamento'] !== (int)$datos['id_departamento'];
     }
 
     private function validar($body, $obj)

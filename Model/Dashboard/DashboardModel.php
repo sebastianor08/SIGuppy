@@ -22,13 +22,22 @@ class DashboardModel extends MasterModel
         );
     }
 
-    // Total histórico de inspecciones de depósitos/sitios registradas
-    // (cada fila de seguimiento_terreno es una visita/inspección).
+    // Total histórico de inspecciones de depósitos/sitios registradas: cada fila
+    // activa de seguimiento_terreno (visita a un sitio) más cada fila activa de
+    // seguimiento_deposito (visita a un depósito, módulo "Seguimiento de Depósito").
+    // Son dos consultas separadas para que, si la migración de seguimiento_deposito
+    // aún no se ha corrido, el conteo de seguimiento_terreno no se pierda.
     public function contarDepositosInspeccionados()
     {
-        return (int) $this->selectValue(
+        $porSitio = (int) $this->selectValue(
             "SELECT COUNT(*) FROM seguimiento_terreno WHERE estado = 1"
         );
+
+        $porDeposito = (int) $this->selectValue(
+            "SELECT COUNT(*) FROM seguimiento_deposito WHERE estado = 1"
+        );
+
+        return $porSitio + $porDeposito;
     }
 
     // Los zoocriaderos con el seguimiento más reciente, para la tabla

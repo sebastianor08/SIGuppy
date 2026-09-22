@@ -6,11 +6,6 @@
   var AJAX_URL = "../../Web/ajax.php";
   var MODULO = "modulo=Zoocriadero&controlador=Zoocriadero";
 
-  var PERMISOS = {
-    auxiliar: { crear: false, editar: false, inhabilitar: false },
-    coordinador: { crear: true, editar: true, inhabilitar: true },
-  };
-
   var data = [];       
   var comunas = [];    
   var state = { q: "", estado: "todos" };
@@ -28,20 +23,15 @@
     return d.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
   }
 
-function role() {
-    return (window.SIGuppys && window.SIGuppys.getRole()) || "auxiliar";
-}
-function permisos() {
-    // Por ahora, todos los roles ven habilitado crear/editar/inhabilitar
-    // (sin filtrar por rol todavía).
-    return { crear: true, editar: true, inhabilitar: true };
-}
-  function roleLabel() {
-    var roles = window.SIGuppys && window.SIGuppys.ROLES;
-    return (roles && roles[role()] && roles[role()].label) || role();
+  // Permisos reales del rol de la sesión sobre este módulo (ver
+  // lib/permisos.php / View/partials/footer.php), en vez del selector de
+  // rol de mentira (auxiliar/coordinador en localStorage).
+  var PERMISOS_VACIOS = { ver: false, consultar: false, crear: false, editar: false, inhabilitar: false, exportar: false };
+  function permisos() {
+    return window.SIG_PERMISOS || PERMISOS_VACIOS;
   }
   function lockedTitle(accion) {
-    return "Tu rol (" + roleLabel() + ") no tiene permiso para " + accion + ".";
+    return "No tienes permiso para " + accion + ".";
   }
 
   function showMessage(text, type) {
@@ -289,7 +279,7 @@ function permisos() {
             .map(function (t) {
               return (
                 '<li class="list-group-item px-0 d-flex justify-content-between align-items-center">' +
-                '<span><span class="fw-bold">Tanque ' + escapeHtml(t.numero_tanque) + "</span>" +
+                '<span><span class="fw-bold">' + escapeHtml(t.nombre_tanque) + "</span>" +
                 '<div class="small text-muted">' + escapeHtml(t.tipo_tanque) + "</div></span>" +
                 (Number(t.estado) === 1
                   ? '<span class="badge-estado activo">Activo</span>'

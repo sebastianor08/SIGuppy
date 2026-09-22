@@ -6,10 +6,10 @@
   var AJAX_URL = "../../Web/ajax.php";
   var MODULO = "modulo=Acciones&controlador=Acciones";
 
-  var PERMISOS = {
-    auxiliar: { crear: false, editar: false, inhabilitar: false },
-    coordinador: { crear: true, editar: true, inhabilitar: true },
-  };
+  // Permisos reales del rol de la sesión sobre este módulo (ver
+  // lib/permisos.php / View/partials/footer.php), en vez del selector de
+  // rol de mentira que se usaba antes (auxiliar/coordinador).
+  var PERMISOS_VACIOS = { ver: false, consultar: false, crear: false, editar: false, inhabilitar: false, exportar: false };
 
   var data = []; 
 
@@ -20,18 +20,11 @@
     });
   }
 
-  function role() {
-    return (window.SIGuppys && window.SIGuppys.getRole()) || "auxiliar";
-  }
   function permisos() {
-    return PERMISOS[role()];
-  }
-  function roleLabel() {
-    var roles = window.SIGuppys && window.SIGuppys.ROLES;
-    return (roles && roles[role()] && roles[role()].label) || role();
+    return window.SIG_PERMISOS || PERMISOS_VACIOS;
   }
   function lockedTitle(accion) {
-    return "Tu rol (" + roleLabel() + ") no tiene permiso para " + accion + ".";
+    return "No tienes permiso para " + accion + ".";
   }
 
   function showMessage(text, type) {
@@ -92,11 +85,22 @@
  
   function renderAcciones(a) {
     var p = permisos();
-    var btns =
-      '<button type="button" class="btn-icon" data-action="editar" data-id="' + a.id + '" title="Editar">' +
-      '<i class="fas fa-pen"></i></button>' +
-      '<button type="button" class="btn-icon" data-action="ver" data-id="' + a.id +
-      '" title="Ver detalle"><i class="fas fa-eye"></i></button>';
+    var btns = "";
+
+    // El icono de lápiz (Editar) solo se muestra si el rol tiene permiso
+    // de "editar". El icono de ojo (Ver/Consultar) solo se muestra si el
+    // rol tiene permiso de "consultar". Antes ambos aparecían siempre,
+    // sin importar el rol.
+    if (p.editar) {
+      btns +=
+        '<button type="button" class="btn-icon" data-action="editar" data-id="' + a.id +
+        '" title="Editar"><i class="fas fa-pen"></i></button>';
+    }
+    if (p.consultar) {
+      btns +=
+        '<button type="button" class="btn-icon" data-action="ver" data-id="' + a.id +
+        '" title="Ver detalle"><i class="fas fa-eye"></i></button>';
+    }
 
     if (p.inhabilitar) {
       if (a.estado === 1) {

@@ -100,12 +100,15 @@ class UsuarioModel extends MasterModel{
     }
 
     // ---------------- INSERT ----------------
-    // $datos ya trae la contraseña como hash (password_hash), nunca en texto plano.
+    // $datos ya trae la contraseña como hash (password_hash) del número de
+    // documento del usuario, nunca en texto plano. debe_cambiar_contrasena
+    // siempre entra en TRUE: todo usuario nuevo debe cambiar esa contraseña
+    // inicial antes de poder usar el sistema (ver login_process.php).
     public function crear($datos){
         return $this->selectValue(
             "INSERT INTO usuario
-             (id_tipodocumento, id_rol, nombre, apellido, documento, correo, contrasena, estado)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, 1)
+             (id_tipodocumento, id_rol, nombre, apellido, documento, correo, contrasena, estado, debe_cambiar_contrasena)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, 1, TRUE)
              RETURNING id_usuario",
             [
                 $datos['id_tipodocumento'],

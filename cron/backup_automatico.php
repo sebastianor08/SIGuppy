@@ -6,14 +6,13 @@ if (php_sapi_name() !== 'cli') {
 }
 
 require __DIR__ . '/../lib/conf/backup_conf.php';
-require __DIR__ . '/../lib/conf/conf.php'; // $host, $user, $password, $database, $port
+require __DIR__ . '/../lib/conf/conf.php'; 
 require __DIR__ . '/../Model/CopiaSeguridad/CopiaSeguridadModel.php';
 
 function log_linea($mensaje) {
     echo '[' . date('Y-m-d H:i:s') . "] $mensaje\n";
 }
 
-// ---------- 1) Generar el dump ----------
 if (!is_dir(BACKUP_DIR)) {
     mkdir(BACKUP_DIR, 0775, true);
 }

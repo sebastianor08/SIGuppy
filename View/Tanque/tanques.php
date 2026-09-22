@@ -26,7 +26,7 @@
                 <div class="sig-table-toolbar">
                   <div class="sig-search">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="tanquesSearch" class="form-control" placeholder="Buscar por zoocriadero, tipo o número..." />
+                    <input type="text" id="tanquesSearch" class="form-control" placeholder="Buscar por zoocriadero, tipo o nombre de tanque..." />
                   </div>
                   <div class="d-flex align-items-center gap-2">
                     <select id="tanquesEstadoFiltro" class="form-select form-select-sm" style="width:auto;">
@@ -45,7 +45,7 @@
                     <thead class="table-light">
                       <tr>
                         <th>Zoocriadero</th>
-                        <th>Número</th>
+                        <th>Nombre</th>
                         <th>Tipo de tanque</th>
                         <th class="text-center">Estado</th>
                         <th class="text-center">Acciones</th>
@@ -72,8 +72,8 @@
                         <select name="id_zoocriadero" class="form-select" required></select>
                       </div>
                       <div class="mb-3">
-                        <label class="form-label">Número de tanque <span class="text-danger">*</span></label>
-                        <input type="number" min="1" step="1" name="numero_tanque" class="form-control" placeholder="Ej. 1" required />
+                        <label class="form-label">Nombre del tanque <span class="text-danger">*</span></label>
+                        <input type="text" minlength="2" maxlength="60" name="nombre_tanque" class="form-control" placeholder="Ej. Tanque Norte, Tanque de cría 1" required />
                         <div class="form-text" id="tanqueCreateNumeroHint">Seleccione primero el zoocriadero.</div>
                       </div>
                       <div class="mb-1">
@@ -106,8 +106,8 @@
                         <select name="id_zoocriadero" class="form-select" required></select>
                       </div>
                       <div class="mb-3">
-                        <label class="form-label">Número de tanque <span class="text-danger">*</span></label>
-                        <input type="number" min="1" step="1" name="numero_tanque" class="form-control" required />
+                        <label class="form-label">Nombre del tanque <span class="text-danger">*</span></label>
+                        <input type="text" minlength="2" maxlength="60" name="nombre_tanque" class="form-control" required />
                       </div>
                       <div class="mb-1">
                         <label class="form-label">Tipo de tanque <span class="text-danger">*</span></label>
@@ -128,6 +128,7 @@
     </div>
 
 <?php
+    $moduloPermisos = 'Tanque Zoocriadero';
     $pageScripts = ['Web/assets/js/siguppys-tanques.js'];
     include '../partials/footer.php';
 ?>

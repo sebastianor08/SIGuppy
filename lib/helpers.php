@@ -5,12 +5,30 @@
     session_start();
 
     include_once __DIR__ . '/validaciones.php';
+    include_once __DIR__ . '/sesion_config.php';
+    include_once __DIR__ . '/permisos.php';
+
+    if (isset($_GET['modulo'])) {
+        if (sigSesionInactivaVencida()) {
+            sigCerrarPorInactividad();
+            http_response_code(401);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => false, 'sesionExpirada' => true, 'message' => 'Tu sesión expiró por inactividad.'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+        if (!empty($_SESSION['id_usuario']) && !empty($_SESSION['debe_cambiar_contrasena'])) {
+            http_response_code(403);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => false, 'message' => 'Debes actualizar tu contraseña antes de continuar.'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+        sigRegistrarActividad();
+    }
     function redirect($url){
         echo "<script>";
             echo "window.location.href='$url'";
         echo "</script>";
-        exit; // sin esto, el código que sigue después de llamar a redirect()
-              // se sigue ejecutando y puede disparar una segunda redirección
+        exit; 
     }
 
     function dd($date){
