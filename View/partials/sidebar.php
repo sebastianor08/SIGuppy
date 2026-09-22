@@ -26,7 +26,7 @@
   $sigMostrarReportes  = sigPuedeVer('Reportes');
   $sigMostrarZoo       = sigPuedeVer('Zoocriaderos') || sigPuedeVer('Tanque Zoocriadero') || sigPuedeVer('Acciones de Zoocriadero');
   $sigMostrarTerreno   = sigPuedeVer('Depósitos') || sigPuedeVer('Seguimiento de Depósito') || sigPuedeVer('Actividades') || sigPuedeVer('Tipo Depósitos');
-  $sigMostrarUsuarios  = sigPuedeVer('Gestión de Usuarios') || sigPuedeVer('Roles y Permisos') || sigPuedeVer('Consultar Usuarios');
+  $sigMostrarUsuarios  = sigPuedeVer('Gestión de Usuarios') || sigPuedeVer('Gestión de Roles');
 ?>
 <div class="sidebar sidebar-style-2 siguppys-sidebar" data-background-color="white">
   <div class="sidebar-logo">
@@ -154,9 +154,8 @@
               <?php if (sigPuedeVer('Gestión de Usuarios')): ?>
               <li><a href="<?php echo $rutaBase; ?>View/Usuarios/usuarios.php" data-page="usuarios-registrar"><span class="sub-item">Gestión De Usuarios</span></a></li>
               <?php endif; ?>
-              <?php if (sigPuedeVer('Roles y Permisos')): ?>
-              <li><a href="<?php echo $rutaBase; ?>View/Roles/registro-roles.php" data-page="roles-registrar"><span class="sub-item">Roles y Permisos</span></a></li>
-              <li><a href="<?php echo $rutaBase; ?>View/Roles/consultar-roles.php" data-page="roles-consultar"><span class="sub-item">Consultar Roles</span></a></li>
+              <?php if (sigPuedeVer('Gestión de Roles')): ?>
+              <li><a href="<?php echo $rutaBase; ?>View/Roles/consultar-roles.php" data-page="roles-consultar"><span class="sub-item">Gestión De Roles</span></a></li>
               <?php endif; ?>
             </ul>
           </div>

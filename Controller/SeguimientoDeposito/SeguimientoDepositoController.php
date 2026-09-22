@@ -34,6 +34,7 @@ class SeguimientoDepositoController
 
     public function postCreate()
     {
+        sigExigirPermiso('Seguimiento de Depósito', 'crear');
         $idUsuario = $this->idUsuarioSesion();
         $obj = new SeguimientoDepositoModel();
         $body = requestJsonBody();
@@ -59,6 +60,7 @@ class SeguimientoDepositoController
 
     public function postUpdate()
     {
+        sigExigirPermiso('Seguimiento de Depósito', 'editar');
         $this->idUsuarioSesion();
         $obj = new SeguimientoDepositoModel();
         $body = requestJsonBody();
@@ -94,6 +96,7 @@ class SeguimientoDepositoController
 
     public function postEstado()
     {
+        sigExigirPermiso('Seguimiento de Depósito', 'inhabilitar');
         $this->idUsuarioSesion();
         $obj = new SeguimientoDepositoModel();
         $body = requestJsonBody();
@@ -121,6 +124,42 @@ class SeguimientoDepositoController
             'message' => $estado === 1
                 ? 'Seguimiento habilitado.'
                 : 'Seguimiento inhabilitado.'
+        ]);
+    }
+
+    // Descartar / restaurar VARIOS seguimientos seleccionados en la tabla
+    // de una sola vez, en vez de repetir la acción uno por uno.
+    public function postEstadoMasivo()
+    {
+        sigExigirPermiso('Seguimiento de Depósito', 'inhabilitar');
+        $this->idUsuarioSesion();
+        $obj = new SeguimientoDepositoModel();
+        $body = requestJsonBody();
+
+        $ids = $body['ids'] ?? [];
+        $estado = filter_var($body['estado'] ?? null, FILTER_VALIDATE_INT);
+
+        if (!is_array($ids) || empty($ids) || ($estado !== 0 && $estado !== 1)) {
+            jsonResponse(['ok' => false, 'message' => 'Debe seleccionar al menos un seguimiento y un estado válido.'], 422);
+        }
+
+        $idsValidos = array_values(array_filter(array_map(function ($v) {
+            return filter_var($v, FILTER_VALIDATE_INT);
+        }, $ids)));
+
+        if (empty($idsValidos)) {
+            jsonResponse(['ok' => false, 'message' => 'La selección no es válida.'], 422);
+        }
+
+        $resultado = $obj->cambiarEstadoMasivo($idsValidos, $estado);
+        if ($resultado === false) {
+            jsonResponse(['ok' => false, 'message' => 'No se pudo actualizar la selección: ' . $obj->mensajeError()], 500);
+        }
+
+        jsonResponse([
+            'ok' => true,
+            'message' => ($estado === 1 ? 'Se habilitaron ' : 'Se inhabilitaron ') . $resultado . ' seguimiento(s).',
+            'total' => $resultado,
         ]);
     }
 

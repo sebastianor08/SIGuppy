@@ -46,20 +46,34 @@
         }
     }
 
-    // Correo específico del código para "¿olvidaste tu contraseña?".
-    function enviarCodigoRecuperacion($destinatario, $nombreDestinatario, $codigo)
+    // Correo con el ENLACE de recuperación de contraseña (ya no un código
+    // de 6 dígitos): el usuario hace clic y llega directo al formulario
+    // para poner su nueva contraseña. $minutosExpiracion se muestra en el
+    // correo para que el usuario sepa cuánto tiempo tiene antes de que el
+    // enlace deje de funcionar.
+    function enviarEnlaceRecuperacion($destinatario, $nombreDestinatario, $enlace, $minutosExpiracion = 30)
     {
         $asunto = "Recupera tu contraseña - SIGuppys";
+
+        $nombreH  = htmlspecialchars($nombreDestinatario, ENT_QUOTES, 'UTF-8');
+        $enlaceH  = htmlspecialchars($enlace, ENT_QUOTES, 'UTF-8');
 
         $cuerpo = "
             <div style='font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;'>
                 <h2 style='color:#2f7dfa; margin-bottom:4px;'>Recuperación de contraseña</h2>
-                <p>Hola <strong>" . htmlspecialchars($nombreDestinatario) . "</strong>,</p>
-                <p>Recibimos una solicitud para restablecer tu contraseña. Usa este código,
-                   vence en 15 minutos:</p>
-                <p style='font-size:28px; font-weight:bold; letter-spacing:6px; background:#f1f3f8;
-                          padding:14px 20px; border-radius:8px; text-align:center; color:#2f7dfa;'>
-                    " . htmlspecialchars($codigo) . "
+                <p>Hola <strong>$nombreH</strong>,</p>
+                <p>Recibimos una solicitud para restablecer tu contraseña. Haz clic en el
+                   siguiente botón para elegir una nueva; el enlace vence en $minutosExpiracion minutos:</p>
+                <p style='text-align:center; margin:24px 0;'>
+                    <a href='$enlaceH'
+                       style='display:inline-block; background:#2f7dfa; color:#fff; text-decoration:none;
+                              padding:12px 24px; border-radius:8px; font-weight:bold;'>
+                        Restablecer contraseña
+                    </a>
+                </p>
+                <p style='color:#888; font-size:13px;'>
+                    Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+                    <a href='$enlaceH' style='word-break:break-all;'>$enlaceH</a>
                 </p>
                 <p style='color:#888; font-size:13px;'>
                     Si no fuiste tú quien solicitó este cambio, ignora este correo:
@@ -68,7 +82,14 @@
             </div>
         ";
 
-        return enviarCorreo($destinatario, $nombreDestinatario, $asunto, $cuerpo);
+        $texto = "Recuperación de contraseña - SIGuppys\n\n"
+            . "Hola $nombreDestinatario,\n"
+            . "Recibimos una solicitud para restablecer tu contraseña. Entra al siguiente enlace "
+            . "para elegir una nueva; vence en $minutosExpiracion minutos:\n\n"
+            . "$enlace\n\n"
+            . "Si no fuiste tú quien solicitó este cambio, ignora este correo.";
+
+        return enviarCorreo($destinatario, $nombreDestinatario, $asunto, $cuerpo, $texto);
     }
 
     // Correo con las credenciales de un usuario recién creado. El "usuario" para
@@ -98,6 +119,11 @@
                         <td style='padding:12px 16px; font-family:Consolas, monospace; font-weight:bold;'>$contrasenaH</td>
                     </tr>
                 </table>
+                <p style='color:#b45309; font-size:13px; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:10px 14px;'>
+                    Tu contraseña inicial es tu <strong>número de documento</strong>. Por seguridad,
+                    el sistema te pedirá cambiarla la primera vez que inicies sesión, antes de dejarte
+                    continuar.
+                </p>
                 <p style='color:#888; font-size:13px;'>
                     Por seguridad, no compartas este correo. Si quieres cambiar tu contraseña,
                     usa la opción &quot;¿Olvidaste tu contraseña?&quot; en la pantalla de inicio de sesión.
@@ -111,6 +137,8 @@
             . "Se creó tu cuenta en el sistema. Tus credenciales de acceso son:\n\n"
             . "Usuario: $usuario\n"
             . "Contraseña: $contrasena\n\n"
+            . "Tu contraseña inicial es tu número de documento. El sistema te pedirá cambiarla "
+            . "la primera vez que inicies sesión, antes de dejarte continuar.\n\n"
             . "Por seguridad, no compartas este correo. Si quieres cambiar tu contraseña, "
             . "usa la opción \"¿Olvidaste tu contraseña?\" en la pantalla de inicio de sesión.";
 

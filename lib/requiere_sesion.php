@@ -18,8 +18,31 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require_once __DIR__ . '/sesion_config.php';
+
 if (empty($_SESSION['id_usuario'])) {
     $basePath = $basePath ?? '../../';
     header('Location: ' . $basePath . 'View/login/login.php');
     exit();
 }
+
+// Contraseña temporal (número de documento) todavía sin cambiar: no se
+// deja ver ningún módulo del sistema hasta que la actualice, ni siquiera
+// entrando por una URL directa.
+if (!empty($_SESSION['debe_cambiar_contrasena'])) {
+    $basePath = $basePath ?? '../../';
+    header('Location: ' . $basePath . 'View/login/cambio_obligatorio.php');
+    exit();
+}
+
+// Cierre de sesión por inactividad (15 minutos sin actividad registrada
+// ni en carga de página ni en peticiones AJAX). Se revisa ANTES de
+// mostrar cualquier contenido del módulo.
+if (sigSesionInactivaVencida()) {
+    sigCerrarPorInactividad();
+    $basePath = $basePath ?? '../../';
+    header('Location: ' . $basePath . 'View/login/login.php?motivo=inactividad');
+    exit();
+}
+
+sigRegistrarActividad();

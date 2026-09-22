@@ -39,7 +39,7 @@
                     </select>
                   </div>
                   <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-success" id="accionGuardarBtn">
+                    <button type="button" class="btn btn-primary" id="accionGuardarBtn">
                       <i class="fas fa-save me-1"></i> Guardar Cambios
                     </button>
                     <button type="button" class="btn btn-label-secondary" id="accionLimpiarBtn">
@@ -98,6 +98,7 @@
     </div>
 
 <?php
+    $moduloPermisos = 'Acciones de Zoocriadero';
     $pageScripts = ['Web/assets/js/siguppys-acciones-zoocriadero.js'];
     include '../partials/footer.php';
 ?>

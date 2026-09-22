@@ -33,6 +33,32 @@
     });
   }
 
+  // Lista de tanques que se muestra dentro del popup de un zoocriadero al
+  // seleccionarlo en el mapa (los depósitos no tienen tanques, por eso
+  // solo se llama con p.categoria === "zoocriadero").
+  function renderTanques(tanques) {
+    if (!tanques || !tanques.length) {
+      return '<hr class="my-1"><span class="text-muted" style="font-size:12px;">Sin tanques registrados.</span>';
+    }
+    var filas = tanques
+      .map(function (t) {
+        var estadoTexto = Number(t.estado) === 1 ? "Activo" : "Inhabilitado";
+        var estadoColor = Number(t.estado) === 1 ? "#2e7d32" : "#9e9e9e";
+        return (
+          '<li style="margin-bottom:2px;">' +
+          "<strong>" + escapeHtml(t.nombre) + "</strong> — " + escapeHtml(t.tipo) +
+          ' <span style="color:' + estadoColor + ';font-size:11px;">(' + estadoTexto + ")</span>" +
+          "</li>"
+        );
+      })
+      .join("");
+    return (
+      '<hr class="my-1">' +
+      '<div style="font-size:12px;"><strong>Tanques (' + tanques.length + ')</strong>' +
+      '<ul style="padding-left:16px;margin:4px 0 0;">' + filas + "</ul></div>"
+    );
+  }
+
   // Varios depósitos de un mismo sitio comparten coordenadas y se taparían entre sí:
   // se reparten en un pequeño círculo (~10 m) para que todos se vean y se puedan abrir.
   function separarSuperpuestos(puntos) {
@@ -93,9 +119,10 @@
           (p.sitio ? "Sitio: " + escapeHtml(p.sitio) + "<br>" : "") +
           escapeHtml(p.direccion || "") +
           (p.barrio ? "<br>" + escapeHtml(p.barrio) : "") +
-          (p.comuna ? " · " + escapeHtml(p.comuna) : "");
+          (p.comuna ? " · " + escapeHtml(p.comuna) : "") +
+          (p.categoria === "zoocriadero" ? renderTanques(p.tanques) : "");
 
-        L.marker(posiciones[i], { icon: iconoColor(color) }).bindPopup(popup).addTo(capas[p.tipo]);
+        L.marker(posiciones[i], { icon: iconoColor(color) }).bindPopup(popup, { maxWidth: 260 }).addTo(capas[p.tipo]);
         bounds.push(posiciones[i]);
       });
 

@@ -36,4 +36,19 @@ class MapaModel extends MasterModel
              ORDER BY dep.id_deposito"
         );
     }
+
+    // Todos los tanques activos, para agruparlos por zoocriadero en el
+    // mapa: al seleccionar un zoocriadero se muestran los tanques que
+    // tiene asociados, sin tener que hacer una petición aparte por cada
+    // marcador que el usuario abra.
+    public function tanques()
+    {
+        return $this->selectAll(
+            "SELECT t.id_tanque, t.id_zoocriadero, t.nombre_tanque, t.estado,
+                    tt.nombre AS tipo_tanque
+             FROM tanque t
+             INNER JOIN tipo_tanque tt ON tt.id_tipo_tanque = t.id_tipo_tanque
+             ORDER BY t.nombre_tanque"
+        );
+    }
 }

@@ -217,6 +217,21 @@ class SeguimientoDepositoModel extends MasterModel
         return $resultado !== false;
     }
 
+    // Descartar / restaurar VARIOS seguimientos a la vez, seleccionados en
+    // la tabla en vez de tener que abrir uno por uno.
+    public function cambiarEstadoMasivo(array $ids, $estado)
+    {
+        if (empty($ids)) {
+            return 0;
+        }
+        $idsEnteros = array_values(array_map('intval', $ids));
+        $resultado = $this->update(
+            "UPDATE seguimiento_deposito SET estado = $1 WHERE id_seguimiento_deposito = ANY($2::bigint[])",
+            [$estado, '{' . implode(',', $idsEnteros) . '}']
+        );
+        return $resultado !== false ? count($idsEnteros) : false;
+    }
+
     // Mensaje de error de PostgreSQL apto para mostrar: solo la primera línea y
     // sin el prefijo "ERROR:  " (el resto es CONTEXT: PL/pgSQL function ...).
     // Así, si un trigger rechaza la operación, el usuario lee el texto del RAISE.

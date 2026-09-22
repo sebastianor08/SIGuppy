@@ -8,6 +8,13 @@
   var AJAX_URL = "../../Web/ajax.php";
   var MODULO = "modulo=CopiaSeguridad&controlador=CopiaSeguridad";
 
+  // Permisos reales del rol de la sesión sobre este módulo (ver
+  // lib/permisos.php / View/partials/footer.php).
+  var PERMISOS_VACIOS = { ver: false, consultar: false, crear: false, editar: false, inhabilitar: false, exportar: false };
+  function permisos() {
+    return window.SIG_PERMISOS || PERMISOS_VACIOS;
+  }
+
   // ---------- Utilidades ----------
   function escapeHtml(str) {
     return String(str == null ? "" : str).replace(/[&<>"']/g, function (c) {
@@ -253,8 +260,25 @@
     }
   });
 
+  // ---------- Aplicar permisos reales a la interfaz ----------
+  function aplicarPermisosUI() {
+    var p = permisos();
+
+    if (!p.exportar) {
+      btnDescargar.disabled = true;
+      btnDescargar.title = "No tienes permiso para generar/descargar copias de seguridad.";
+    }
+
+    var btnAbrirRestaurar = document.getElementById("btnAbrirRestaurar");
+    if (!p.editar && btnAbrirRestaurar) {
+      btnAbrirRestaurar.disabled = true;
+      btnAbrirRestaurar.title = "No tienes permiso para restaurar la base de datos.";
+    }
+  }
+
   // ---------- Arranque ----------
   clearMessage();
+  aplicarPermisosUI();
   cargarEstado();
   cargarHistorial();
 })();

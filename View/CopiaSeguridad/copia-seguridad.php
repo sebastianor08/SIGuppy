@@ -2,6 +2,7 @@
     $basePath  = '../../';
     $pageTitle = 'Copia de seguridad';
     $bodyPage  = 'copia-seguridad';
+    $moduloPermisos = 'Copia de seguridad';
     include '../partials/head.php';
 ?>
     <div class="wrapper">

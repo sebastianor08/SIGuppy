@@ -182,11 +182,29 @@
     applyDaltonismo(getDaltonismoTipo());
   }
 
+  // El modo oscuro se guarda en localStorage, que es almacenamiento
+  // del sitio y NO se borra al "limpiar caché" del navegador (son
+  // cosas distintas). Cerrar sesión tampoco lo tocaba, porque logout
+  // solo destruye la sesión de PHP. Por eso quedaba activado aunque
+  // el usuario cerrara sesión y limpiara caché. Con esto, cualquier
+  // clic en un link de logout borra la preferencia antes de navegar,
+  // así la próxima sesión siempre arranca en modo claro.
+  function initLogoutLimpiaModoOscuro() {
+    document.addEventListener("click", function (e) {
+      var link = e.target.closest('a[href*="logout.php"]');
+      if (!link) return;
+      try {
+        localStorage.removeItem("siguppys_dark_mode");
+      } catch (err) {}
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     highlightActiveNav();
     initRoleSwitcher();
     initPreferences();
     initSidebarExpandOnClick();
+    initLogoutLimpiaModoOscuro();
   });
 
   window.SIGuppys = window.SIGuppys || {};

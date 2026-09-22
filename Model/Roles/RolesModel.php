@@ -150,6 +150,11 @@ class RolesModel extends MasterModel{
         ) !== null;
     }
 
+    // Todos los permisos (Ver/Crear/Editar/Inhabilitar/Exportar/Consultar)
+    // que tiene un rol sobre UN módulo puntual. Ver la definición completa
+    // más abajo (accionesDeModulo), que además valida que el rol esté
+    // activo (r.estado = 1).
+
     public function permisosPorNombre($nombreRol, $nombreModulo){
         $filas = $this->selectAll(
             "SELECT a.nombre AS accion
@@ -172,6 +177,39 @@ class RolesModel extends MasterModel{
             'crear'     => in_array('registrar', $acciones, true),
             'editar'    => in_array('editar', $acciones, true),
             'eliminar'  => in_array('eliminar', $acciones, true),
+        ];
+    }
+
+    // Todas las acciones que un rol (por id) tiene sobre un módulo, en
+    // minúsculas y con las llaves que usa la interfaz (ver/crear/editar/
+    // inhabilitar/exportar/consultar), a diferencia de permisosPorNombre()
+    // (que recibe el NOMBRE del rol y solo devuelve 4 llaves fijas). Esta
+    // es la que alimenta el objeto de permisos que se expone al
+    // JavaScript de cada módulo (ver lib/permisos.php).
+    public function accionesDeModulo($idRol, $nombreModulo){
+        $filas = $this->selectAll(
+            "SELECT a.nombre AS accion
+             FROM rol_permiso rp
+             INNER JOIN rol r ON r.id_rol = rp.id_rol
+             INNER JOIN modulo m ON m.id_modulo = rp.id_modulo
+             INNER JOIN accion_permiso a ON a.id_accion_permiso = rp.id_accion_permiso
+             WHERE rp.id_rol = $1
+               AND LOWER(m.nombre) = LOWER($2)
+               AND r.estado = 1",
+            [$idRol, $nombreModulo]
+        );
+
+        $acciones = array_map(function($f){
+            return mb_strtolower($f['accion'], 'UTF-8');
+        }, $filas);
+
+        return [
+            'ver'         => in_array('ver', $acciones, true),
+            'consultar'   => in_array('consultar', $acciones, true),
+            'crear'       => in_array('crear', $acciones, true),
+            'editar'      => in_array('editar', $acciones, true),
+            'inhabilitar' => in_array('inhabilitar', $acciones, true),
+            'exportar'    => in_array('exportar', $acciones, true),
         ];
     }
 

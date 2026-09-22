@@ -80,6 +80,41 @@ class AuditoriaModel extends MasterModel
         return $this->selectAll($sql, $parametros);
     }
 
+    public function listarSeguimientoDeposito($filtros = [])
+    {
+        $condiciones = ["a.modulo = 'seguimiento_deposito'"];
+        $parametros  = [];
+
+        if (!empty($filtros['operacion'])) {
+            $parametros[]  = $filtros['operacion'];
+            $condiciones[] = "a.accion = $" . count($parametros);
+        }
+        if (!empty($filtros['id_usuario'])) {
+            $parametros[]  = $filtros['id_usuario'];
+            $condiciones[] = "a.id_usuario = $" . count($parametros);
+        }
+        if (!empty($filtros['fecha_inicio'])) {
+            $parametros[]  = $filtros['fecha_inicio'];
+            $condiciones[] = "a.fecha_hora >= $" . count($parametros);
+        }
+        if (!empty($filtros['fecha_fin'])) {
+            $parametros[]  = $filtros['fecha_fin'] . ' 23:59:59';
+            $condiciones[] = "a.fecha_hora <= $" . count($parametros);
+        }
+
+        $sql = "SELECT a.id_auditoria, a.id_registro AS id_seguimiento, a.accion, a.id_usuario,
+                       COALESCE(u.nombre || ' ' || u.apellido, 'Usuario no identificado') AS usuario_responsable,
+                       TO_CHAR(a.fecha_hora, 'DD/MM/YYYY HH24:MI') AS fecha_hora,
+                       a.detalle
+                FROM auditoria a
+                LEFT JOIN usuario u ON u.id_usuario = a.id_usuario
+                WHERE " . implode(' AND ', $condiciones) . "
+                ORDER BY a.fecha_hora DESC
+                LIMIT 300";
+
+        return $this->selectAll($sql, $parametros);
+    }
+
     private static $etiquetasTablas = [
         'actividad'                => 'Actividades',
         'actividad_terreno'        => 'Actividades de terreno',
@@ -88,6 +123,7 @@ class AuditoriaModel extends MasterModel
         'direccion'                => 'Direcciones',
         'login'                    => 'Inicios de sesión',
         'modulo_accion_permitida'  => 'Acciones permitidas por módulo',
+        'reportes'                 => 'Reportes',
         'rol'                      => 'Roles',
         'rol_permiso'              => 'Permisos de roles',
         'seguimiento_deposito'     => 'Seguimiento de depósitos',
@@ -125,13 +161,11 @@ class AuditoriaModel extends MasterModel
         10 => [['tablas' => ['sitio', 'direccion']]],                           // Sitio
         11 => [['tablas' => ['actividad'], 'ambito' => 'zoocriadero']],         // Acciones de Zoocriadero
         12 => [['tablas' => ['deposito']]],                                     // Depósitos
-        17 => [],                                                               // Copia de seguridad (usa su propia tabla de historial)
-        18 => [],                                                               // Reportes (solo consulta)
+        17 => [['tablas' => ['copia_seguridad_historial']]],                   // Copia de seguridad
+        18 => [['tablas' => ['reportes']]],                                     // Reportes (exportaciones)
         19 => [['tablas' => ['usuario']]],                                      // Gestión de Usuarios
         20 => [['tablas' => ['tanque']]],                                       // Tanque Zoocriadero
-        21 => [['tablas' => ['rol', 'rol_permiso', 'modulo_accion_permitida']]], // Roles y Permisos
-        22 => [['tablas' => ['rol']]],                                          // Consultar Roles (habilitar/inhabilitar)
-        23 => [['tablas' => ['usuario']]],                                      // Consultar Usuarios
+        21 => [['tablas' => ['rol', 'rol_permiso', 'modulo_accion_permitida']]], // Gestión de Roles (crear/editar/consultar/inhabilitar)
         25 => [['tablas' => ['seguimiento_deposito']]],                         // Seguimiento de Depósito
     ];
 
@@ -160,12 +194,34 @@ class AuditoriaModel extends MasterModel
         return "(" . implode(' OR ', $alternativas) . ")";
     }
 
+    // Registra en la auditoría la exportación completa de un reporte
+    // (el botón "Excel completo", que sí pasa por el servidor). El
+    // "Excel sencillo" y el PDF se generan enteramente en el navegador
+    // (SheetJS / window.print), así que no hay forma de auditarlos
+    // desde aquí sin agregar una llamada AJAX nueva en esas pantallas.
+    public function registrarExportacion($reporte, $idUsuario)
+    {
+        $sql = "INSERT INTO auditoria (modulo, accion, id_usuario, datos_nuevos, detalle)
+                VALUES ('reportes', 'EXPORTAR', $1, $2, $3)";
+
+        $datosNuevos = json_encode(['reporte' => $reporte]);
+        $detalle     = 'Exportación completa a Excel del reporte "' . $reporte . '"';
+
+        return $this->insert($sql, [$idUsuario, $datosNuevos, $detalle]);
+    }
+
     public function modulosDisponibles()
     {
         return $this->selectAll(
+            // id_modulo 13 (Territorio priorizado) está preparado pero sin
+            // Controller/View propios todavía; id_modulo 5 es el propio
+            // módulo "Auditoría", que no tiene una regla en
+            // $reglasPorModulo (no hay una tabla "auditoria de la
+            // auditoría") así que filtrar por él siempre da 0 resultados:
+            // no tiene sentido ofrecerlo como opción de filtro.
             "SELECT id_modulo, nombre
              FROM modulo
-             WHERE id_modulo <> 13
+             WHERE id_modulo NOT IN (5, 13)
              ORDER BY nombre"
         );
     }

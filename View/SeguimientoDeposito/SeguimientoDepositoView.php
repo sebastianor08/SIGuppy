@@ -3,6 +3,7 @@ $basePath  = '../../';
 $pageTitle = 'Seguimiento de Depósito';
 $bodyPage  = 'terreno-seguimiento-deposito';
 $extraCss  = ['Web/assets/css/leaflet.css'];
+$moduloPermisos = 'Seguimiento de Depósito';
 include '../partials/head.php';
 ?>
 <div class="wrapper">
@@ -148,15 +149,13 @@ include '../partials/head.php';
             <div id="sdMessage" class="alert d-none mb-3" role="alert"></div>
 
             <div class="table-responsive">
-              <table class="table align-items-center mb-0">
+              <table class="table align-items-center mb-0 sig-followup-table">
                 <thead class="table-light">
                   <tr>
                     <th>Fecha</th>
                     <th>Depósito</th>
                     <th>Sitio</th>
                     <th>Acción</th>
-                    <th class="text-center">Larvas</th>
-                    <th class="text-center">Peces</th>
                     <th>Responsable</th>
                     <th class="text-center">Estado</th>
                     <th class="text-center">Acciones</th>
@@ -164,7 +163,7 @@ include '../partials/head.php';
                 </thead>
                 <tbody id="sdTableBody">
                   <tr>
-                    <td colspan="9" class="text-center text-muted py-4">Cargando...</td>
+                    <td colspan="7" class="text-center text-muted py-4">Cargando...</td>
                   </tr>
                 </tbody>
               </table>

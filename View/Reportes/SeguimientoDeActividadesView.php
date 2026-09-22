@@ -19,6 +19,9 @@ include '../partials/head.php';
 
                 <div class="caja">
                     <h2 class="titulo-pagina">Seguimiento de Actividades en los Zoocriaderos</h2>
+                    <?php if (!empty($errorRangoFechas)): ?>
+                        <div class="alert alert-warning"><?= htmlspecialchars($errorRangoFechas) ?> No se aplicó el filtro de fechas.</div>
+                    <?php endif; ?>
                     <h3>Filtros</h3>
                     <form method="GET">
                         <div class="fila-filtros">

@@ -6,6 +6,13 @@
   var AJAX_URL = "../../Web/ajax.php";
   var MODULO = "modulo=SeguimientoDeposito&controlador=SeguimientoDeposito";
 
+  // Permisos reales del rol de la sesión sobre este módulo (ver
+  // lib/permisos.php / View/partials/footer.php).
+  var PERMISOS_VACIOS = { ver: false, consultar: false, crear: false, editar: false, inhabilitar: false, exportar: false };
+  function permisos() {
+    return window.SIG_PERMISOS || PERMISOS_VACIOS;
+  }
+
   // ---------- Referencias al DOM ----------
   var form = document.getElementById("seguimientoDepositoForm");
   var idSeguimiento = document.getElementById("id_seguimiento_deposito");
@@ -498,30 +505,29 @@
   // ---------- Historial ----------
   function renderAcciones(f) {
     var activo = Number(f.estado) === 1;
+    var p = permisos();
 
     return (
       '<div class="table-actions">' +
       '<button type="button" class="btn-icon" data-action="ver" data-id="' + f.id_seguimiento_deposito +
       '" title="Ver detalle"><i class="fas fa-eye"></i></button>' +
-      (activo
+      (activo && p.editar
         ? '<button type="button" class="btn-icon" data-action="editar" data-id="' + f.id_seguimiento_deposito +
           '" title="Editar"><i class="fas fa-pen"></i></button>'
         : "") +
-      '<button type="button" class="btn-icon ' + (activo ? "text-danger" : "text-success") +
-      '" data-action="estado" data-id="' + f.id_seguimiento_deposito +
-      '" data-estado="' + (activo ? 0 : 1) +
-      '" title="' + (activo ? "Inhabilitar" : "Habilitar") + '">' +
-      '<i class="fas ' + (activo ? "fa-ban" : "fa-check-circle") + '"></i></button>' +
+      (p.inhabilitar
+        ? '<button type="button" class="btn-icon ' + (activo ? "text-danger" : "text-success") +
+          '" data-action="estado" data-id="' + f.id_seguimiento_deposito +
+          '" data-estado="' + (activo ? 0 : 1) +
+          '" title="' + (activo ? "Inhabilitar" : "Habilitar") + '">' +
+          '<i class="fas ' + (activo ? "fa-ban" : "fa-check-circle") + '"></i></button>'
+        : "") +
       "</div>"
     );
   }
 
   function renderFila(f) {
     var activo = Number(f.estado) === 1;
-    var larvas =
-      Number(f.presencia_larvas) === 1
-        ? '<span class="badge-estado inactivo">Con larvas</span>'
-        : '<span class="badge-estado activo">Sin larvas</span>';
     var estadoBadge = activo
       ? '<span class="badge-estado activo">Activo</span>'
       : '<span class="badge-estado inactivo">Inhabilitado</span>';
@@ -533,8 +539,6 @@
       '<div class="small text-muted">' + escapeHtml(f.deposito_descripcion) + "</div></td>" +
       "<td>" + escapeHtml(f.sitio) + '<div class="small text-muted">' + escapeHtml(ubicacion(f)) + "</div></td>" +
       "<td>" + escapeHtml(f.actividad) + "</td>" +
-      '<td class="text-center">' + larvas + "</td>" +
-      '<td class="text-center">' + Number(f.numero_peces_sembrados || 0) + "</td>" +
       "<td>" + escapeHtml(f.usuario) + "</td>" +
       '<td class="text-center">' + estadoBadge + "</td>" +
       '<td class="text-center">' + renderAcciones(f) + "</td>" +
@@ -569,7 +573,7 @@
 
     tbody.innerHTML = filas.length
       ? filas.map(renderFila).join("")
-      : '<tr><td colspan="9" class="text-center text-muted py-4">' +
+      : '<tr><td colspan="7" class="text-center text-muted py-4">' +
         (historial.length
           ? "No hay seguimientos que coincidan con el filtro."
           : "Todavía no hay seguimientos registrados.") +
@@ -645,7 +649,7 @@
       renderHistorial();
     } catch (error) {
       tbody.innerHTML =
-        '<tr><td colspan="9" class="text-center text-danger py-4">' + escapeHtml(error.message) + "</td></tr>";
+        '<tr><td colspan="7" class="text-center text-danger py-4">' + escapeHtml(error.message) + "</td></tr>";
     }
   }
 
@@ -737,6 +741,19 @@
   fecha.value = hoy;
   fecha.min = hoy; // el backend exige la fecha actual: se bloquea aquí también
   fecha.max = hoy;
+
+  // ---------- Aplicar permisos reales a la interfaz ----------
+  function aplicarPermisosUI() {
+    var p = permisos();
+
+    if (!p.crear) {
+      Array.prototype.forEach.call(form.elements, function (el) { el.disabled = true; });
+      btnGuardar.disabled = true;
+      btnGuardar.title = "No tienes permiso para registrar seguimientos.";
+      showFormMessage("Tu rol no tiene permiso para registrar seguimientos de depósito. Puedes consultar el historial abajo.", "warning");
+    }
+  }
+  aplicarPermisosUI();
 
   iniciarMapa();
 

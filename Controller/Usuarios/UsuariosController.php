@@ -28,39 +28,41 @@ class UsuariosController
 
     public function postCreate()
     {
+        sigExigirPermiso('Gestión de Usuarios', 'crear');
         $obj = new UsuarioModel();
         $body = requestJsonBody();
         $datos = $this->validarUsuario($body, $obj, null);
 
-        $contrasena = (string) ($body['contrasena'] ?? '');
-        $errorClave = validarContrasena($contrasena);
-        if ($errorClave !== null) {
-            jsonResponse(['ok' => false, 'message' => $errorClave], 422);
-        }
-        $datos['contrasena_hash'] = password_hash($contrasena, PASSWORD_BCRYPT);
+        // La contraseña inicial ya NO la escribe quien registra al usuario:
+        // siempre es su número de documento. Es una contraseña temporal —
+        // debe_cambiar_contrasena queda en TRUE, así que el sistema exige
+        // cambiarla antes de dejar entrar al usuario (ver login_process.php).
+        $contrasenaInicial = $datos['documento'];
+        $datos['contrasena_hash'] = password_hash($contrasenaInicial, PASSWORD_BCRYPT);
 
         $id = $obj->crear($datos);
         if ($id === null) {
             jsonResponse(['ok' => false, 'message' => 'No se pudo registrar: ' . $obj->ultimoError()], 500);
         }
 
-        // Envía al correo del nuevo usuario su usuario (= el correo) y la contraseña
-        // recién definida. Es lo último que se hace: si el correo falla (sin internet,
-        // credenciales de Gmail vencidas...) el usuario YA quedó creado, así que solo
-        // se avisa en el mensaje en vez de devolver error.
+        // Envía al correo del nuevo usuario su usuario (= el correo) y su
+        // contraseña inicial (el número de documento). Es lo último que se
+        // hace: si el correo falla (sin internet, credenciales de Gmail
+        // vencidas...) el usuario YA quedó creado, así que solo se avisa en
+        // el mensaje en vez de devolver error.
         $correoEnviado = enviarCredencialesUsuario(
             $datos['correo'],
             $datos['nombre'] . ' ' . $datos['apellido'],
             $datos['correo'],
-            $contrasena
+            $contrasenaInicial
         );
 
         jsonResponse([
             'ok' => true,
             'message' => $correoEnviado
-                ? 'Usuario registrado correctamente. Sus credenciales se enviaron a ' . $datos['correo'] . '.'
+                ? 'Usuario registrado correctamente. Sus credenciales (contraseña = su número de documento) se enviaron a ' . $datos['correo'] . '.'
                 : 'Usuario registrado correctamente, pero NO se pudo enviar el correo con sus credenciales. '
-                    . 'Entréguele la contraseña manualmente y revise la configuración de correo (lib/conf/mail.php).',
+                    . 'Su contraseña inicial es su número de documento (' . $contrasenaInicial . '); infórmesela manualmente y revise la configuración de correo (lib/conf/mail.php).',
             'id_usuario' => (int) $id,
             'correo_enviado' => $correoEnviado,
         ], 201);
@@ -68,6 +70,7 @@ class UsuariosController
 
     public function postUpdate()
     {
+        sigExigirPermiso('Gestión de Usuarios', 'editar');
         $obj = new UsuarioModel();
         $body = requestJsonBody();
 
@@ -90,6 +93,7 @@ class UsuariosController
 
     public function postEstado()
     {
+        sigExigirPermiso('Gestión de Usuarios', 'inhabilitar');
         $obj = new UsuarioModel();
         $body = requestJsonBody();
 

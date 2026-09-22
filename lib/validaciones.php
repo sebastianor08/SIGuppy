@@ -156,6 +156,37 @@
         return "Debe tener entre {$regla['min']} y {$regla['max']} caracteres ($tipoCaracteres).";
     }
 
+    // Valida que, si ambas fechas vienen informadas, la fecha de inicio no
+    // sea posterior a la fecha fin. Se usa en todos los filtros/formularios
+    // que manejan un rango de fechas (Auditoría, Reportes, etc.).
+    // Devuelve null si el rango es válido (o si falta alguna de las dos
+    // fechas, caso en el que no hay rango que validar), o un mensaje de
+    // error si "inicio" es posterior a "fin".
+    function validarRangoFechas($fechaInicio, $fechaFin, $etiquetaInicio = 'Fecha inicio', $etiquetaFin = 'Fecha fin')
+    {
+        $inicio = trim((string) $fechaInicio);
+        $fin    = trim((string) $fechaFin);
+
+        if ($inicio === '' || $fin === '') {
+            return null;
+        }
+
+        $dInicio = DateTime::createFromFormat('Y-m-d', $inicio);
+        $dFin    = DateTime::createFromFormat('Y-m-d', $fin);
+
+        if (!$dInicio || !$dFin) {
+            // Formato inesperado: se deja pasar, no es responsabilidad de
+            // esta función validar el formato de fecha en sí.
+            return null;
+        }
+
+        if ($dInicio > $dFin) {
+            return "\"$etiquetaInicio\" no puede ser posterior a \"$etiquetaFin\".";
+        }
+
+        return null;
+    }
+
     define('PASSWORD_MIN_LONGITUD', 8);
 
     function validarContrasena($valor, $etiqueta = 'Contraseña'){

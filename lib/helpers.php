@@ -5,6 +5,31 @@
     session_start();
 
     include_once __DIR__ . '/validaciones.php';
+    include_once __DIR__ . '/sesion_config.php';
+    include_once __DIR__ . '/permisos.php';
+
+    // Las peticiones AJAX (Web/ajax.php) no pasan por requiere_sesion.php,
+    // así que la inactividad se revisa también aquí: si la sesión ya
+    // estaba vencida, se cierra y se avisa al JS para que redirija a
+    // login en vez de mostrar datos de una sesión que ya no debería
+    // estar activa. Si sigue vigente, esta misma petición cuenta como
+    // actividad y renueva el conteo.
+    if (isset($_GET['modulo'])) {
+        if (sigSesionInactivaVencida()) {
+            sigCerrarPorInactividad();
+            http_response_code(401);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => false, 'sesionExpirada' => true, 'message' => 'Tu sesión expiró por inactividad.'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+        if (!empty($_SESSION['id_usuario']) && !empty($_SESSION['debe_cambiar_contrasena'])) {
+            http_response_code(403);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => false, 'message' => 'Debes actualizar tu contraseña antes de continuar.'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+        sigRegistrarActividad();
+    }
     function redirect($url){
         echo "<script>";
             echo "window.location.href='$url'";

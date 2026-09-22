@@ -34,6 +34,11 @@
                 Contraseña actualizada. Ya puedes iniciar sesión con ella.
             </div>
         <?php endif; ?>
+        <?php if (isset($_GET['motivo']) && $_GET['motivo'] === 'inactividad'): ?>
+            <div class="alert alert-warning py-2 small text-center mb-3">
+                Tu sesión se cerró por 15 minutos de inactividad. Vuelve a iniciar sesión.
+            </div>
+        <?php endif; ?>
         <?php if (isset($_GET['error'])): ?>
             <?php if ($_GET['error'] === 'inactive'): ?>
                 <div class="alert alert-warning py-2 small text-center mb-3">

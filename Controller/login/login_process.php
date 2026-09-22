@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Consultar el usuario en PostgreSQL
         $sql = "SELECT id_usuario, nombre, apellido, correo, contrasena, estado, id_rol,
-                       intentos_fallidos, bloqueo_hasta
+                       intentos_fallidos, bloqueo_hasta, debe_cambiar_contrasena
                 FROM usuario
                 WHERE LOWER(correo) = LOWER($1)";
         $usuario = $masterModel->selectOne($sql, [$correo]);
@@ -71,18 +71,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
 
-        $passwordValida = password_verify($contrasena, $usuario['contrasena']) || ($contrasena === $usuario['contrasena']);
+        $passwordValida = password_verify($contrasena, $usuario['contrasena']);
 
         if ($passwordValida) {
             $_SESSION['id_usuario'] = $usuario['id_usuario'];
             $_SESSION['usuario']    = $usuario['nombre'] . ' ' . $usuario['apellido'];
             $_SESSION['id_rol']     = $usuario['id_rol'];
+            $_SESSION['debe_cambiar_contrasena'] = ((int) ($usuario['debe_cambiar_contrasena'] ?? 0) === 1)
+                || $usuario['debe_cambiar_contrasena'] === 't'
+                || $usuario['debe_cambiar_contrasena'] === true;
             $masterModel->actualizarUsuarioAuditoria();
 
             $sqlReset = "UPDATE usuario SET intentos_fallidos = 0, bloqueo_hasta = NULL WHERE id_usuario = $1";
             $masterModel->update($sqlReset, [$usuario['id_usuario']]);
 
             registrarIntentoLogin($masterModel, $usuario['id_usuario'], $correo, true, 'Inicio de sesión exitoso');
+
+            // Contraseña pendiente por cambiar (primer ingreso con la
+            // contraseña temporal = número de documento): no se le deja
+            // entrar al resto del sistema hasta que la actualice.
+            if ($_SESSION['debe_cambiar_contrasena']) {
+                header("Location: ../../View/login/cambio_obligatorio.php");
+                exit();
+            }
 
             header("Location: ../../Web/index.php");
             exit();

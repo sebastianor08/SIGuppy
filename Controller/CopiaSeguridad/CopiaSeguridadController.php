@@ -64,6 +64,7 @@ class CopiaSeguridadController {
     // Se invoca con window.location.href (no fetch): el navegador debe
     // recibir el archivo, no una respuesta JSON.
     public function descargar() {
+        sigExigirPermiso('Copia de seguridad', 'exportar');
         $obj = new CopiaSeguridadModel();
         $archivo = $this->generarDump();
 
@@ -84,6 +85,7 @@ class CopiaSeguridadController {
 
     // Descarga un respaldo YA existente (fila del historial o de la lista de archivos)
     public function descargarArchivo() {
+        sigExigirPermiso('Copia de seguridad', 'exportar');
         $nombre = basename($_GET['archivo'] ?? '');
         $ruta = BACKUP_DIR . $nombre;
 
@@ -147,6 +149,7 @@ class CopiaSeguridadController {
     // Acepta un respaldo subido por el usuario (multipart) o el nombre
     // de uno que ya está en BACKUP_DIR (seleccionado del historial).
     public function restaurar() {
+        sigExigirPermiso('Copia de seguridad', 'editar');
         $obj = new CopiaSeguridadModel();
 
         if (!empty($_FILES['archivo']['tmp_name'])) {
