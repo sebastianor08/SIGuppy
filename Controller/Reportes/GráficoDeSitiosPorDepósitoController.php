@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/ComparativaMensual.php';
+
 function obtenerDatosSitiosPorDeposito()
 {
     
@@ -110,6 +112,39 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
 
     $totalTiposDeposito = count($cantidadPorTipo);
 
+    // --- COMPARATIVA VS MES ANTERIOR (según la Fecha Inicio; respeta zoocriadero, estado y tipo) ---
+    // La fecha de un sitio es la de su creación.
+    $mesAnterior = obtenerMesAnterior($filtroFechaInicio);
+    $anteriorSitios = 0;
+    $anteriorConDeposito = 0;
+    $anteriorSinDeposito = 0;
+    $anteriorTipos = [];
+
+    if ($mesAnterior !== null) {
+        foreach ($sitios as $sitio) {
+            $cumpleZoocriadero = ($filtroZoocriadero === '' || $sitio['zoocriadero'] === $filtroZoocriadero);
+            $cumpleEstado = ($filtroEstado === '' || $sitio['estado'] === $filtroEstado);
+            $cumpleTipo = ($filtroTipo === '' || $sitio['tipo'] === $filtroTipo);
+
+            if ($cumpleZoocriadero && $cumpleEstado && $cumpleTipo && fechaEnMesAnterior($sitio['fecha'], $mesAnterior)) {
+                $anteriorSitios++;
+                if ($sitio['tipo'] === '') {
+                    $anteriorSinDeposito++;
+                } else {
+                    $anteriorConDeposito++;
+                    $anteriorTipos[$sitio['tipo']] = true;
+                }
+            }
+        }
+    }
+
+    $comparativas = [
+        'totalSitios'        => armarComparativa($totalSitios, $anteriorSitios, $mesAnterior, true),
+        'totalTiposDeposito' => armarComparativa($totalTiposDeposito, count($anteriorTipos), $mesAnterior, true),
+        'totalConDeposito'   => armarComparativa($totalConDeposito, $anteriorConDeposito, $mesAnterior, true),
+        'totalSinDeposito'   => armarComparativa($totalSinDeposito, $anteriorSinDeposito, $mesAnterior, false),
+    ];
+
     $paletaColores = ['#2f7dfa', '#3bc9db', '#7c6ee0', '#8bd8f0', '#21a666', '#e0952d'];
 
     $segmentos = [];
@@ -158,6 +193,7 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
         'totalConDeposito' => $totalConDeposito,
         'totalSinDeposito' => $totalSinDeposito,
         'totalTiposDeposito' => $totalTiposDeposito,
+        'comparativas' => $comparativas,
         'segmentos' => $segmentos,
         'valorMaximoBarra' => $valorMaximoBarra,
         'sitiosPagina' => $sitiosPagina,

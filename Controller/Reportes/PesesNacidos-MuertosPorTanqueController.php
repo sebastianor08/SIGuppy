@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/ComparativaMensual.php';
+
 function obtenerDatosPecesNacidosMuertosPorTanque()
 {
     require __DIR__ . '/../../lib/conf/conf.php';
@@ -131,6 +133,44 @@ function obtenerDatosPecesNacidosMuertosPorTanque()
     $totalGeneral = $totalNacidos + $totalMuertos;
     $tasaMortalidadGeneral = $totalGeneral > 0 ? ($totalMuertos / $totalGeneral) * 100 : 0;
 
+    // --- COMPARATIVA VS MES ANTERIOR (según la Fecha Inicio; respeta zoocriadero, tanque y sexo) ---
+    $mesAnterior = obtenerMesAnterior($filtroFechaInicio);
+    $anteriorNacidos = 0;
+    $anteriorMuertos = 0;
+    $hayRegistrosAnteriores = false;
+
+    if ($mesAnterior !== null) {
+        foreach ($registros as $registro) {
+            $cumpleZoocriadero = ($filtroZoocriadero === '' || $registro['zoocriadero'] === $filtroZoocriadero);
+            $cumpleTanque      = ($filtroTanque === '' || $registro['tanque'] === $filtroTanque);
+
+            if (!$cumpleZoocriadero || !$cumpleTanque || !fechaEnMesAnterior($registro['fecha'], $mesAnterior)) {
+                continue;
+            }
+
+            $hayRegistrosAnteriores = true;
+            if ($filtroSexo === 'Hembra') {
+                $anteriorNacidos += $registro['nacidos_hembra'];
+                $anteriorMuertos += $registro['muertos_hembra'];
+            } elseif ($filtroSexo === 'Macho') {
+                $anteriorNacidos += $registro['nacidos_macho'];
+                $anteriorMuertos += $registro['muertos_macho'];
+            } else {
+                $anteriorNacidos += $registro['nacidos_hembra'] + $registro['nacidos_macho'];
+                $anteriorMuertos += $registro['muertos_hembra'] + $registro['muertos_macho'];
+            }
+        }
+    }
+
+    $anteriorGeneral = $anteriorNacidos + $anteriorMuertos;
+    $anteriorTasa = $anteriorGeneral > 0 ? ($anteriorMuertos / $anteriorGeneral) * 100 : 0;
+
+    $comparativas = [
+        'totalNacidos'          => armarComparativa($totalNacidos, $anteriorNacidos, $mesAnterior, true),
+        'totalMuertos'          => armarComparativa($totalMuertos, $anteriorMuertos, $mesAnterior, false),
+        'tasaMortalidadGeneral' => armarComparativaPuntos($tasaMortalidadGeneral, $anteriorTasa, $mesAnterior, false, $anteriorGeneral > 0),
+    ];
+
     // --- VALOR MÁXIMO PARA DIBUJAR LAS BARRAS DEL GRÁFICO ---
     $valorMaximoGrafico = 1; // evita dividir entre 0
     foreach ($resumenPorTanque as $fila) {
@@ -150,6 +190,7 @@ function obtenerDatosPecesNacidosMuertosPorTanque()
         'totalNacidos'           => $totalNacidos,
         'totalMuertos'           => $totalMuertos,
         'tasaMortalidadGeneral'  => $tasaMortalidadGeneral,
+        'comparativas'           => $comparativas,
         'valorMaximoGrafico'     => $valorMaximoGrafico,
     ];
 }

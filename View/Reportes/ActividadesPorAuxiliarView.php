@@ -107,9 +107,7 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                             </div>
                         </div>
                         <p class="comparativa positivo">12.8% vs Periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,30 15,20 30,25 45,10 60,18 75,8 90,15 105,5 120,12" fill="none" stroke="#2f7dfa" stroke-width="2" />
-                        </svg>
+                        
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -120,9 +118,6 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                             </div>
                         </div>
                         <p class="comparativa positivo">13.8% vs Periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,28 15,18 30,24 45,12 60,20 75,10 90,16 105,6 120,14" fill="none" stroke="#21a666" stroke-width="2" />
-                        </svg>
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -133,9 +128,6 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                             </div>
                         </div>
                         <p class="comparativa negativo">-8.3% vs Periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,15 15,25 30,10 45,22 60,8 75,20 90,6 105,18 120,12" fill="none" stroke="#e0952d" stroke-width="2" />
-                        </svg>
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -146,9 +138,6 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                             </div>
                         </div>
                         <p class="comparativa negativo">-25.0% vs Periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,10 15,22 30,8 45,20 60,6 75,18 90,4 105,16 120,10" fill="none" stroke="#e64545" stroke-width="2" />
-                        </svg>
                     </div>
                 </div>
 

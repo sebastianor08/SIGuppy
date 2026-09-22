@@ -73,29 +73,16 @@ include '../partials/head.php';
                         <p>Peces nacidos</p>
                         <span class="numero azul"><?= number_format($totalNacidos) ?></span>
                         <p class="comparativa">15.4% vs Periodo anterior</p>
-                        <!-- Esta línea (sparkline) es decorativa por ahora, con puntos fijos -->
-                        <svg viewBox="0 0 120 40">
-                            <polyline points="0,30 15,20 30,25 45,10 60,18 75,8 90,15 105,5 120,12"
-                                fill="none" stroke="#2f7dfa" stroke-width="2" />
-                        </svg>
                     </div>
                     <div class="tarjeta-resumen">
                         <p>Peces muertos</p>
                         <span class="numero rojo"><?= number_format($totalMuertos) ?></span>
                         <p class="comparativa">6.3% vs Periodo anterior</p>
-                        <svg viewBox="0 0 120 40">
-                            <polyline points="0,25 15,15 30,22 45,12 60,20 75,10 90,18 105,8 120,15"
-                                fill="none" stroke="#6c5ce7" stroke-width="2" />
-                        </svg>
                     </div>
                     <div class="tarjeta-resumen">
                         <p>Tasa de mortalidad</p>
                         <span class="numero morado"><?= number_format($tasaMortalidadGeneral, 2) ?>%</span>
                         <p class="comparativa">-1.2% vs Periodo anterior</p>
-                        <svg viewBox="0 0 120 40">
-                            <polyline points="0,20 15,10 30,18 45,8 60,16 75,6 90,14 105,4 120,10"
-                                fill="none" stroke="#6c5ce7" stroke-width="2" />
-                        </svg>
                     </div>
                 </div>
 

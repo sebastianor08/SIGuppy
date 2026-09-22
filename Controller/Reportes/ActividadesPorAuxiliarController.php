@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/ComparativaMensual.php';
+
 function obtenerDatosActividadesPorAuxiliar()
 {
     require __DIR__ . '/../../lib/conf/conf.php';
@@ -124,6 +126,37 @@ function obtenerDatosActividadesPorAuxiliar()
         ? round(($totalCompletas / $totalActividades) * 100, 1)
         : 0;
 
+    // --- COMPARATIVA VS MES ANTERIOR (según la Fecha Inicio; respeta el filtro de auxiliar) ---
+    $mesAnterior = obtenerMesAnterior($filtroFechaInicio);
+    $anteriorTotal = 0;
+    $anteriorCompletas = 0;
+    $anteriorEnProgreso = 0;
+    $anteriorRetrasadas = 0;
+
+    if ($mesAnterior !== null) {
+        foreach ($registros as $registro) {
+            $cumpleAuxiliar = ($filtroAuxiliar === '' || $registro['auxiliar'] === $filtroAuxiliar);
+
+            if ($cumpleAuxiliar && fechaEnMesAnterior($registro['fecha'], $mesAnterior)) {
+                $anteriorTotal++;
+                if ($registro['estado'] === 'Completada') {
+                    $anteriorCompletas++;
+                } elseif ($registro['estado'] === 'En progreso') {
+                    $anteriorEnProgreso++;
+                } elseif ($registro['estado'] === 'Retrasada') {
+                    $anteriorRetrasadas++;
+                }
+            }
+        }
+    }
+
+    $comparativas = [
+        'totalActividades' => armarComparativa($totalActividades, $anteriorTotal, $mesAnterior, true),
+        'totalCompletas'   => armarComparativa($totalCompletas, $anteriorCompletas, $mesAnterior, true),
+        'totalEnProgreso'  => armarComparativa($totalEnProgreso, $anteriorEnProgreso, $mesAnterior, null),
+        'totalRetrasadas'  => armarComparativa($totalRetrasadas, $anteriorRetrasadas, $mesAnterior, false),
+    ];
+
     $paletaColores = ['#2f7dfa', '#3b3fa8', '#7c6ee0', '#8bd8f0', '#21a666', '#e0952d'];
 
     $segmentosDonut = [];
@@ -168,6 +201,7 @@ function obtenerDatosActividadesPorAuxiliar()
         'totalEnProgreso' => $totalEnProgreso,
         'totalRetrasadas' => $totalRetrasadas,
         'cumplimientoGeneral' => $cumplimientoGeneral,
+        'comparativas' => $comparativas,
         'segmentosDonut' => $segmentosDonut,
         'auxiliaresPagina' => $auxiliaresPagina,
         'totalAuxiliares' => $totalAuxiliares,

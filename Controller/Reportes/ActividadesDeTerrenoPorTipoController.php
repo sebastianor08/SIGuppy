@@ -34,9 +34,9 @@ function obtenerDatosActividadesDeTerrenoPorTipo()
     }
 
     // ---------------------------------------------------------
-    // 2. TRAEMOS LAS ACTIVIDADES DE TERRENO
+    // TRAEMOS LAS ACTIVIDADES DE TERRENO
     // ---------------------------------------------------------
-    // OJO: las actividades de terreno NO pertenecen a un zoocriadero,
+    // las actividades de terreno NO pertenecen a un zoocriadero,
     // se hacen en sitios que están en una comuna. Por eso la variable
     // $listaZoocriaderos aquí trae COMUNAS (el nombre se dejó igual
     // para no tener que cambiar toda la vista).

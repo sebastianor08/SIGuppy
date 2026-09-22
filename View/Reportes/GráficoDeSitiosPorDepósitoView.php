@@ -74,9 +74,7 @@ include '../partials/head.php';
                             </div>
                         </div>
                         <p class="comparativa positivo">+12.0% vs periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,30 15,20 30,25 45,10 60,18 75,8 90,15 105,5 120,12" fill="none" stroke="#2f7dfa" stroke-width="2" />
-                        </svg>
+                        
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -87,9 +85,6 @@ include '../partials/head.php';
                             </div>
                         </div>
                         <p class="comparativa positivo">+33.3% vs periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,28 15,18 30,24 45,12 60,20 75,10 90,16 105,6 120,14" fill="none" stroke="#21a666" stroke-width="2" />
-                        </svg>
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -100,9 +95,6 @@ include '../partials/head.php';
                             </div>
                         </div>
                         <p class="comparativa positivo">+21.4% vs periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,26 15,16 30,22 45,10 60,18 75,8 90,14 105,4 120,12" fill="none" stroke="#2f7dfa" stroke-width="2" />
-                        </svg>
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -113,9 +105,6 @@ include '../partials/head.php';
                             </div>
                         </div>
                         <p class="comparativa positivo">+0.0% vs periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,20 15,20 30,20 45,20 60,20 75,20 90,20 105,20 120,20" fill="none" stroke="#6c5ce7" stroke-width="2" />
-                        </svg>
                     </div>
                 </div>
 
