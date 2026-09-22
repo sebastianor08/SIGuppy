@@ -15,10 +15,11 @@ function obtenerDatosTanquesPorZoocriadero()
     // ---------------------------------------------------------
     // El encargado sale de zoocriadero.id_persona_cargo.
     // Se usa LEFT JOIN porque ese campo puede venir vacío.
+    // Se muestra en forma corta: primer nombre + primer apellido (ej. Jaider Montaño).
     $sql = "SELECT z.nombre AS zoocriadero,
                 tt.nombre AS tipo,
                 COUNT(t.id_tanque) AS cantidad,
-                COALESCE(u.nombre || ' ' || u.apellido, 'Sin asignar') AS encargado,
+                COALESCE(split_part(btrim(u.nombre), ' ', 1) || ' ' || split_part(btrim(u.apellido), ' ', 1), 'Sin asignar') AS encargado,
                 CASE WHEN z.estado = 1 THEN 'Activo' ELSE 'Inactivo' END AS estado
             FROM tanque t
             INNER JOIN zoocriadero z ON z.id_zoocriadero = t.id_zoocriadero

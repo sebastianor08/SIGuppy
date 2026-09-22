@@ -194,11 +194,6 @@ class AuditoriaModel extends MasterModel
         return "(" . implode(' OR ', $alternativas) . ")";
     }
 
-    // Registra en la auditoría la exportación completa de un reporte
-    // (el botón "Excel completo", que sí pasa por el servidor). El
-    // "Excel sencillo" y el PDF se generan enteramente en el navegador
-    // (SheetJS / window.print), así que no hay forma de auditarlos
-    // desde aquí sin agregar una llamada AJAX nueva en esas pantallas.
     public function registrarExportacion($reporte, $idUsuario)
     {
         $sql = "INSERT INTO auditoria (modulo, accion, id_usuario, datos_nuevos, detalle)
@@ -213,12 +208,6 @@ class AuditoriaModel extends MasterModel
     public function modulosDisponibles()
     {
         return $this->selectAll(
-            // id_modulo 13 (Territorio priorizado) está preparado pero sin
-            // Controller/View propios todavía; id_modulo 5 es el propio
-            // módulo "Auditoría", que no tiene una regla en
-            // $reglasPorModulo (no hay una tabla "auditoria de la
-            // auditoría") así que filtrar por él siempre da 0 resultados:
-            // no tiene sentido ofrecerlo como opción de filtro.
             "SELECT id_modulo, nombre
              FROM modulo
              WHERE id_modulo NOT IN (5, 13)
@@ -226,7 +215,6 @@ class AuditoriaModel extends MasterModel
         );
     }
 
-    // Para llenar el <select> de "Usuario" en los filtros
     public function usuariosDisponibles()
     {
         return $this->selectAll(

@@ -15,10 +15,7 @@ function obtenerDatosAuditoria()
         'fecha_fin'    => $_GET['fecha_fin']    ?? '',
     ];
 
-    // La fecha "Desde" no puede ser posterior a "Hasta": si el usuario
-    // fuerza esa combinación por la URL, se ignora el rango de fechas
-    // (en vez de devolver una consulta vacía sin explicación) y se
-    // muestra el motivo en la vista.
+
     $errorRangoFechas = validarRangoFechas($filtros['fecha_inicio'], $filtros['fecha_fin'], 'Desde', 'Hasta');
     if ($errorRangoFechas !== null) {
         $filtros['fecha_inicio'] = '';

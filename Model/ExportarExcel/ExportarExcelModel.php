@@ -1,25 +1,6 @@
 <?php
 
-// ============================================================
-// Modelo del módulo Exportar Excel.
-//
-// Responsabilidad: saber QUÉ datos lleva cada reporte y obtenerlos.
-// No dibuja nada (eso es la Vista) ni responde HTTP (eso es el Controlador).
-//
-// Los datos salen de las funciones obtenerDatos...() que ya existen en
-// Controller/Reportes/*Controller.php, sin modificarlas: ellas leen los
-// filtros de $_GET y hacen las consultas a PostgreSQL.
-// ============================================================
 class ExportarExcelModel {
-
-    // Una entrada por reporte. La clave es el data-page del <body> de cada vista.
-    //   titulo   : nombre del reporte
-    //   archivo  : controlador de datos que ya existe (en Controller/Reportes)
-    //   funcion  : función de ese archivo que devuelve los datos
-    //   clave    : índice del arreglo devuelto que trae las filas
-    //   paginada : true si esa vista solo devuelve una página (hay que recorrerlas todas)
-    //   columnas : 'Encabezado en Excel' => 'campo de la fila'
-    //   resumen  : 'Etiqueta' => 'índice del arreglo devuelto'
     private function definiciones() {
         return [
             'rep-actividades-zoo' => [
@@ -176,7 +157,6 @@ class ExportarExcelModel {
         return [$datos, $filas];
     }
 
-    // Todo lo que necesita la Vista para armar el Excel de un reporte.
     public function obtenerReporte($reporte) {
         $def = $this->definiciones()[$reporte];
 

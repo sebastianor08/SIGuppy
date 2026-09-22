@@ -107,14 +107,14 @@ include '../partials/head.php';
 
                 <div class="modal-body">
                   <div class="mb-3">
-                    <label class="form-label" for="id_tipo_deposito">Tipo de depósito</label>
+                    <label class="form-label" for="id_tipo_deposito">Tipo de depósito<span class="text-danger"> *</span></label>
                     <select class="form-select" id="id_tipo_deposito" name="id_tipo_deposito" required>
                       <option value="">Seleccione el tipo de depósito</option>
                     </select>
                   </div>
 
                   <div class="mb-3">
-                    <label class="form-label" for="id_sitio">Sitio</label>
+                    <label class="form-label" for="id_sitio">Sitio<span class="text-danger"> *</span></label>
                     <select class="form-select" id="id_sitio" name="id_sitio" required>
                       <option value="">Seleccione el sitio</option>
                     </select>
@@ -122,7 +122,7 @@ include '../partials/head.php';
                   </div>
 
                   <div class="mb-3">
-                    <label class="form-label" for="depositoDescripcion">Descripción</label>
+                    <label class="form-label" for="depositoDescripcion">Descripción<span class="text-danger"> *</span></label>
                     <textarea
                       class="form-control"
                       id="depositoDescripcion"

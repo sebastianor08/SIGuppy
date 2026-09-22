@@ -1,154 +1,172 @@
 <?php
 
-include_once __DIR__ . '/../MasterModel.php';
 
-class ZoocriaderoModel extends MasterModel{
+include_once '../Model/Zoocriadero/ZoocriaderoModel.php';
+include_once __DIR__ . '/../../lib/geocodificador.php';
 
-    public function listar(){
-        return $this->selectAll(
-            "SELECT z.id_zoocriadero,
-                    z.nombre,
-                    z.direccion,
-                    z.comuna,
-                    z.barrio,
-                    z.latitud,
-                    z.longitud,
-                    z.estado,
-                    TO_CHAR(z.creado_en, 'YYYY-MM-DD') AS creado_en,
-                    (SELECT COUNT(*) FROM tanque t
-                      WHERE t.id_zoocriadero = z.id_zoocriadero AND t.estado = 1) AS total_tanques
-             FROM zoocriadero z
-             ORDER BY z.nombre"
-        );
+class ZoocriaderoController
+{
+    public function lista()
+    {
+        $obj = new ZoocriaderoModel();
+        jsonResponse(['ok' => true, 'data' => $obj->listar()]);
     }
 
-    public function buscar($idZoocriadero){
-        return $this->selectOne(
-            "SELECT * FROM zoocriadero WHERE id_zoocriadero = $1",
-            [$idZoocriadero]
-        );
+    public function comunas()
+    {
+        $obj = new ZoocriaderoModel();
+        jsonResponse(['ok' => true, 'data' => $obj->comunas()]);
     }
 
-    // Comunas para el primer select
-    public function comunas(){
-        return $this->selectAll(
-            "SELECT id_comuna, nombre FROM comuna
-             ORDER BY NULLIF(regexp_replace(nombre, '\\D', '', 'g'), '')::int NULLS LAST, nombre"
-        );
+    public function barrios()
+    {
+        $obj = new ZoocriaderoModel();
+        $idComuna = filter_var($_GET['id_comuna'] ?? null, FILTER_VALIDATE_INT);
+
+        if (!$idComuna) {
+            jsonResponse(['ok' => false, 'message' => 'Debe indicar la comuna.'], 422);
+        }
+        jsonResponse(['ok' => true, 'data' => $obj->barriosDe($idComuna)]);
     }
 
-    // Barrios de una comuna (el segundo select depende del primero)
-    public function barriosDe($idComuna){
-        return $this->selectAll(
-            "SELECT id_barrio, nombre
-             FROM barrio
-             WHERE id_comuna = $1
-             ORDER BY nombre",
-            [$idComuna]
-        );
+    public function tiposTanque()
+    {
+        $obj = new ZoocriaderoModel();
+        jsonResponse(['ok' => true, 'data' => $obj->tiposTanque()]);
     }
 
-    // Valida que el barrio realmente pertenezca a esa comuna
-    public function barrioPerteneceAComuna($nombreBarrio, $nombreComuna){
-        return $this->selectValue(
-            "SELECT 1
-             FROM barrio b
-             INNER JOIN comuna c ON c.id_comuna = b.id_comuna
-             WHERE b.nombre = $1 AND c.nombre = $2",
-            [$nombreBarrio, $nombreComuna]
-        ) !== null;
+    public function tanques()
+    {
+        $obj = new ZoocriaderoModel();
+        $idZoo = filter_var($_GET['id_zoocriadero'] ?? null, FILTER_VALIDATE_INT);
+
+        if (!$idZoo) {
+            jsonResponse(['ok' => false, 'message' => 'id_zoocriadero es obligatorio.'], 422);
+        }
+        jsonResponse(['ok' => true, 'data' => $obj->tanquesDe($idZoo)]);
     }
 
-    public function tiposTanque(){
-        return $this->selectAll(
-            "SELECT id_tipo_tanque, nombre
-             FROM tipo_tanque
-             WHERE estado = 1
-             ORDER BY nombre"
-        );
+    // ---------- Escrituras ----------
+
+    public function postCreate()
+    {
+        sigExigirPermiso('Zoocriaderos', 'crear');
+        $obj = new ZoocriaderoModel();
+        $body = requestJsonBody();
+        $datos = $this->validarZoocriadero($body, $obj, null);
+
+        // El usuario que registra el zoocriadero queda como su encargado.
+        // (Al editar NO se cambia: el encargado sigue siendo quien lo creó.)
+        $datos['id_persona_cargo'] = filter_var($_SESSION['id_usuario'] ?? null, FILTER_VALIDATE_INT) ?: null;
+
+        $id = $obj->crear($datos);
+        if ($id === null) {
+            jsonResponse(['ok' => false, 'message' => 'No se pudo registrar: ' . $obj->ultimoError()], 500);
+        }
+
+        jsonResponse([
+            'ok' => true,
+            'message' => 'Zoocriadero registrado correctamente.',
+            'id_zoocriadero' => (int) $id,
+        ], 201);
     }
 
-    // Tanques de un zoocriadero (para el modal de detalle)
-    public function tanquesDe($idZoocriadero){
-        return $this->selectAll(
-            "SELECT t.id_tanque, t.nombre_tanque, t.estado,
-                    tt.nombre AS tipo_tanque
-             FROM tanque t
-             INNER JOIN tipo_tanque tt ON tt.id_tipo_tanque = t.id_tipo_tanque
-             WHERE t.id_zoocriadero = $1
-             ORDER BY t.nombre_tanque",
-            [$idZoocriadero]
-        );
+    public function postUpdate()
+    {
+        sigExigirPermiso('Zoocriaderos', 'editar');
+        $obj = new ZoocriaderoModel();
+        $body = requestJsonBody();
+
+        $idZoo = filter_var($body['id_zoocriadero'] ?? null, FILTER_VALIDATE_INT);
+        if (!$idZoo) {
+            jsonResponse(['ok' => false, 'message' => 'id_zoocriadero es obligatorio.'], 422);
+        }
+        if (!$obj->buscar($idZoo)) {
+            jsonResponse(['ok' => false, 'message' => 'El zoocriadero no existe.'], 404);
+        }
+
+        $datos = $this->validarZoocriadero($body, $obj, $idZoo);
+
+        if ($obj->actualizar($idZoo, $datos) === false) {
+            jsonResponse(['ok' => false, 'message' => 'No se pudo actualizar: ' . $obj->ultimoError()], 500);
+        }
+
+        jsonResponse(['ok' => true, 'message' => 'Zoocriadero actualizado correctamente.']);
     }
 
+    public function postEstado()
+    {
+        sigExigirPermiso('Zoocriaderos', 'inhabilitar');
+        $obj = new ZoocriaderoModel();
+        $body = requestJsonBody();
 
-    public function buscarDuplicado($nombre, $excluirId = null){
-        return $this->selectOne(
-            "SELECT id_zoocriadero, nombre, estado
-             FROM zoocriadero
-             WHERE translate(lower(regexp_replace(btrim(nombre), '\\s+', ' ', 'g')), 'áéíóúüñ', 'aeiouun')
-                 = translate(lower(regexp_replace(btrim($1::text), '\\s+', ' ', 'g')), 'áéíóúüñ', 'aeiouun')
-               AND ($2::bigint IS NULL OR id_zoocriadero <> $2::bigint)
-             LIMIT 1",
-            [$nombre, $excluirId]
-        );
+        $idZoo = filter_var($body['id_zoocriadero'] ?? null, FILTER_VALIDATE_INT);
+        $estado = filter_var($body['estado'] ?? null, FILTER_VALIDATE_INT);
+
+        if (!$idZoo || ($estado !== 0 && $estado !== 1)) {
+            jsonResponse(['ok' => false, 'message' => 'Datos incompletos para cambiar el estado.'], 422);
+        }
+
+        if ($obj->cambiarEstado($idZoo, $estado) === false) {
+            jsonResponse(['ok' => false, 'message' => 'No se pudo cambiar el estado.'], 500);
+        }
+
+        jsonResponse([
+            'ok' => true,
+            'message' => $estado === 1 ? 'Zoocriadero habilitado.' : 'Zoocriadero inhabilitado.',
+        ]);
     }
 
-    public function crear($datos){
-        return $this->selectValue(
-            "INSERT INTO zoocriadero
-             (nombre, direccion, comuna, barrio, latitud, longitud, estado)
-             VALUES ($1, $2, $3, $4, $5, $6, 1)
-             RETURNING id_zoocriadero",
-            [
-                $datos['nombre'],
-                $datos['direccion'],
-                $datos['comuna'],
-                $datos['barrio'],
-                $datos['latitud'],
-                $datos['longitud'],
-            ]
-        );
-    }
+    // ---------- Validación compartida por create y update ----------
+    private function validarZoocriadero($body, $obj, $idActual = null)
+    {
+        $nombre = limpiar($body['nombre'] ?? '');
+        $direccion = limpiar($body['direccion'] ?? '');
+        $comuna = limpiar($body['comuna'] ?? '');
+        $barrio = limpiar($body['barrio'] ?? '');
+        $latitud = $body['latitud'] ?? null;
+        $longitud = $body['longitud'] ?? null;
 
-    // ---------------- UPDATE ----------------
-    public function actualizar($idZoocriadero, $datos){
-        return $this->update(
-            "UPDATE zoocriadero
-             SET nombre = $1, direccion = $2, comuna = $3, barrio = $4,
-                 latitud = $5, longitud = $6
-             WHERE id_zoocriadero = $7",
-            [
-                $datos['nombre'],
-                $datos['direccion'],
-                $datos['comuna'],
-                $datos['barrio'],
-                $datos['latitud'],
-                $datos['longitud'],
-                $idZoocriadero,
-            ]
-        );
-    }
+        foreach ([
+            validarTexto($nombre, 'Nombre', 4, 100),
+            validarTexto($direccion, 'Dirección', 5, 200),
+            validarTextoOpcional($comuna, 'Comuna', 60),
+            validarTextoOpcional($barrio, 'Barrio', 60),
+        ] as $error) {
+            if ($error !== null) {
+                jsonResponse(['ok' => false, 'message' => $error], 422);
+            }
+        }
 
-    // Habilitar / inhabilitar (no se borra, se cambia el estado)
-    public function cambiarEstado($idZoocriadero, $estado){
-        return $this->update(
-            "UPDATE zoocriadero SET estado = $1 WHERE id_zoocriadero = $2",
-            [$estado, $idZoocriadero]
-        );
-    }
+        $duplicado = $obj->buscarDuplicado($nombre, $idActual);
+        if ($duplicado) {
+            $mensaje = 'Ya existe un zoocriadero llamado "' . $duplicado['nombre'] . '".';
+            if ((int) $duplicado['estado'] !== 1) {
+                $mensaje .= ' Está inhabilitado: puede habilitarlo desde la lista en lugar de crearlo de nuevo.';
+            }
+            jsonResponse(['ok' => false, 'message' => $mensaje], 409);
+        }
 
-    public function existeNombreTanque($idZoocriadero, $nombre){
-        return $this->selectValue(
-            "SELECT 1 FROM tanque WHERE id_zoocriadero = $1 AND LOWER(nombre_tanque) = LOWER($2)",
-            [$idZoocriadero, $nombre]
-        ) !== null;
-    }
+        if ($comuna !== '' && $barrio !== '' && !$obj->barrioPerteneceAComuna($barrio, $comuna)) {
+            jsonResponse(['ok' => false, 'message' => 'El barrio seleccionado no pertenece a esa comuna.'], 422);
+        }
 
-    public function tipoTanqueExiste($idTipoTanque){
-        return $this->selectValue(
-            "SELECT 1 FROM tipo_tanque WHERE id_tipo_tanque = $1 AND estado = 1",
-            [$idTipoTanque]
-        ) !== null;
+        if (!is_numeric($latitud) || !is_numeric($longitud)) {
+            $punto = geocodificarDireccion($direccion, $barrio, $comuna);
+            $latitud = $punto['lat'] ?? 0;
+            $longitud = $punto['lng'] ?? 0;
+        } else {
+            $latitud = (float) $latitud;
+            $longitud = (float) $longitud;
+        }
+
+        return [
+            'nombre' => $nombre,
+            'direccion' => $direccion,
+            'comuna' => ($comuna !== '' ? $comuna : null),
+            'barrio' => ($barrio !== '' ? $barrio : null),
+            'latitud' => $latitud,
+            'longitud' => $longitud,
+        ];
     }
 }

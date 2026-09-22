@@ -7,8 +7,6 @@ include_once __DIR__ . '/../../lib/geocodificador.php';
 class ZoocriaderoController
 {
 
-    // ---------- Lecturas ----------
-
     public function lista()
     {
         $obj = new ZoocriaderoModel();
@@ -57,6 +55,10 @@ class ZoocriaderoController
         $obj = new ZoocriaderoModel();
         $body = requestJsonBody();
         $datos = $this->validarZoocriadero($body, $obj, null);
+
+        // El usuario que registra el zoocriadero queda como su encargado.
+        // (Al editar NO se cambia: el encargado sigue siendo quien lo creó.)
+        $datos['id_persona_cargo'] = filter_var($_SESSION['id_usuario'] ?? null, FILTER_VALIDATE_INT) ?: null;
 
         $id = $obj->crear($datos);
         if ($id === null) {

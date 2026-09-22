@@ -1,6 +1,4 @@
 <?php
-// La sesión se exige ANTES de consultar la base de datos (antes se
-// validaba recién en head.php, con los datos ya consultados).
 $basePath = '../../';
 require_once __DIR__ . '/../../lib/requiere_sesion.php';
 
@@ -16,17 +14,16 @@ $bodyPage  = 'auditoria';
 $badgesOperacion = [
     'INSERT'         => 'bg-success',
     'UPDATE'         => 'bg-primary',
-    'DELETE'         => 'bg-danger',
     'HABILITAR'      => 'bg-success',
     'INHABILITAR'    => 'bg-danger',
     'LOGIN_EXITOSO'  => 'bg-info',
     'LOGIN_FALLIDO'  => 'bg-warning',
     'EXPORTAR'       => 'bg-secondary',
 ];
+
 $etiquetasOperacion = [
     'INSERT'         => 'Insertar',
     'UPDATE'         => 'Actualizar',
-    'DELETE'         => 'Eliminar',
     'HABILITAR'      => 'Habilitar',
     'INHABILITAR'    => 'Inhabilitar',
     'LOGIN_EXITOSO'  => 'Inicio de sesión',

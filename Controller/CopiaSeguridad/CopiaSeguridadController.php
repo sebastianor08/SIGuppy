@@ -3,15 +3,7 @@
 include_once __DIR__ . '/../../Model/CopiaSeguridad/CopiaSeguridadModel.php';
 include_once __DIR__ . '/../../lib/conf/backup_conf.php';
 
-// ============================================================
-// Controlador del módulo Copia de Seguridad.
-// Se llama por Web/ajax.php:
-//   ?modulo=CopiaSeguridad&controlador=CopiaSeguridad&funcion=...
-//
-// "descargar" y "descargarArchivo" son la excepción: en vez de
-// jsonResponse() envían el .sql como archivo para que el navegador
-// lo descargue (por eso el JS los abre con window.location, no fetch).
-// ============================================================
+
 class CopiaSeguridadController {
 
     private $ultimoErrorProceso = '';
