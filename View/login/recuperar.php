@@ -33,6 +33,10 @@
             <div class="alert alert-danger py-2 small text-center mb-3">
                 El correo electrónico no se encuentra registrado.
             </div>
+        <?php elseif (isset($_GET['status']) && $_GET['status'] == 'token_invalido'): ?>
+            <div class="alert alert-danger py-2 small text-center mb-3">
+                El enlace de recuperación no es válido o ya expiró. Solicita uno nuevo.
+            </div>
         <?php elseif (isset($_GET['status']) && $_GET['status'] == 'system'): ?>
             <div class="alert alert-danger py-2 small text-center mb-3">
                 No se pudo enviar el correo. Intenta de nuevo más tarde.
@@ -60,8 +64,9 @@
                 <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
                 <div class="modal-body pt-0">
                     <div class="party-icon"></div>
-                    <h5 class="fw-bold text-dark mb-4">Hemos enviado el código a tu correo</h5>
-                  <button type="button" class="btn btn-info-custom w-75" onclick="window.location.href='validar_codigo.php'">Continuar</button>
+                    <h5 class="fw-bold text-dark mb-2">Revisa tu correo</h5>
+                    <p class="text-muted small mb-4">Te enviamos un enlace para restablecer tu contraseña. Vence en 30 minutos.</p>
+                  <button type="button" class="btn btn-info-custom w-75" onclick="window.location.href='login.php'">Volver a iniciar sesión</button>
                 </div>
             </div>
         </div>

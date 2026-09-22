@@ -24,9 +24,9 @@
   }
 
   $sigMostrarReportes  = sigPuedeVer('Reportes');
-  $sigMostrarZoo       = sigPuedeVer('Zoocriaderos') || sigPuedeVer('Tanque Zoocriadero') || sigPuedeVer('Acciones');
-  $sigMostrarTerreno   = sigPuedeVer('Depósitos') || sigPuedeVer('Actividades') || sigPuedeVer('Tipo Depósitos');
-  $sigMostrarUsuarios  = sigPuedeVer('Gestión de Usuarios') || sigPuedeVer('Roles y Permisos') || sigPuedeVer('Consultar Usuarios');
+  $sigMostrarZoo       = sigPuedeVer('Zoocriaderos') || sigPuedeVer('Tanque Zoocriadero') || sigPuedeVer('Acciones de Zoocriadero');
+  $sigMostrarTerreno   = sigPuedeVer('Depósitos') || sigPuedeVer('Seguimiento de Depósito') || sigPuedeVer('Actividades') || sigPuedeVer('Tipo Depósitos');
+  $sigMostrarUsuarios  = sigPuedeVer('Gestión de Usuarios') || sigPuedeVer('Gestión de Roles');
 ?>
 <div class="sidebar sidebar-style-2 siguppys-sidebar" data-background-color="white">
   <div class="sidebar-logo">
@@ -36,7 +36,7 @@
           <img src="<?php echo $rutaBase; ?>Web/assets/img/siguppys/logo-pin.png" alt="SIGuppys" />
         </span>
         <span class="siguppys-brand">
-          <strong>SIGuppys</strong>
+          <strong>SIGuppy</strong>
           <small>Control Biológico contra el Dengue</small>
         </span>
       </a>
@@ -103,7 +103,7 @@
               <li><a href="<?php echo $rutaBase; ?>View/Tanque/tanques.php" data-page="tanques"><span
                     class="sub-item">Tanques</span></a></li>
               <?php endif; ?>
-              <?php if (sigPuedeVer('Acciones')): ?>
+              <?php if (sigPuedeVer('Acciones de Zoocriadero')): ?>
               <li><a href="<?php echo $rutaBase; ?>View/Acciones/acciones.php" data-page="acciones-zoocriadero"><span
                     class="sub-item">Acciones</span></a></li>
               <?php endif; ?>
@@ -151,9 +151,8 @@
               <?php if (sigPuedeVer('Gestión de Usuarios')): ?>
               <li><a href="<?php echo $rutaBase; ?>View/Usuarios/usuarios.php" data-page="usuarios-registrar"><span class="sub-item">Gestión De Usuarios</span></a></li>
               <?php endif; ?>
-              <?php if (sigPuedeVer('Roles y Permisos')): ?>
-              <li><a href="<?php echo $rutaBase; ?>View/Roles/registro-roles.php" data-page="roles-registrar"><span class="sub-item">Roles y Permisos</span></a></li>
-              <li><a href="<?php echo $rutaBase; ?>View/Roles/consultar-roles.php" data-page="roles-consultar"><span class="sub-item">Consultar Roles</span></a></li>
+              <?php if (sigPuedeVer('Gestión de Roles')): ?>
+              <li><a href="<?php echo $rutaBase; ?>View/Roles/consultar-roles.php" data-page="roles-consultar"><span class="sub-item">Gestión De Roles</span></a></li>
               <?php endif; ?>
             </ul>
           </div>
@@ -163,7 +162,7 @@
         <?php if (sigPuedeVer('Copia de seguridad')): ?>
         <li class="nav-item">
           <a href="<?php echo $rutaBase; ?>View/CopiaSeguridad/copia-seguridad.php" data-page="copia-seguridad">
-            <i class="fas fa-cloud-upload-alt"></i>
+            <i class="sig-icon-respaldo" aria-hidden="true"></i>
             <p>Copia de seguridad</p>
           </a>
         </li>

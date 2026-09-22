@@ -4,6 +4,14 @@
     // Lista los roles registrados y el detalle de sus permisos
     // (qué puede visualizar y hacer cada uno en cada módulo).
     // =========================================================
+
+    // Igual que en registro-roles.php: la sesión y los permisos se
+    // revisan ANTES de procesar el cambio de estado por GET, no después.
+    $basePath = '../../';
+    require_once __DIR__ . '/../../lib/requiere_sesion.php';
+    require_once __DIR__ . '/../../lib/permisos.php';
+    $permisosRoles = sigPermisosDeModulo('Gestión de Roles');
+
     include_once '../../lib/validaciones.php';
     include_once '../../Model/Roles/RolesModel.php';
 
@@ -17,7 +25,10 @@
         $idRol = filter_var($_GET['estado'], FILTER_VALIDATE_INT);
         $valor = filter_var($_GET['valor'] ?? null, FILTER_VALIDATE_INT);
 
-        if(!$idRol || ($valor !== 0 && $valor !== 1)){
+        if(empty($permisosRoles['inhabilitar'])){
+            $mensaje = ['tipo' => 'danger', 'texto' => 'No tienes permiso para inhabilitar/habilitar roles.'];
+
+        }elseif(!$idRol || ($valor !== 0 && $valor !== 1)){
             $mensaje = ['tipo' => 'danger', 'texto' => 'Solicitud no válida.'];
 
         }elseif($valor === 0 && $modelo->usuariosConRol($idRol) > 0){
@@ -48,7 +59,7 @@
     function h($v){ return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); }
 
     $basePath       = '../../';
-    $pageTitle      = 'Consultar Roles';
+    $pageTitle      = 'Gestión de Roles';
     $bodyPage       = 'roles-consultar';
     $showRoleSwitch = false;
     include '../partials/head.php';
@@ -64,8 +75,8 @@
 
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
               <div>
-                <h3 class="fw-bold mb-3">Consultar Roles</h3>
-                <h6 class="op-7 mb-2">Usuarios / Roles y Permisos</h6>
+                <h3 class="fw-bold mb-3">Gestión de Roles</h3>
+                <h6 class="op-7 mb-2">Usuarios / Gestión de Roles</h6>
               </div>
               <div class="ms-md-auto py-2 py-md-0">
                 <a href="registro-roles.php" class="btn btn-primary btn-round">
@@ -135,10 +146,13 @@
                               <?php endif; ?>
                             </td>
                             <td class="text-center">
+                              <?php if(!empty($permisosRoles['editar'])): ?>
                               <a href="registro-roles.php?id_rol=<?php echo h($r['id_rol']); ?>"
                                  class="btn-icon" title="Editar rol y permisos">
                                 <i class="fas fa-pen"></i>
                               </a>
+                              <?php endif; ?>
+                              <?php if(!empty($permisosRoles['inhabilitar'])): ?>
                               <?php if((int) $r['estado'] === 1): ?>
                                 <a href="consultar-roles.php?estado=<?php echo h($r['id_rol']); ?>&valor=0"
                                    class="btn-icon text-danger" title="Inhabilitar"
@@ -151,6 +165,7 @@
                                    onclick="return confirm('¿Habilitar el rol <?php echo h($r['nombre_rol']); ?>?');">
                                   <i class="fas fa-check-circle"></i>
                                 </a>
+                              <?php endif; ?>
                               <?php endif; ?>
                             </td>
                           </tr>

@@ -51,6 +51,13 @@ function obtenerDatosActividadesPorAuxiliar()
     $filtroFechaInicio = $_GET['fecha_inicio'] ?? '';
     $filtroFechaFin = $_GET['fecha_fin'] ?? '';
 
+    require_once __DIR__ . '/../../lib/validaciones.php';
+    $errorRangoFechas = validarRangoFechas($filtroFechaInicio, $filtroFechaFin, 'Fecha inicio', 'Fecha fin');
+    if ($errorRangoFechas !== null) {
+        $filtroFechaInicio = '';
+        $filtroFechaFin    = '';
+    }
+
     $listaAuxiliares = array_unique(array_column($registros, 'auxiliar'));
 
     $registrosFiltrados = [];
@@ -163,6 +170,7 @@ function obtenerDatosActividadesPorAuxiliar()
         'filtroAuxiliar' => $filtroAuxiliar,
         'filtroFechaInicio' => $filtroFechaInicio,
         'filtroFechaFin' => $filtroFechaFin,
+        'errorRangoFechas' => $errorRangoFechas,
         'totalActividades' => $totalActividades,
         'totalCompletas' => $totalCompletas,
         'totalEnProgreso' => $totalEnProgreso,

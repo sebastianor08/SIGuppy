@@ -49,12 +49,32 @@ class Connection
 
 
         pg_set_client_encoding($conexion, "UTF8");
+
+        $idUsuarioSesion = $_SESSION['id_usuario'] ?? null;
+        @pg_query_params(
+            $conexion,
+            "SELECT set_config('app.id_usuario', $1, false)",
+            [$idUsuarioSesion !== null ? (string) $idUsuarioSesion : '']
+        );
+
         self::$link = $conexion;
     }
 
     protected function getConnect()
     {
         return self::$link;
+    }
+    public function actualizarUsuarioAuditoria()
+    {
+        if (self::$link === null) {
+            return;
+        }
+        $idUsuarioSesion = $_SESSION['id_usuario'] ?? null;
+        @pg_query_params(
+            self::$link,
+            "SELECT set_config('app.id_usuario', $1, false)",
+            [$idUsuarioSesion !== null ? (string) $idUsuarioSesion : '']
+        );
     }
 
     protected function close()

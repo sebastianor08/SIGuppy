@@ -20,6 +20,11 @@ include '../partials/head.php';
           </div>
 
           <div class="ms-md-auto py-2 py-md-0">
+            <?php if (sigPuedeVer('Seguimiento de Depósito')): ?>
+            <a href="../SeguimientoDeposito/SeguimientoDepositoView.php" class="btn btn-label-primary btn-round me-2">
+              <i class="fas fa-clipboard-check me-1"></i> Seguimiento Depósito
+            </a>
+            <?php endif; ?>
             <button type="button" id="btnCrearDeposito" class="btn btn-primary btn-round">
               <i class="fas fa-plus me-1"></i> Registrar Depósito
             </button>

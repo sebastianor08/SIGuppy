@@ -92,6 +92,13 @@ function obtenerDatosActividadesDeTerrenoPorTipo()
     $filtroFechaInicio  = $_GET['fecha_inicio'] ?? '';
     $filtroFechaFin     = $_GET['fecha_fin']    ?? '';
 
+    require_once __DIR__ . '/../../lib/validaciones.php';
+    $errorRangoFechas = validarRangoFechas($filtroFechaInicio, $filtroFechaFin, 'Fecha inicio', 'Fecha fin');
+    if ($errorRangoFechas !== null) {
+        $filtroFechaInicio = '';
+        $filtroFechaFin    = '';
+    }
+
     $listaZoocriaderos = array_unique(array_column($actividades, 'zoocriadero'));
 
     $actividadesFiltradas = [];
@@ -230,6 +237,7 @@ function obtenerDatosActividadesDeTerrenoPorTipo()
         'filtroZoocriadero'    => $filtroZoocriadero,
         'filtroFechaInicio'    => $filtroFechaInicio,
         'filtroFechaFin'       => $filtroFechaFin,
+        'errorRangoFechas'     => $errorRangoFechas,
         'resumenPorTipo'       => $resumenPorTipo,
         'totalActividades'     => $totalActividades,
         'totalCompletas'       => $totalCompletas,

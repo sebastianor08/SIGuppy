@@ -70,12 +70,12 @@ class ZoocriaderoModel extends MasterModel{
     // Tanques de un zoocriadero (para el modal de detalle)
     public function tanquesDe($idZoocriadero){
         return $this->selectAll(
-            "SELECT t.id_tanque, t.numero_tanque, t.estado,
+            "SELECT t.id_tanque, t.nombre_tanque, t.estado,
                     tt.nombre AS tipo_tanque
              FROM tanque t
              INNER JOIN tipo_tanque tt ON tt.id_tipo_tanque = t.id_tipo_tanque
              WHERE t.id_zoocriadero = $1
-             ORDER BY t.numero_tanque",
+             ORDER BY t.nombre_tanque",
             [$idZoocriadero]
         );
     }
@@ -125,10 +125,10 @@ class ZoocriaderoModel extends MasterModel{
         );
     }
 
-    public function existeNumeroTanque($idZoocriadero, $numero){
+    public function existeNombreTanque($idZoocriadero, $nombre){
         return $this->selectValue(
-            "SELECT 1 FROM tanque WHERE id_zoocriadero = $1 AND numero_tanque = $2",
-            [$idZoocriadero, $numero]
+            "SELECT 1 FROM tanque WHERE id_zoocriadero = $1 AND LOWER(nombre_tanque) = LOWER($2)",
+            [$idZoocriadero, $nombre]
         ) !== null;
     }
 
