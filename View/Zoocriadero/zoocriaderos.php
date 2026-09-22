@@ -94,7 +94,6 @@
                           </select>
                         </div>
                       </div>
-                      </div>
                     </div>
                     <div class="modal-footer">
                       <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancelar</button>
