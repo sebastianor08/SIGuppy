@@ -72,7 +72,7 @@
                     <div class="row align-items-center">
                       <div class="col-icon">
                         <div class="icon-big text-center icon-warning bubble-shadow-small">
-                          <i class="fas fa-box-archive"></i>
+                          <i class="sig-icon-respaldo" aria-hidden="true"></i>
                         </div>
                       </div>
                       <div class="col col-stats ms-3 ms-sm-0">

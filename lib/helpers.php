@@ -8,12 +8,6 @@
     include_once __DIR__ . '/sesion_config.php';
     include_once __DIR__ . '/permisos.php';
 
-    // Las peticiones AJAX (Web/ajax.php) no pasan por requiere_sesion.php,
-    // así que la inactividad se revisa también aquí: si la sesión ya
-    // estaba vencida, se cierra y se avisa al JS para que redirija a
-    // login en vez de mostrar datos de una sesión que ya no debería
-    // estar activa. Si sigue vigente, esta misma petición cuenta como
-    // actividad y renueva el conteo.
     if (isset($_GET['modulo'])) {
         if (sigSesionInactivaVencida()) {
             sigCerrarPorInactividad();
@@ -34,8 +28,7 @@
         echo "<script>";
             echo "window.location.href='$url'";
         echo "</script>";
-        exit; // sin esto, el código que sigue después de llamar a redirect()
-              // se sigue ejecutando y puede disparar una segunda redirección
+        exit; 
     }
 
     function dd($date){

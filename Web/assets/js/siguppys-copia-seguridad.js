@@ -195,7 +195,8 @@
         '<option value="">Seleccione un respaldo...</option>' +
         archivos
           .map(function (a) {
-            return '<option value="' + escapeHtml(a.nombre) + '">' + escapeHtml(a.nombre) + " (" + fmtFechaHora(a.fecha) + ")</option>";
+            var etiqueta = { automatico: "[Automático] ", manual: "[Manual] ", subido: "[Subido] " }[a.tipo] || "";
+            return '<option value="' + escapeHtml(a.nombre) + '">' + etiqueta + escapeHtml(a.nombre) + " (" + fmtFechaHora(a.fecha) + ")</option>";
           })
           .join("");
     } catch (error) {

@@ -1305,3 +1305,29 @@ body[data-background-color="dark"] .caja .texto-eje {
   background: #8d99a6;
   border-radius: 50%;
 }
+
+/* ============================================================
+   Icono de respaldo (base de datos + flecha de restaurar).
+   Se dibuja con mask-image para que tome el color del texto
+   (currentColor): blanco en la tarjeta naranja y gris/activo en
+   el menú lateral, igual que un icono de Font Awesome.
+   ============================================================ */
+.sig-icon-respaldo {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background-color: currentColor;
+  -webkit-mask: url("../img/icons/respaldo-bd.png") center / contain no-repeat;
+          mask: url("../img/icons/respaldo-bd.png") center / contain no-repeat;
+  vertical-align: middle;
+}
+.card-stats .icon-big .sig-icon-respaldo {
+  width: 1.2em;
+  height: 1.2em;
+  background-color: #ffffff;
+}
+.sidebar .nav > .nav-item a i.sig-icon-respaldo {
+  height: 30px;
+  -webkit-mask-size: 20px 20px;
+          mask-size: 20px 20px;
+}

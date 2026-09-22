@@ -1,5 +1,15 @@
 <?php
 
+// Zona horaria de los respaldos. La página web ya la fija en
+// lib/helpers.php, pero la tarea programada (cron/backup_automatico.php)
+// corre por PHP CLI, que NO carga helpers.php y usa la zona del php.ini
+// (normalmente UTC). Por eso los .sql automáticos quedaban con otra hora
+// en el nombre. Al fijarla aquí, web y automático usan la misma.
+if (!defined('BACKUP_TIMEZONE')) {
+    define('BACKUP_TIMEZONE', 'America/Bogota');
+}
+date_default_timezone_set(BACKUP_TIMEZONE);
+
 if (!defined('BACKUP_DIR')) {
     define('BACKUP_DIR', __DIR__ . '/../../backups/');
 }

@@ -125,9 +125,6 @@
               <?php if (sigPuedeVer('Depósitos')): ?>
               <li><a href="<?php echo $rutaBase; ?>View/Deposito/DepositoView.php" data-page="terreno-depositos"><span class="sub-item">Depósitos</span></a></li>
               <?php endif; ?>
-              <?php if (sigPuedeVer('Seguimiento de Depósito')): ?>
-              <li><a href="<?php echo $rutaBase; ?>View/SeguimientoDeposito/SeguimientoDepositoView.php" data-page="terreno-seguimiento-deposito"><span class="sub-item">Seguimiento de Depósito</span></a></li>
-              <?php endif; ?>
               <?php if (sigPuedeVer('Actividades')): ?>
               <li><a href="<?php echo $rutaBase; ?>View/Actividad/ActividadView.php" data-page="terreno-actividades"><span class="sub-item">Actividades</span></a></li>
               <?php endif; ?>
@@ -165,7 +162,7 @@
         <?php if (sigPuedeVer('Copia de seguridad')): ?>
         <li class="nav-item">
           <a href="<?php echo $rutaBase; ?>View/CopiaSeguridad/copia-seguridad.php" data-page="copia-seguridad">
-            <i class="fas fa-cloud-upload-alt"></i>
+            <i class="sig-icon-respaldo" aria-hidden="true"></i>
             <p>Copia de seguridad</p>
           </a>
         </li>

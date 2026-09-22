@@ -41,8 +41,17 @@ class CopiaSeguridadController {
     // Lista de .sql disponibles en BACKUP_DIR (para el selector del modal Restaurar)
     public function archivos() {
         $archivos = array_map(function ($ruta) {
+            $nombre = basename($ruta);
+            if (strpos($nombre, '_auto_') !== false) {
+                $tipo = 'automatico';
+            } elseif (strpos($nombre, 'subido_') === 0) {
+                $tipo = 'subido';
+            } else {
+                $tipo = 'manual';
+            }
             return [
-                'nombre' => basename($ruta),
+                'nombre' => $nombre,
+                'tipo'   => $tipo,
                 'tamano' => filesize($ruta),
                 'fecha'  => date('Y-m-d H:i:s', filemtime($ruta)),
             ];
@@ -55,8 +64,17 @@ class CopiaSeguridadController {
         if (!is_dir(BACKUP_DIR)) {
             return [];
         }
-        $archivos = glob(BACKUP_DIR . '*.sql');
-        rsort($archivos); // el nombre incluye fecha_hora, así que ordena de más reciente a más antiguo
+        $archivos = glob(BACKUP_DIR . '*.sql') ?: [];
+
+        // Se ordena por la fecha real del archivo (filemtime), de más
+        // reciente a más antiguo. Antes se usaba rsort() sobre el nombre,
+        // y como "..._auto_2026..." es alfabéticamente mayor que
+        // "..._2026...", todos los automáticos salían primero y los
+        // directos después, sin importar la fecha.
+        usort($archivos, function ($a, $b) {
+            $diferencia = filemtime($b) - filemtime($a);
+            return $diferencia !== 0 ? $diferencia : strcmp(basename($b), basename($a));
+        });
         return $archivos;
     }
 
