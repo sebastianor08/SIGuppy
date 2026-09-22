@@ -74,7 +74,7 @@ include '../partials/head.php';
                             </div>
                         </div>
                         <p class="comparativa <?= $comparativas['totalSitios']['clase'] ?>"><?= $comparativas['totalSitios']['texto'] ?></p>
-                        
+
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -179,9 +179,9 @@ include '../partials/head.php';
                                 <?php if (count($sitiosPagina) === 0): ?>
                                     <tr class="sig-empty-row">
                                         <td colspan="7">No hay sitios con esos filtros</td>
-                                    
-                                <?php endif; ?>
-                                <?php foreach ($sitiosPagina as $sitio): ?>
+
+                                    <?php endif; ?>
+                                    <?php foreach ($sitiosPagina as $sitio): ?>
                                     <tr>
                                         <td><?= $sitio['id'] ?></td>
                                         <td><?= $sitio['nombre'] ?></td>
@@ -639,34 +639,34 @@ $pageScripts = [];
 include '../partials/footer.php';
 ?>
 <script>
-(function () {
-    "use strict";
+    (function() {
+        "use strict";
 
-    var modalEl = document.getElementById("sitioDetailModal");
-    var modalBody = document.getElementById("sitioDetailBody");
-    if (!modalEl || !modalBody) return;
-    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        var modalEl = document.getElementById("sitioDetailModal");
+        var modalBody = document.getElementById("sitioDetailBody");
+        if (!modalEl || !modalBody) return;
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
 
-    document.querySelectorAll('[data-action="ver-sitio"]').forEach(function (btn) {
-        btn.addEventListener("click", function () {
-            var estadoBadge = btn.dataset.estado === "Activo"
-                ? '<span class="badge-estado activo">Activo</span>'
-                : '<span class="badge-estado inactivo">' + btn.dataset.estado + "</span>";
+        document.querySelectorAll('[data-action="ver-sitio"]').forEach(function(btn) {
+            btn.addEventListener("click", function() {
+                var estadoBadge = btn.dataset.estado === "Activo" ?
+                    '<span class="badge-estado activo">Activo</span>' :
+                    '<span class="badge-estado inactivo">' + btn.dataset.estado + "</span>";
 
-            modalBody.innerHTML =
-                '<dl class="row mb-0">' +
-                '<dt class="col-5">ID Sitio</dt><dd class="col-7">' + btn.dataset.id + "</dd>" +
-                '<dt class="col-5">Nombre del sitio</dt><dd class="col-7">' + btn.dataset.nombre + "</dd>" +
-                '<dt class="col-5">Zoocriadero</dt><dd class="col-7">' + btn.dataset.zoocriadero + "</dd>" +
-                '<dt class="col-5">Tipo de depósito</dt><dd class="col-7">' + btn.dataset.tipo + "</dd>" +
-                '<dt class="col-5">Cantidad de tanques</dt><dd class="col-7">' + btn.dataset.tanques + "</dd>" +
-                '<dt class="col-5">Estado</dt><dd class="col-7">' + estadoBadge + "</dd>" +
-                '<dt class="col-5">Fecha de registro</dt><dd class="col-7">' + btn.dataset.fecha + "</dd>" +
-                "</dl>";
-            modal.show();
+                modalBody.innerHTML =
+                    '<dl class="row mb-0">' +
+                    '<dt class="col-5">ID Sitio</dt><dd class="col-7">' + btn.dataset.id + "</dd>" +
+                    '<dt class="col-5">Nombre del sitio</dt><dd class="col-7">' + btn.dataset.nombre + "</dd>" +
+                    '<dt class="col-5">Zoocriadero</dt><dd class="col-7">' + btn.dataset.zoocriadero + "</dd>" +
+                    '<dt class="col-5">Tipo de depósito</dt><dd class="col-7">' + btn.dataset.tipo + "</dd>" +
+                    '<dt class="col-5">Cantidad de tanques</dt><dd class="col-7">' + btn.dataset.tanques + "</dd>" +
+                    '<dt class="col-5">Estado</dt><dd class="col-7">' + estadoBadge + "</dd>" +
+                    '<dt class="col-5">Fecha de registro</dt><dd class="col-7">' + btn.dataset.fecha + "</dd>" +
+                    "</dl>";
+                modal.show();
+            });
         });
-    });
-})();
+    })();
 </script>
 </body>
 
