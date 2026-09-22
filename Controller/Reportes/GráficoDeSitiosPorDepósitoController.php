@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/ComparativaMensual.php';
+
 function obtenerDatosSitiosPorDeposito()
 {
     
@@ -13,10 +15,6 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
     }
 
     // TRAEMOS LOS SITIOS CON SU TIPO DE DEPÓSITO
-
-    // OJO con dos nombres que se dejaron igual para no cambiar la vista:
-    //   'zoocriadero' -> en realidad guarda el BARRIO del sitio
-    //   'tanques'     -> en realidad guarda cuántas VISITAS tiene el sitio
     $sql = "SELECT 'ST-' || LPAD(s.id_sitio::text, 3, '0') AS id,
                 d.direccion AS nombre,
                 b.nombre AS zoocriadero,
@@ -38,9 +36,7 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
         die("Error en la consulta: " . pg_last_error($conexion));
     }
 
-    // ---------------------------------------------------------
-    // 3. GUARDAMOS CADA FILA DENTRO DEL ARREGLO $sitios
-    // ---------------------------------------------------------
+    //  GUARDAMOS CADA FILA DENTRO DEL ARREGLO $sitios
     $sitios = [];
     while ($fila = pg_fetch_assoc($resultado)) {
         $fila['tanques'] = (int) $fila['tanques'];
@@ -54,6 +50,13 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
     $filtroTipo = $_GET['tipo_deposito'] ?? '';
     $filtroFechaInicio = $_GET['fecha_inicio'] ?? '';
     $filtroFechaFin = $_GET['fecha_fin'] ?? '';
+
+    require_once __DIR__ . '/../../lib/validaciones.php';
+    $errorRangoFechas = validarRangoFechas($filtroFechaInicio, $filtroFechaFin, 'Fecha inicio', 'Fecha fin');
+    if ($errorRangoFechas !== null) {
+        $filtroFechaInicio = '';
+        $filtroFechaFin    = '';
+    }
 
     $listaZoocriaderos = array_unique(array_column($sitios, 'zoocriadero'));
 
@@ -116,6 +119,52 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
 
     $totalTiposDeposito = count($cantidadPorTipo);
 
+    // --- COMPARATIVA VS EL MES ANTERIOR (respeta zoocriadero, estado y tipo; no depende de Fecha Inicio/Fin) ---
+    // La fecha de un sitio es la de su creación.
+    $meses = mesesComparativa($filtroFechaInicio);
+    $actualSitios = 0;
+    $actualConDeposito = 0;
+    $actualSinDeposito = 0;
+    $actualTipos = [];
+    $anteriorSitios = 0;
+    $anteriorConDeposito = 0;
+    $anteriorSinDeposito = 0;
+    $anteriorTipos = [];
+
+    foreach ($sitios as $sitio) {
+        $cumpleZoocriadero = ($filtroZoocriadero === '' || $sitio['zoocriadero'] === $filtroZoocriadero);
+        $cumpleEstado = ($filtroEstado === '' || $sitio['estado'] === $filtroEstado);
+        $cumpleTipo = ($filtroTipo === '' || $sitio['tipo'] === $filtroTipo);
+        if (!$cumpleZoocriadero || !$cumpleEstado || !$cumpleTipo) {
+            continue;
+        }
+
+        if (fechaEnMes($sitio['fecha'], $meses['actual'])) {
+            $actualSitios++;
+            if ($sitio['tipo'] === '') {
+                $actualSinDeposito++;
+            } else {
+                $actualConDeposito++;
+                $actualTipos[$sitio['tipo']] = true;
+            }
+        } elseif (fechaEnMes($sitio['fecha'], $meses['anterior'])) {
+            $anteriorSitios++;
+            if ($sitio['tipo'] === '') {
+                $anteriorSinDeposito++;
+            } else {
+                $anteriorConDeposito++;
+                $anteriorTipos[$sitio['tipo']] = true;
+            }
+        }
+    }
+
+    $comparativas = [
+        'totalSitios'        => armarComparativa($actualSitios, $anteriorSitios, true),
+        'totalTiposDeposito' => armarComparativa(count($actualTipos), count($anteriorTipos), true),
+        'totalConDeposito'   => armarComparativa($actualConDeposito, $anteriorConDeposito, true),
+        'totalSinDeposito'   => armarComparativa($actualSinDeposito, $anteriorSinDeposito, false),
+    ];
+
     $paletaColores = ['#2f7dfa', '#3bc9db', '#7c6ee0', '#8bd8f0', '#21a666', '#e0952d'];
 
     $segmentos = [];
@@ -160,10 +209,12 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
         'filtroTipo' => $filtroTipo,
         'filtroFechaInicio' => $filtroFechaInicio,
         'filtroFechaFin' => $filtroFechaFin,
+        'errorRangoFechas' => $errorRangoFechas,
         'totalSitios' => $totalSitios,
         'totalConDeposito' => $totalConDeposito,
         'totalSinDeposito' => $totalSinDeposito,
         'totalTiposDeposito' => $totalTiposDeposito,
+        'comparativas' => $comparativas,
         'segmentos' => $segmentos,
         'valorMaximoBarra' => $valorMaximoBarra,
         'sitiosPagina' => $sitiosPagina,

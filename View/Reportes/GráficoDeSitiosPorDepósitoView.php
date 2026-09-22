@@ -19,10 +19,13 @@ include '../partials/head.php';
 
                 <div class="caja">
                     <h2 class="titulo-pagina">Gráfico de Sitios por Tipo de Depósito</h2>
+                    <?php if (!empty($errorRangoFechas)): ?>
+                        <div class="alert alert-warning"><?= htmlspecialchars($errorRangoFechas) ?> No se aplicó el filtro de fechas.</div>
+                    <?php endif; ?>
                     <form method="GET">
                         <div class="fila-filtros">
                             <div>
-                                <label>Zoocriadero</label>
+                                <label>Barrio</label>
                                 <select name="zoocriadero" class="form-select">
                                     <option value="">Todos</option>
                                     <?php foreach ($listaZoocriaderos as $zoo): ?>
@@ -73,10 +76,8 @@ include '../partials/head.php';
                                 <span class="numero azul"><?= $totalSitios ?></span>
                             </div>
                         </div>
-                        <p class="comparativa positivo">+12.0% vs periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,30 15,20 30,25 45,10 60,18 75,8 90,15 105,5 120,12" fill="none" stroke="#2f7dfa" stroke-width="2" />
-                        </svg>
+                        <p class="comparativa <?= $comparativas['totalSitios']['clase'] ?>"><?= $comparativas['totalSitios']['texto'] ?></p>
+
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -86,10 +87,7 @@ include '../partials/head.php';
                                 <span class="numero verde"><?= $totalTiposDeposito ?></span>
                             </div>
                         </div>
-                        <p class="comparativa positivo">+33.3% vs periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,28 15,18 30,24 45,12 60,20 75,10 90,16 105,6 120,14" fill="none" stroke="#21a666" stroke-width="2" />
-                        </svg>
+                        <p class="comparativa <?= $comparativas['totalTiposDeposito']['clase'] ?>"><?= $comparativas['totalTiposDeposito']['texto'] ?></p>
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -99,10 +97,7 @@ include '../partials/head.php';
                                 <span class="numero azul"><?= $totalConDeposito ?></span>
                             </div>
                         </div>
-                        <p class="comparativa positivo">+21.4% vs periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,26 15,16 30,22 45,10 60,18 75,8 90,14 105,4 120,12" fill="none" stroke="#2f7dfa" stroke-width="2" />
-                        </svg>
+                        <p class="comparativa <?= $comparativas['totalConDeposito']['clase'] ?>"><?= $comparativas['totalConDeposito']['texto'] ?></p>
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -112,10 +107,7 @@ include '../partials/head.php';
                                 <span class="numero morado"><?= $totalSinDeposito ?></span>
                             </div>
                         </div>
-                        <p class="comparativa positivo">+0.0% vs periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,20 15,20 30,20 45,20 60,20 75,20 90,20 105,20 120,20" fill="none" stroke="#6c5ce7" stroke-width="2" />
-                        </svg>
+                        <p class="comparativa <?= $comparativas['totalSinDeposito']['clase'] ?>"><?= $comparativas['totalSinDeposito']['texto'] ?></p>
                     </div>
                 </div>
 
@@ -190,9 +182,9 @@ include '../partials/head.php';
                                 <?php if (count($sitiosPagina) === 0): ?>
                                     <tr class="sig-empty-row">
                                         <td colspan="7">No hay sitios con esos filtros</td>
-                                    
-                                <?php endif; ?>
-                                <?php foreach ($sitiosPagina as $sitio): ?>
+
+                                    <?php endif; ?>
+                                    <?php foreach ($sitiosPagina as $sitio): ?>
                                     <tr>
                                         <td><?= $sitio['id'] ?></td>
                                         <td><?= $sitio['nombre'] ?></td>
@@ -310,6 +302,37 @@ include '../partials/head.php';
                         font-weight: bold;
                     }
 
+                    .btn-reportes {
+                        background-color: #ffffff;
+                        color: #2f7dfa;
+                        border: 1px solid #2f7dfa;
+                        padding: 10px 18px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: bold;
+                        margin-right: 8px;
+                    }
+
+                    .btn-excel {
+                        background-color: #ffffff;
+                        color: #21a666;
+                        border: 1px solid #21a666;
+                        padding: 10px 18px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: bold;
+                        margin-left: 8px;
+                        margin-right: 8px;
+                    }
+
+                    .btn-excel:hover {
+                        background-color: rgba(33, 166, 102, 0.1);
+                    }
+
+                    body[data-background-color="dark"] .btn-excel {
+                        background-color: transparent;
+                    }
+
                     .tarjetas {
                         display: flex;
                         gap: 20px;
@@ -382,6 +405,14 @@ include '../partials/head.php';
 
                     .positivo {
                         color: #21a666;
+                    }
+
+                    .negativo {
+                        color: #e64545;
+                    }
+
+                    .neutro {
+                        color: #888888;
                     }
 
                     .sparkline {
@@ -611,34 +642,34 @@ $pageScripts = [];
 include '../partials/footer.php';
 ?>
 <script>
-(function () {
-    "use strict";
+    (function() {
+        "use strict";
 
-    var modalEl = document.getElementById("sitioDetailModal");
-    var modalBody = document.getElementById("sitioDetailBody");
-    if (!modalEl || !modalBody) return;
-    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        var modalEl = document.getElementById("sitioDetailModal");
+        var modalBody = document.getElementById("sitioDetailBody");
+        if (!modalEl || !modalBody) return;
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
 
-    document.querySelectorAll('[data-action="ver-sitio"]').forEach(function (btn) {
-        btn.addEventListener("click", function () {
-            var estadoBadge = btn.dataset.estado === "Activo"
-                ? '<span class="badge-estado activo">Activo</span>'
-                : '<span class="badge-estado inactivo">' + btn.dataset.estado + "</span>";
+        document.querySelectorAll('[data-action="ver-sitio"]').forEach(function(btn) {
+            btn.addEventListener("click", function() {
+                var estadoBadge = btn.dataset.estado === "Activo" ?
+                    '<span class="badge-estado activo">Activo</span>' :
+                    '<span class="badge-estado inactivo">' + btn.dataset.estado + "</span>";
 
-            modalBody.innerHTML =
-                '<dl class="row mb-0">' +
-                '<dt class="col-5">ID Sitio</dt><dd class="col-7">' + btn.dataset.id + "</dd>" +
-                '<dt class="col-5">Nombre del sitio</dt><dd class="col-7">' + btn.dataset.nombre + "</dd>" +
-                '<dt class="col-5">Zoocriadero</dt><dd class="col-7">' + btn.dataset.zoocriadero + "</dd>" +
-                '<dt class="col-5">Tipo de depósito</dt><dd class="col-7">' + btn.dataset.tipo + "</dd>" +
-                '<dt class="col-5">Cantidad de tanques</dt><dd class="col-7">' + btn.dataset.tanques + "</dd>" +
-                '<dt class="col-5">Estado</dt><dd class="col-7">' + estadoBadge + "</dd>" +
-                '<dt class="col-5">Fecha de registro</dt><dd class="col-7">' + btn.dataset.fecha + "</dd>" +
-                "</dl>";
-            modal.show();
+                modalBody.innerHTML =
+                    '<dl class="row mb-0">' +
+                    '<dt class="col-5">ID Sitio</dt><dd class="col-7">' + btn.dataset.id + "</dd>" +
+                    '<dt class="col-5">Nombre del sitio</dt><dd class="col-7">' + btn.dataset.nombre + "</dd>" +
+                    '<dt class="col-5">Zoocriadero</dt><dd class="col-7">' + btn.dataset.zoocriadero + "</dd>" +
+                    '<dt class="col-5">Tipo de depósito</dt><dd class="col-7">' + btn.dataset.tipo + "</dd>" +
+                    '<dt class="col-5">Cantidad de tanques</dt><dd class="col-7">' + btn.dataset.tanques + "</dd>" +
+                    '<dt class="col-5">Estado</dt><dd class="col-7">' + estadoBadge + "</dd>" +
+                    '<dt class="col-5">Fecha de registro</dt><dd class="col-7">' + btn.dataset.fecha + "</dd>" +
+                    "</dl>";
+                modal.show();
+            });
         });
-    });
-})();
+    })();
 </script>
 </body>
 

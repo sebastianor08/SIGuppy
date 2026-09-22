@@ -1,6 +1,7 @@
 <?php
 
 include_once '../Model/RegistrarSitio/RegistrarSitioModel.php';
+include_once __DIR__ . '/../../lib/geocodificador.php';
 
 class RegistrarSitioController
 {
@@ -41,6 +42,23 @@ class RegistrarSitioController
         jsonResponse(['ok' => true, 'data' => $obj->comunasDeCiudad($id)]);
     }
 
+    public function buscar()
+    {
+        $obj = new RegistrarSitioModel();
+        $id = filter_var($_GET['id_sitio'] ?? null, FILTER_VALIDATE_INT);
+
+        if (!$id) {
+            jsonResponse(['ok' => false, 'message' => 'id_sitio es obligatorio.'], 422);
+        }
+
+        $sitio = $obj->buscar($id);
+        if (!$sitio) {
+            jsonResponse(['ok' => false, 'message' => 'El sitio no existe.'], 404);
+        }
+
+        jsonResponse(['ok' => true, 'data' => $sitio]);
+    }
+
     public function barrios()
     {
         $obj = new RegistrarSitioModel();
@@ -59,12 +77,20 @@ class RegistrarSitioController
         $body = requestJsonBody();
         $datos = $this->validar($body, $obj);
 
+        // Ubica la dirección en el mapa. Si no hay internet o no la encuentra, el
+        // sitio se registra igual, solo que sin coordenadas (no sale en el mapa).
+        $punto = $this->geocodificar($obj, $datos);
+
         try {
             $obj->beginTransaction();
 
             $idDireccion = $obj->crearDireccion($datos);
             if (!$idDireccion) {
                 throw new Exception('No se pudo registrar la dirección: ' . $obj->ultimoError());
+            }
+
+            if ($punto !== null) {
+                $obj->guardarCoordenadas($idDireccion, $punto['lat'], $punto['lng']);
             }
 
             $datos['id_direccion'] = $idDireccion;
@@ -106,11 +132,21 @@ class RegistrarSitioController
 
         $datos = $this->validar($body, $obj);
 
+        $cambioDireccion = $this->direccionCambio($actual, $datos);
+        $sinCoordenadas = ($actual['latitud'] === null || $actual['longitud'] === null);
+        $punto = ($cambioDireccion || $sinCoordenadas) ? $this->geocodificar($obj, $datos) : null;
+
         try {
             $obj->beginTransaction();
 
             if (!$obj->actualizarDireccion($actual['id_direccion'], $datos)) {
                 throw new Exception('No se pudo actualizar la dirección: ' . $obj->ultimoError());
+            }
+
+            if ($punto !== null) {
+                $obj->guardarCoordenadas($actual['id_direccion'], $punto['lat'], $punto['lng']);
+            } elseif ($cambioDireccion) {
+                $obj->guardarCoordenadas($actual['id_direccion'], null, null);
             }
 
             if (!$obj->actualizarSitio($idSitio, $datos)) {
@@ -128,6 +164,43 @@ class RegistrarSitioController
             'ok' => true,
             'message' => 'Sitio actualizado correctamente.'
         ]);
+    }
+
+    // Devuelve ['lat' => float, 'lng' => float] o null si no se pudo ubicar.
+    private function geocodificar($obj, $datos)
+    {
+        $nombres = $obj->nombresUbicacion($datos['id_barrio'], $datos['id_comuna']);
+
+        return geocodificarDireccion(
+            $datos['direccion'],
+            $nombres['barrio'] ?? null,
+            $nombres['comuna'] ?? null
+        );
+    }
+
+    // ¿La dirección del formulario es distinta a la guardada?
+    private function direccionCambio($actual, $datos)
+    {
+        return trim((string)$actual['direccion']) !== $datos['direccion']
+            || (int)$actual['id_barrio'] !== (int)$datos['id_barrio']
+            || (int)$actual['id_comuna'] !== (int)$datos['id_comuna']
+            || (int)$actual['id_ciudad'] !== (int)$datos['id_ciudad']
+            || (int)$actual['id_departamento'] !== (int)$datos['id_departamento'];
+    }
+
+    private function quitarNomenclaturaRepetida($numero, $nomenclatura)
+    {
+        $abreviaturas = [
+            'calle'       => 'calle|cll|cl|clle',
+            'carrera'     => 'carrera|cra|cr|kra|kr|carr|crr',
+            'avenida'     => 'avenida|av|avda|avd',
+            'diagonal'    => 'diagonal|dg|diag',
+            'transversal' => 'transversal|tv|tr|trans|transv',
+        ];
+        $clave = mb_strtolower(trim((string) $nomenclatura), 'UTF-8');
+        $patron = $abreviaturas[$clave] ?? preg_quote($clave, '/');
+
+        return trim(preg_replace('/^(?:(?:' . $patron . ')\.?\s+)+/iu', '', $numero));
     }
 
     private function validar($body, $obj)
@@ -179,6 +252,10 @@ class RegistrarSitioController
         $nomenclatura = $obj->nombreNomenclatura($idNomenclatura);
         if (!$nomenclatura) {
             jsonResponse(['ok' => false, 'message' => 'No se pudo obtener la nomenclatura.'], 422);
+        }
+        $numeroDireccion = $this->quitarNomenclaturaRepetida($numeroDireccion, $nomenclatura);
+        if ($numeroDireccion === '') {
+            jsonResponse(['ok' => false, 'message' => 'Escriba el número de la dirección (por ejemplo: 7 # 8-75).'], 422);
         }
 
         return [

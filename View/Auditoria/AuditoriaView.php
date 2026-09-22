@@ -1,4 +1,9 @@
 <?php
+// La sesión se exige ANTES de consultar la base de datos (antes se
+// validaba recién en head.php, con los datos ya consultados).
+$basePath = '../../';
+require_once __DIR__ . '/../../lib/requiere_sesion.php';
+
 require_once __DIR__ . '/../../Controller/Auditoria/AuditoriaController.php';
 
 $datos = obtenerDatosAuditoria();
@@ -9,9 +14,24 @@ $pageTitle = 'Auditoría';
 $bodyPage  = 'auditoria';
 
 $badgesOperacion = [
-    'INSERTAR'  => 'bg-success',
-    'ACTUALIZAR' => 'bg-primary',
-    'ELIMINAR'  => 'bg-danger',
+    'INSERT'         => 'bg-success',
+    'UPDATE'         => 'bg-primary',
+    'DELETE'         => 'bg-danger',
+    'HABILITAR'      => 'bg-success',
+    'INHABILITAR'    => 'bg-danger',
+    'LOGIN_EXITOSO'  => 'bg-info',
+    'LOGIN_FALLIDO'  => 'bg-warning',
+    'EXPORTAR'       => 'bg-secondary',
+];
+$etiquetasOperacion = [
+    'INSERT'         => 'Insertar',
+    'UPDATE'         => 'Actualizar',
+    'DELETE'         => 'Eliminar',
+    'HABILITAR'      => 'Habilitar',
+    'INHABILITAR'    => 'Inhabilitar',
+    'LOGIN_EXITOSO'  => 'Inicio de sesión',
+    'LOGIN_FALLIDO'  => 'Inicio fallido',
+    'EXPORTAR'       => 'Exportar',
 ];
 
 include '../partials/head.php';
@@ -31,17 +51,23 @@ include '../partials/head.php';
                     </div>
                 </div>
 
+                <?php if (!empty($errorRangoFechas)): ?>
+                    <div class="alert alert-warning">
+                        <?= htmlspecialchars($errorRangoFechas) ?> No se aplicó el filtro de fechas.
+                    </div>
+                <?php endif; ?>
+
                 <!-- Filtros -->
                 <div class="card card-round mb-4">
                     <div class="card-body">
                         <form method="GET" class="row g-3 align-items-end">
                             <div class="col-md-3">
-                                <label class="form-label">Tabla / módulo</label>
-                                <select name="tabla" class="form-select">
-                                    <option value="">Todas</option>
-                                    <?php foreach ($tablasDisponibles as $t): ?>
-                                        <option value="<?= htmlspecialchars($t['tabla_afectada']) ?>" <?= $filtros['tabla'] === $t['tabla_afectada'] ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($t['tabla_afectada']) ?>
+                                <label class="form-label">Módulo</label>
+                                <select name="id_modulo" class="form-select">
+                                    <option value="">Todos</option>
+                                    <?php foreach ($modulosDisponibles as $m): ?>
+                                        <option value="<?= htmlspecialchars($m['id_modulo']) ?>" <?= (string) $filtros['modulo'] === (string) $m['id_modulo'] ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($m['nombre']) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
@@ -50,9 +76,11 @@ include '../partials/head.php';
                                 <label class="form-label">Operación</label>
                                 <select name="operacion" class="form-select">
                                     <option value="">Todas</option>
-                                    <option value="INSERTAR" <?= $filtros['operacion'] === 'INSERTAR' ? 'selected' : '' ?>>Insertar</option>
-                                    <option value="ACTUALIZAR" <?= $filtros['operacion'] === 'ACTUALIZAR' ? 'selected' : '' ?>>Actualizar</option>
-                                    <option value="ELIMINAR" <?= $filtros['operacion'] === 'ELIMINAR' ? 'selected' : '' ?>>Eliminar</option>
+                                    <?php foreach ($etiquetasOperacion as $valor => $etiqueta): ?>
+                                        <option value="<?= htmlspecialchars($valor) ?>" <?= $filtros['operacion'] === $valor ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($etiqueta) ?>
+                                        </option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -84,7 +112,7 @@ include '../partials/head.php';
                     </div>
                 </div>
 
-                <!-- Pestañas: auditoría general vs. seguimiento de zoocriaderos -->
+                <!-- Pestañas: auditoría general, seguimiento de zoocriaderos y seguimiento de depósitos -->
                 <ul class="nav nav-tabs mb-3" id="auditoriaTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabGeneral" type="button" role="tab">
@@ -93,7 +121,12 @@ include '../partials/head.php';
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabSeguimiento" type="button" role="tab">
-                            Seguimiento de Zoocriaderos
+                            Seguimiento de Zoocriadero
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabDeposito" type="button" role="tab">
+                            Seguimiento de Depósito
                         </button>
                     </li>
                 </ul>
@@ -109,7 +142,7 @@ include '../partials/head.php';
                                             <tr>
                                                 <th>Fecha y hora</th>
                                                 <th>Usuario</th>
-                                                <th>Tabla / módulo</th>
+                                                <th>Módulo</th>
                                                 <th>Operación</th>
                                                 <th>Detalle</th>
                                             </tr>
@@ -124,10 +157,10 @@ include '../partials/head.php';
                                                 <tr>
                                                     <td><?= htmlspecialchars($mov['fecha_hora']) ?></td>
                                                     <td><?= htmlspecialchars($mov['usuario_responsable']) ?></td>
-                                                    <td><?= htmlspecialchars($mov['tabla_afectada']) ?></td>
+                                                    <td><?= htmlspecialchars(AuditoriaModel::etiquetaModulo($mov['modulo'], $mov['ambito'] ?? null)) ?></td>
                                                     <td>
-                                                        <span class="badge <?= $badgesOperacion[$mov['operacion']] ?? 'bg-secondary' ?>">
-                                                            <?= htmlspecialchars($mov['operacion']) ?>
+                                                        <span class="badge <?= $badgesOperacion[$mov['accion']] ?? 'bg-secondary' ?>">
+                                                            <?= htmlspecialchars($etiquetasOperacion[$mov['accion']] ?? $mov['accion']) ?>
                                                         </span>
                                                     </td>
                                                     <td><?= htmlspecialchars($mov['detalle']) ?></td>
@@ -136,7 +169,7 @@ include '../partials/head.php';
                                         </tbody>
                                     </table>
                                 </div>
-                                <p class="small text-muted mt-3 mb-0">Se muestran hasta 300 movimientos más recientes de actividad, tipo de depósito, sitio y actividades de terreno.</p>
+                                <p class="small text-muted mt-3 mb-0">Se muestran hasta 300 movimientos más recientes de todos los módulos.</p>
                             </div>
                         </div>
                     </div>
@@ -168,8 +201,8 @@ include '../partials/head.php';
                                                     <td><?= htmlspecialchars($mov['usuario_responsable']) ?></td>
                                                     <td>#<?= htmlspecialchars($mov['id_seguimiento']) ?></td>
                                                     <td>
-                                                        <span class="badge <?= $badgesOperacion[$mov['operacion']] ?? 'bg-secondary' ?>">
-                                                            <?= htmlspecialchars($mov['operacion']) ?>
+                                                        <span class="badge <?= $badgesOperacion[$mov['accion']] ?? 'bg-secondary' ?>">
+                                                            <?= htmlspecialchars($etiquetasOperacion[$mov['accion']] ?? $mov['accion']) ?>
                                                         </span>
                                                     </td>
                                                     <td><?= htmlspecialchars($mov['detalle']) ?></td>
@@ -179,6 +212,48 @@ include '../partials/head.php';
                                     </table>
                                 </div>
                                 <p class="small text-muted mt-3 mb-0">Se muestran hasta 300 movimientos más recientes de seguimiento de zoocriaderos.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Auditoría de seguimiento de depósitos -->
+                    <div class="tab-pane fade" id="tabDeposito" role="tabpanel">
+                        <div class="card card-round">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table align-items-center mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Fecha y hora</th>
+                                                <th>Usuario</th>
+                                                <th>Seguimiento</th>
+                                                <th>Operación</th>
+                                                <th>Detalle</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php if (count($movimientosDeposito) === 0): ?>
+                                                <tr class="sig-empty-row">
+                                                    <td colspan="5">No hay movimientos con esos filtros</td>
+                                                </tr>
+                                            <?php endif; ?>
+                                            <?php foreach ($movimientosDeposito as $mov): ?>
+                                                <tr>
+                                                    <td><?= htmlspecialchars($mov['fecha_hora']) ?></td>
+                                                    <td><?= htmlspecialchars($mov['usuario_responsable']) ?></td>
+                                                    <td>#<?= htmlspecialchars($mov['id_seguimiento']) ?></td>
+                                                    <td>
+                                                        <span class="badge <?= $badgesOperacion[$mov['accion']] ?? 'bg-secondary' ?>">
+                                                            <?= htmlspecialchars($etiquetasOperacion[$mov['accion']] ?? $mov['accion']) ?>
+                                                        </span>
+                                                    </td>
+                                                    <td><?= htmlspecialchars($mov['detalle']) ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p class="small text-muted mt-3 mb-0">Se muestran hasta 300 movimientos más recientes de seguimiento de depósitos.</p>
                             </div>
                         </div>
                     </div>
@@ -193,6 +268,26 @@ include '../partials/head.php';
 $pageScripts = [];
 include '../partials/footer.php';
 ?>
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+    var clave  = 'sigAuditoriaTab';
+    var tabs   = document.querySelectorAll('#auditoriaTabs [data-bs-target]');
+
+    tabs.forEach(function (btn) {
+        btn.addEventListener('shown.bs.tab', function () {
+            try { sessionStorage.setItem(clave, btn.getAttribute('data-bs-target')); } catch (e) {}
+        });
+    });
+
+    var guardada = null;
+    try { guardada = sessionStorage.getItem(clave); } catch (e) {}
+    if (guardada) {
+        var btn = document.querySelector('#auditoriaTabs [data-bs-target="' + guardada + '"]');
+        if (btn && !btn.classList.contains('active')) { btn.click(); }
+    }
+});
+</script>
 </body>
 
 </html>

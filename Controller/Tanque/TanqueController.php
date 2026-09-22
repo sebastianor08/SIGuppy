@@ -1,15 +1,6 @@
 <?php
 
 include_once '../Model/Tanque/TanqueModel.php';
-
-// ============================================================
-// Controlador del módulo Tanques. Responde solo JSON, así que
-// se llama siempre por Web/ajax.php:
-//   Web/ajax.php?modulo=Tanque&controlador=Tanque&funcion=lista
-//
-// La creación de tanques sigue viviendo en ZoocriaderoController
-// (postTanque); aquí solo se listan, editan y cambian de estado.
-// ============================================================
 class TanqueController
 {
 
@@ -35,8 +26,32 @@ class TanqueController
 
     // ---------- Escrituras ----------
 
+    public function postCreate()
+    {
+        sigExigirPermiso('Tanque Zoocriadero', 'crear');
+        $obj = new TanqueModel();
+        $body = requestJsonBody();
+
+        // $idExcluir = null: al crear, cualquier tanque con el mismo número
+        // en ese zoocriadero cuenta como choque (a diferencia de editar,
+        // donde el propio tanque no debe chocar consigo mismo).
+        $datos = $this->validarTanque($body, $obj, null);
+
+        $id = $obj->crear($datos);
+        if ($id === null) {
+            jsonResponse(['ok' => false, 'message' => 'No se pudo registrar el tanque: ' . $obj->ultimoError()], 500);
+        }
+
+        jsonResponse([
+            'ok' => true,
+            'message' => 'Tanque registrado correctamente.',
+            'id_tanque' => (int) $id,
+        ], 201);
+    }
+
     public function postUpdate()
     {
+        sigExigirPermiso('Tanque Zoocriadero', 'editar');
         $obj = new TanqueModel();
         $body = requestJsonBody();
 
@@ -59,6 +74,7 @@ class TanqueController
 
     public function postEstado()
     {
+        sigExigirPermiso('Tanque Zoocriadero', 'inhabilitar');
         $obj = new TanqueModel();
         $body = requestJsonBody();
 
@@ -89,7 +105,7 @@ class TanqueController
     {
         $idZoo  = filter_var($body['id_zoocriadero'] ?? null, FILTER_VALIDATE_INT);
         $idTipo = filter_var($body['id_tipo_tanque'] ?? null, FILTER_VALIDATE_INT);
-        $numero = filter_var($body['numero_tanque'] ?? null, FILTER_VALIDATE_INT);
+        $nombre = trim((string) ($body['nombre_tanque'] ?? ''));
 
         if (!$idZoo || !$obj->zoocriaderoExiste($idZoo)) {
             jsonResponse(['ok' => false, 'message' => 'Debe seleccionar un zoocriadero válido.'], 422);
@@ -97,17 +113,20 @@ class TanqueController
         if (!$idTipo || !$obj->tipoTanqueExiste($idTipo)) {
             jsonResponse(['ok' => false, 'message' => 'Debe seleccionar un tipo de tanque válido.'], 422);
         }
-        if (!$numero || $numero <= 0) {
-            jsonResponse(['ok' => false, 'message' => 'El número de tanque debe ser un entero mayor que cero.'], 422);
+        if ($nombre === '' || mb_strlen($nombre) < 2) {
+            jsonResponse(['ok' => false, 'message' => 'El nombre del tanque debe tener al menos 2 caracteres.'], 422);
         }
-        if ($obj->existeNumeroTanque($idZoo, $numero, $idExcluir)) {
-            jsonResponse(['ok' => false, 'message' => "Ese zoocriadero ya tiene un tanque número $numero."], 422);
+        if (mb_strlen($nombre) > 60) {
+            jsonResponse(['ok' => false, 'message' => 'El nombre del tanque no puede superar 60 caracteres.'], 422);
+        }
+        if ($obj->existeNombreTanque($idZoo, $nombre, $idExcluir)) {
+            jsonResponse(['ok' => false, 'message' => "Ese zoocriadero ya tiene un tanque llamado \"$nombre\"."], 422);
         }
 
         return [
             'id_zoocriadero' => $idZoo,
             'id_tipo_tanque' => $idTipo,
-            'numero_tanque'  => $numero,
+            'nombre_tanque'  => $nombre,
         ];
     }
 }

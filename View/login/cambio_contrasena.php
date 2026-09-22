@@ -1,8 +1,28 @@
 <?php
 session_start();
-// Protección: Si no validó el código previamente, redirigir
-if (!isset($_SESSION['id_recuperar'])) {
-    header("Location: recuperar.php");
+require_once __DIR__ . '/../../Model/MasterModel.php';
+
+// El enlace del correo trae ?token=...; se valida aquí (existencia y
+// vigencia) en vez de depender de una sesión previa de "código validado".
+$token = trim($_GET['token'] ?? $_POST['token'] ?? '');
+$tokenValido = false;
+
+if ($token !== '') {
+    try {
+        $masterModel = new MasterModel();
+        $usuarioToken = $masterModel->selectOne(
+            "SELECT id_usuario FROM usuario WHERE token_recuperacion = $1 AND token_expira > NOW()",
+            [$token]
+        );
+        $tokenValido = $usuarioToken !== null;
+    } catch (Throwable $e) {
+        error_log("Error validando token de recuperación: " . $e->getMessage());
+        $tokenValido = false;
+    }
+}
+
+if (!$tokenValido) {
+    header("Location: recuperar.php?status=token_invalido");
     exit();
 }
 ?>
@@ -23,7 +43,7 @@ if (!isset($_SESSION['id_recuperar'])) {
     <div class="login-card">
         <!-- Header Logos Grandes -->
         <div class="top-header">
-            <img src="../../Web/assets/img/logo-secretaria-salud.png" class="logo-secretaria" alt="Secretaría de Salud">
+            <img src="../../Web/assets/img/logo-secretaria-salud-transparente.png" class="logo-secretaria" alt="Secretaría de Salud">
         </div>
 
 
@@ -39,13 +59,22 @@ if (!isset($_SESSION['id_recuperar'])) {
             <div class="alert alert-danger py-2 small text-center mb-3">
                 Las contraseñas no coinciden. Inténtalo de nuevo.
             </div>
+        <?php elseif (isset($_GET['error']) && $_GET['error'] == 'requisitos'): ?>
+            <div class="alert alert-danger py-2 small text-center mb-3">
+                <?php echo htmlspecialchars($_GET['mensaje'] ?? 'La contraseña no cumple los requisitos de seguridad.'); ?>
+            </div>
+        <?php elseif (isset($_GET['error']) && $_GET['error'] == 'sistema'): ?>
+            <div class="alert alert-danger py-2 small text-center mb-3">
+                No fue posible actualizar tu contraseña en este momento. Intenta de nuevo en unos minutos; si el problema persiste, contacta al Administrador.
+            </div>
         <?php endif; ?>
 
         <!-- Formulario -->
         <form action="../../Controller/login/cambio_contrasena_process.php" method="POST">
+            <input type="hidden" name="token" value="<?php echo htmlspecialchars($token, ENT_QUOTES, 'UTF-8'); ?>">
             
             <div class="form-group mb-3 px-0">
-                <label for="nueva_contrasena" class="form-label fw-bold small text-secondary">Ingrese la nueva contraseña</label>
+                <label for="nueva_contrasena" class="form-label fw-bold small text-secondary">Ingrese la nueva contraseña <span class="text-danger">*</span></label>
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock text-muted"></i></span>
                     <input type="password" class="form-control border-start-0 bg-light" id="nueva_contrasena" name="nueva_contrasena" required minlength="8">
@@ -56,7 +85,7 @@ if (!isset($_SESSION['id_recuperar'])) {
             </div>
 
             <div class="form-group mb-4 px-0">
-                <label for="confirmar_contrasena" class="form-label fw-bold small text-secondary">Confirme nuevamente la contraseña</label>
+                <label for="confirmar_contrasena" class="form-label fw-bold small text-secondary">Confirme nuevamente la contraseña <span class="text-danger">*</span></label>
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock text-muted"></i></span>
                     <input type="password" class="form-control border-start-0 bg-light" id="confirmar_contrasena" name="confirmar_contrasena" required minlength="8">

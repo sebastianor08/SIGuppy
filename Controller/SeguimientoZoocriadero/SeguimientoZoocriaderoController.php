@@ -40,6 +40,7 @@ class SeguimientoZoocriaderoController
 
     public function postCreate()
     {
+        sigExigirPermiso('Seguimiento de Zoocriadero', 'crear');
         $obj  = new SeguimientoZoocriaderoModel();
         $body = requestJsonBody();
         $datos = $this->validar($body, $obj);
@@ -55,7 +56,7 @@ class SeguimientoZoocriaderoController
         try {
             $obj->beginTransaction();
             $idSeguimiento = $obj->crearSeguimiento($datos);      // INSERT
-            $obj->vincularActividad($idSeguimiento, $datos['id_actividad']);
+            $obj->vincularActividades($idSeguimiento, $datos['id_actividades']);
             $obj->commit();
         } catch (Throwable $e) {
             $obj->rollBack();
@@ -73,6 +74,7 @@ class SeguimientoZoocriaderoController
     // Edición: mismo formulario, pero hace UPDATE en vez de INSERT.
     public function postUpdate()
     {
+        sigExigirPermiso('Seguimiento de Zoocriadero', 'editar');
         $obj  = new SeguimientoZoocriaderoModel();
         $body = requestJsonBody();
 
@@ -89,7 +91,7 @@ class SeguimientoZoocriaderoController
         try {
             $obj->beginTransaction();
             $obj->actualizarSeguimiento($idSeguimiento, $datos);   // UPDATE
-            $obj->reemplazarActividad($idSeguimiento, $datos['id_actividad']);
+            $obj->reemplazarActividades($idSeguimiento, $datos['id_actividades']);
             $obj->commit();
         } catch (Throwable $e) {
             $obj->rollBack();
@@ -104,12 +106,85 @@ class SeguimientoZoocriaderoController
         ]);
     }
 
+    // Descartar / restaurar UN seguimiento (no existía esta acción en este
+    // módulo; el de Depósito ya la tenía).
+    public function postEstado()
+    {
+        sigExigirPermiso('Seguimiento de Zoocriadero', 'inhabilitar');
+        $obj = new SeguimientoZoocriaderoModel();
+        $body = requestJsonBody();
+
+        $id = filter_var($body['id_seguimiento'] ?? null, FILTER_VALIDATE_INT);
+        $estado = filter_var($body['estado'] ?? null, FILTER_VALIDATE_INT);
+
+        if (!$id || ($estado !== 0 && $estado !== 1)) {
+            jsonResponse(['ok' => false, 'message' => 'Datos incompletos para cambiar el estado.'], 422);
+        }
+        if (!$obj->existeSeguimiento($id)) {
+            jsonResponse(['ok' => false, 'message' => 'El seguimiento no existe.'], 404);
+        }
+        if (!$obj->cambiarEstado($id, $estado)) {
+            jsonResponse(['ok' => false, 'message' => 'No se pudo cambiar el estado: ' . $obj->ultimoError()], 500);
+        }
+
+        jsonResponse([
+            'ok' => true,
+            'message' => $estado === 1 ? 'Seguimiento restaurado.' : 'Seguimiento descartado.',
+        ]);
+    }
+
+    // Descartar / restaurar VARIOS seguimientos seleccionados en la tabla
+    // de una sola vez, en vez de repetir la acción uno por uno.
+    public function postEstadoMasivo()
+    {
+        sigExigirPermiso('Seguimiento de Zoocriadero', 'inhabilitar');
+        $obj = new SeguimientoZoocriaderoModel();
+        $body = requestJsonBody();
+
+        $ids = $body['ids'] ?? [];
+        $estado = filter_var($body['estado'] ?? null, FILTER_VALIDATE_INT);
+
+        if (!is_array($ids) || empty($ids) || ($estado !== 0 && $estado !== 1)) {
+            jsonResponse(['ok' => false, 'message' => 'Debe seleccionar al menos un seguimiento y un estado válido.'], 422);
+        }
+
+        $idsValidos = array_values(array_filter(array_map(function ($v) {
+            return filter_var($v, FILTER_VALIDATE_INT);
+        }, $ids)));
+
+        if (empty($idsValidos)) {
+            jsonResponse(['ok' => false, 'message' => 'La selección no es válida.'], 422);
+        }
+
+        $resultado = $obj->cambiarEstadoMasivo($idsValidos, $estado);
+        if ($resultado === false) {
+            jsonResponse(['ok' => false, 'message' => 'No se pudo actualizar la selección: ' . $obj->ultimoError()], 500);
+        }
+
+        jsonResponse([
+            'ok' => true,
+            'message' => ($estado === 1 ? 'Se restauraron ' : 'Se descartaron ') . $resultado . ' seguimiento(s).',
+            'total' => $resultado,
+        ]);
+    }
+
     // ---------- Validación compartida por postCreate y postUpdate ----------
     private function validar($body, $obj)
     {
         $idZoo           = filter_var($body['id_zoocriadero'] ?? null, FILTER_VALIDATE_INT);
         $idTanque        = filter_var($body['id_tanque'] ?? null, FILTER_VALIDATE_INT);
-        $idActividad     = filter_var($body['id_actividad'] ?? null, FILTER_VALIDATE_INT);
+
+        // Ahora se puede marcar más de una acción por seguimiento.
+        $idActividadesRaw = $body['id_actividades'] ?? [];
+        if (!is_array($idActividadesRaw)) {
+            $idActividadesRaw = [];
+        }
+        $idActividades = array_values(array_unique(array_filter(array_map(function ($v) {
+            return filter_var($v, FILTER_VALIDATE_INT);
+        }, $idActividadesRaw), function ($v) {
+            return $v !== false;
+        })));
+
         $nacidosHembra   = filter_var($body['numero_nacidos_hembra'] ?? 0, FILTER_VALIDATE_INT);
         $nacidosMacho    = filter_var($body['numero_nacidos_macho'] ?? 0, FILTER_VALIDATE_INT);
         $muertosHembra   = filter_var($body['numero_muertos_hembra'] ?? 0, FILTER_VALIDATE_INT);
@@ -126,8 +201,8 @@ class SeguimientoZoocriaderoController
         if (!$idTanque) {
             jsonResponse(['ok' => false, 'message' => 'Debe seleccionar un tanque.'], 422);
         }
-        if (!$idActividad) {
-            jsonResponse(['ok' => false, 'message' => 'Debe seleccionar una acción.'], 422);
+        if (empty($idActividades)) {
+            jsonResponse(['ok' => false, 'message' => 'Debe seleccionar al menos una acción.'], 422);
         }
         if (
             $nacidosHembra === false || $nacidosHembra < 0 ||
@@ -182,14 +257,16 @@ class SeguimientoZoocriaderoController
             }
             jsonResponse(['ok' => false, 'message' => 'El tanque seleccionado no pertenece al zoocriadero elegido.'], 422);
         }
-        if (!$obj->accionValida($idActividad)) {
-            jsonResponse(['ok' => false, 'message' => 'La acción seleccionada no es válida.'], 422);
+        foreach ($idActividades as $idActividad) {
+            if (!$obj->accionValida($idActividad)) {
+                jsonResponse(['ok' => false, 'message' => 'Una de las acciones seleccionadas no es válida.'], 422);
+            }
         }
 
         return [
             'id_zoocriadero'        => $idZoo,
             'id_tanque'              => $idTanque,
-            'id_actividad'           => $idActividad,
+            'id_actividades'         => $idActividades,
             'fecha'                  => $fecha,
             'ph'                     => $ph,
             'temperatura'            => $temperatura,

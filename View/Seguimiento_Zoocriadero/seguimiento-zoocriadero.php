@@ -1,3 +1,8 @@
+<?php
+    $basePath = '../../';
+    require_once __DIR__ . '/../../lib/requiere_sesion.php';
+    $moduloPermisos = 'Seguimiento de Zoocriadero';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -41,21 +46,21 @@
           <input type="hidden" id="id_seguimiento" name="id_seguimiento" value="" />
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label" for="id_zoocriadero">Zoocriadero</label>
+              <label class="form-label" for="id_zoocriadero">Zoocriadero <span class="text-danger"> *</span></label>
               <select class="form-select" id="id_zoocriadero" name="id_zoocriadero" required><option value="">Seleccione un zoocriadero</option></select>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="id_tanque">Tanque</label>
+              <label class="form-label" for="id_tanque">Tanque <span class="text-danger"> *</span></label>
               <select class="form-select" id="id_tanque" name="id_tanque" disabled required><option value="">Seleccione primero un zoocriadero</option></select>
             </div>
 
             <div class="col-md-6">
-              <label class="form-label" for="direccion">Dirección</label>
+              <label class="form-label" for="direccion">Dirección<span class="text-danger"> *</span></label>
               <input type="text" class="form-control" id="direccion" readonly placeholder="Se cargará desde el zoocriadero" />
               <div class="form-text">La dirección pertenece al zoocriadero y no se puede modificar en este registro.</div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="fecha">Fecha</label>
+              <label class="form-label" for="fecha">Fecha<span class="text-danger"> *</span></label>
               <input type="date" class="form-control" id="fecha" name="fecha" required />
             </div>
 
@@ -91,13 +96,18 @@
               <span class="form-label d-block">Total nacidos / muertos</span>
               <span class="form-control-plaintext fw-bold" id="totalNacidosMuertos">0 / 0</span>
             </div>
-            <div class="col-md-4">
-              <label class="form-label" for="id_actividad">Acción</label>
-              <select class="form-select" id="id_actividad" name="id_actividad" required><option value="">Seleccione la acción</option></select>
+            <div class="col-md-8">
+              <label class="form-label" for="id_actividad_picker">Acción<span class="text-danger"> *</span></label>
+              <div class="input-group">
+                <select class="form-select" id="id_actividad_picker"><option value="">Seleccione una acción para agregarla</option></select>
+                <button class="btn btn-outline-primary" type="button" id="btnAgregarAccion"><i class="fas fa-plus me-1"></i>Agregar</button>
+              </div>
+              <div class="d-flex flex-wrap gap-2 mt-2" id="accionesSeleccionadasContainer"></div>
+              <div class="form-text">Puedes elegir varias acciones; usa la ✕ de cada una para quitarla.</div>
             </div>
 
             <div class="col-12">
-              <label class="form-label" for="observaciones">Observaciones</label>
+              <label class="form-label" for="observaciones">Observaciones  (Opcional)</label>
               <textarea class="form-control" id="observaciones" name="observaciones" rows="4" maxlength="300" placeholder="Escribe aquí las observaciones..."></textarea>
               <div class="form-text text-end"><span id="observacionesCount">0</span>/300</div>
             </div>
@@ -121,23 +131,20 @@
             </div>
             <div class="card-body">
               <div class="table-responsive">
-                <table class="table align-items-center mb-0">
+                <table class="table align-items-center mb-0 sig-followup-table">
                   <thead class="table-light">
                     <tr>
                       <th>Fecha</th>
                       <th>Zoocriadero</th>
                       <th class="text-center">Tanque</th>
                       <th>Acción</th>
-                      <th class="text-center">Sembrados</th>
-                      <th class="text-center">Nacidos</th>
-                      <th class="text-center">Muertos</th>
-                      <th class="text-center">pH</th>
-                      <th class="text-center">T °C</th>
+                      <th>Responsable</th>
+                      <th class="text-center">Estado</th>
                       <th class="text-center">Acciones</th>
                     </tr>
                   </thead>
                   <tbody id="historialBody">
-                    <tr><td colspan="10" class="text-center text-muted py-4">Cargando...</td></tr>
+                    <tr><td colspan="7" class="text-center text-muted py-4">Cargando...</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -167,113 +174,5 @@
     include '../partials/footer.php';
 ?>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  // La fecha del seguimiento debe ser siempre la de hoy (el backend
-  // también lo valida): se fija el valor y se bloquea min/max.
-  const inputFecha = document.getElementById('fecha');
-  if (inputFecha) {
-    const hoy = new Date();
-    const year = hoy.getFullYear();
-    const month = String(hoy.getMonth() + 1).padStart(2, '0');
-    const day = String(hoy.getDate()).padStart(2, '0');
-    const fechaActual = `${year}-${month}-${day}`;
-
-    inputFecha.value = fechaActual;
-    inputFecha.min = fechaActual;
-    inputFecha.max = fechaActual;
-  }
-
-  // 1. Apuntar exactamente al select por su ID en tu HTML
-  const selectAccion = document.getElementById('id_actividad');
-  const inputPh = document.getElementById('ph');
-  const inputTemp = document.getElementById('temperatura');
-  const inputSembrados = document.getElementById('numero_sembrados');
-  const labelPh = document.querySelector('label[for="ph"]');
-  const labelTemp = document.querySelector('label[for="temperatura"]');
-  const labelSembrados = document.querySelector('label[for="numero_sembrados"]');
-
-  // Acciones que exigen medir pH
-  const accionesPH = [
-    'Aplicar tratamiento',
-    'Cambiar agua',
-    'Cosechar peces',
-    'Equilibrar pH',
-    'Limpiar filtro',
-    'Limpiar tanque',
-    'Retirar peces muertos'
-  ];
-
-  // Acciones que exigen medir Temperatura
-  const accionesTemperatura = [
-    'Cambiar agua',
-    'Medir temperatura'
-  ];
-
-  // Acciones que exigen registrar peces sembrados
-  const accionesSembrados = [
-    'Sembrar alevinos'
-  ];
-
-  function gestionarReglasNegocio() {
-    if (!selectAccion) return;
-
-    // Obtener el texto visible de la opción seleccionada
-    const accionSeleccionada = selectAccion.options[selectAccion.selectedIndex]?.text.trim();
-
-    // Evaluar campo pH
-    const requierePh = accionesPH.includes(accionSeleccionada);
-    aplicarEstadoCampo(inputPh, labelPh, requierePh);
-
-    //Evaluar campo Temperatura
-    const requiereTemp = accionesTemperatura.includes(accionSeleccionada);
-    aplicarEstadoCampo(inputTemp, labelTemp, requiereTemp);
-
-    //Evaluar campo Peces sembrados: solo tiene sentido si la acción es "Sembrar alevinos"
-    const requiereSembrados = accionesSembrados.includes(accionSeleccionada);
-    aplicarEstadoCampo(inputSembrados, labelSembrados, requiereSembrados, '0');
-  }
-
-  function aplicarEstadoCampo(input, label, esObligatorio, valorInactivo = '') {
-    if (!input) return;
-
-    if (esObligatorio) {
-      input.disabled = false;
-      input.required = true;
-      actualizarAsterisco(label, true);
-    } else {
-      input.value = valorInactivo; // Limpia (u opcionalmente resetea) el valor previo
-      input.disabled = true;   // Bloquea el campo si la acción no lo requiere
-      input.required = false;
-      actualizarAsterisco(label, false);
-    }
-  }
-
-  function actualizarAsterisco(label, mostrar) {
-    if (!label) return;
-    let span = label.querySelector('.asterisco-req');
-
-    if (mostrar) {
-      if (!span) {
-        span = document.createElement('span');
-        span.className = 'asterisco-req text-danger ms-1';
-        span.textContent = '*';
-        label.appendChild(span);
-      }
-    } else {
-      if (span) span.remove();
-    }
-  }
-
-  // Escuchar evento de cambio en la lista de acciones
-  if (selectAccion) {
-    selectAccion.addEventListener('change', gestionarReglasNegocio);
-  }
-
-
-  gestionarReglasNegocio();
-  window.sigRecalcularReglasSeguimiento = gestionarReglasNegocio;
-});
-</script>
 </body>
 </html>

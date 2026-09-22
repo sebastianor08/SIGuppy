@@ -2,9 +2,8 @@
 
 function obtenerDatosSitiosPorDeposito()
 {
-    // ---------------------------------------------------------
-    // 1. NOS CONECTAMOS A LA BASE DE DATOS
-    // ---------------------------------------------------------
+    
+    // AQUI CONECTAMOS A LA BASE DE DATOS
     require __DIR__ . '/../../lib/conf/conf.php';
 
 $conexion = pg_connect("host=$host port=$port dbname=$database user=$user password=$password");
@@ -13,12 +12,7 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
         die("No se pudo conectar a la base de datos");
     }
 
-    // ---------------------------------------------------------
-    // 2. TRAEMOS LOS SITIOS CON SU TIPO DE DEPÓSITO
-    // ---------------------------------------------------------
-    // OJO con dos nombres que se dejaron igual para no cambiar la vista:
-    //   'zoocriadero' -> en realidad guarda el BARRIO del sitio
-    //   'tanques'     -> en realidad guarda cuántas VISITAS tiene el sitio
+    // TRAEMOS LOS SITIOS CON SU TIPO DE DEPÓSITO
     $sql = "SELECT 'ST-' || LPAD(s.id_sitio::text, 3, '0') AS id,
                 d.direccion AS nombre,
                 b.nombre AS zoocriadero,
@@ -40,9 +34,7 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
         die("Error en la consulta: " . pg_last_error($conexion));
     }
 
-    // ---------------------------------------------------------
-    // 3. GUARDAMOS CADA FILA DENTRO DEL ARREGLO $sitios
-    // ---------------------------------------------------------
+    //  GUARDAMOS CADA FILA DENTRO DEL ARREGLO $sitios
     $sitios = [];
     while ($fila = pg_fetch_assoc($resultado)) {
         $fila['tanques'] = (int) $fila['tanques'];
@@ -56,6 +48,13 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
     $filtroTipo = $_GET['tipo_deposito'] ?? '';
     $filtroFechaInicio = $_GET['fecha_inicio'] ?? '';
     $filtroFechaFin = $_GET['fecha_fin'] ?? '';
+
+    require_once __DIR__ . '/../../lib/validaciones.php';
+    $errorRangoFechas = validarRangoFechas($filtroFechaInicio, $filtroFechaFin, 'Fecha inicio', 'Fecha fin');
+    if ($errorRangoFechas !== null) {
+        $filtroFechaInicio = '';
+        $filtroFechaFin    = '';
+    }
 
     $listaZoocriaderos = array_unique(array_column($sitios, 'zoocriadero'));
 
@@ -162,6 +161,7 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
         'filtroTipo' => $filtroTipo,
         'filtroFechaInicio' => $filtroFechaInicio,
         'filtroFechaFin' => $filtroFechaFin,
+        'errorRangoFechas' => $errorRangoFechas,
         'totalSitios' => $totalSitios,
         'totalConDeposito' => $totalConDeposito,
         'totalSinDeposito' => $totalSinDeposito,

@@ -1,4 +1,3 @@
-
 (function () {
   "use strict";
 
@@ -7,14 +6,8 @@
   var AJAX_URL = "../../Web/ajax.php";
   var MODULO = "modulo=Zoocriadero&controlador=Zoocriadero";
 
-  var PERMISOS = {
-    auxiliar: { crear: false, editar: false, inhabilitar: false },
-    coordinador: { crear: true, editar: true, inhabilitar: true },
-  };
-
   var data = [];       
   var comunas = [];    
-  var tiposTanque = [];
   var state = { q: "", estado: "todos" };
 
   function escapeHtml(str) {
@@ -30,20 +23,15 @@
     return d.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
   }
 
-function role() {
-    return (window.SIGuppys && window.SIGuppys.getRole()) || "auxiliar";
-}
-function permisos() {
-    // Por ahora, todos los roles ven habilitado crear/editar/inhabilitar
-    // (sin filtrar por rol todavía).
-    return { crear: true, editar: true, inhabilitar: true };
-}
-  function roleLabel() {
-    var roles = window.SIGuppys && window.SIGuppys.ROLES;
-    return (roles && roles[role()] && roles[role()].label) || role();
+  // Permisos reales del rol de la sesión sobre este módulo (ver
+  // lib/permisos.php / View/partials/footer.php), en vez del selector de
+  // rol de mentira (auxiliar/coordinador en localStorage).
+  var PERMISOS_VACIOS = { ver: false, consultar: false, crear: false, editar: false, inhabilitar: false, exportar: false };
+  function permisos() {
+    return window.SIG_PERMISOS || PERMISOS_VACIOS;
   }
   function lockedTitle(accion) {
-    return "Tu rol (" + roleLabel() + ") no tiene permiso para " + accion + ".";
+    return "No tienes permiso para " + accion + ".";
   }
 
   function showMessage(text, type) {
@@ -137,27 +125,6 @@ function permisos() {
     barrioSelect.disabled = barrios.length === 0;
   }
 
-  function fillTiposTanqueSelect(selectEl) {
-    selectEl.innerHTML =
-      '<option value="">Seleccione el tipo</option>' +
-      tiposTanque
-        .map(function (t) {
-          return '<option value="' + t.id_tipo_tanque + '">' + escapeHtml(t.nombre) + "</option>";
-        })
-        .join("");
-  }
-
-  function fillZoocriaderosSelect(selectEl) {
-    var activos = data.filter(function (z) { return z.estado === 1; });
-    selectEl.innerHTML =
-      '<option value="">Seleccione un zoocriadero</option>' +
-      activos
-        .map(function (z) {
-          return '<option value="' + z.id + '">' + escapeHtml(z.nombre) + "</option>";
-        })
-        .join("");
-  }
-
   // ---------- Render ----------
   function renderAcciones(z) {
     var p = permisos();
@@ -225,7 +192,6 @@ function permisos() {
       tbody.innerHTML = rows.map(renderRow).join("");
     }
     renderRegistrarBtn();
-    renderRegistrarTanqueBtn();
     var countEl = document.getElementById("zoocriaderosCount");
     if (countEl) countEl.textContent = rows.length + " de " + data.length + " zoocriaderos";
   }
@@ -245,21 +211,6 @@ function permisos() {
     }
   }
 
-  function renderRegistrarTanqueBtn() {
-    var wrap = document.getElementById("registrarTanqueWrap");
-    if (!wrap) return;
-    if (permisos().crear) {
-      wrap.innerHTML =
-        '<button type="button" class="btn btn-outline-primary btn-round" data-bs-toggle="modal" data-bs-target="#tanqueModal" id="btnAbrirRegistrarTanque">' +
-        '<i class="fas fa-vial me-1"></i> Registrar Tanque</button>';
-    } else {
-      wrap.innerHTML =
-        '<button type="button" class="btn btn-round btn-locked" disabled title="' +
-        escapeHtml(lockedTitle("registrar tanques")) + '">' +
-        '<i class="fas fa-lock me-1"></i> Registrar Tanque</button>';
-    }
-  }
-
   // ---------- Modal Registrar / Editar ----------
   var modalEl = document.getElementById("zoocriaderoModal");
   var form = document.getElementById("zoocriaderoForm");
@@ -267,6 +218,10 @@ function permisos() {
   function openCreateModal() {
     form.reset();
     form.elements["id"].value = "";
+    // form.reset() no limpia los <input type="hidden">: sin esto, un registro
+    // nuevo heredaría las coordenadas del último zoocriadero editado.
+    form.elements["latitud"].value = "";
+    form.elements["longitud"].value = "";
     document.getElementById("zoocriaderoModalLabel").textContent = "Registrar Zoocriadero";
     document.getElementById("zoocriaderoSubmitBtn").textContent = "Guardar Registro";
     fillComunasSelect(document.getElementById("comunaSelect"), null);
@@ -328,7 +283,7 @@ function permisos() {
             .map(function (t) {
               return (
                 '<li class="list-group-item px-0 d-flex justify-content-between align-items-center">' +
-                '<span><span class="fw-bold">Tanque ' + escapeHtml(t.numero_tanque) + "</span>" +
+                '<span><span class="fw-bold">' + escapeHtml(t.nombre_tanque) + "</span>" +
                 '<div class="small text-muted">' + escapeHtml(t.tipo_tanque) + "</div></span>" +
                 (Number(t.estado) === 1
                   ? '<span class="badge-estado activo">Activo</span>'
@@ -339,42 +294,6 @@ function permisos() {
             .join("") +
           "</ul>"
         : '<p class="small text-muted mb-0">Este zoocriadero todavía no tiene tanques registrados.</p>');
-  }
-
-  // ---------- Modal Registrar Tanque ----------
-  var tanqueModalEl = document.getElementById("tanqueModal");
-  var tanqueForm = document.getElementById("tanqueForm");
-
-  function openCreateTanqueModal() {
-    tanqueForm.reset();
-    fillZoocriaderosSelect(tanqueForm.elements["id_zoocriadero"]);
-    fillTiposTanqueSelect(tanqueForm.elements["id_tipo_tanque"]);
-  }
-
-  async function handleTanqueSubmit(e) {
-    e.preventDefault();
-    if (!permisos().crear) return;
-
-    var payload = {
-      id_zoocriadero: Number(tanqueForm.elements["id_zoocriadero"].value),
-      id_tipo_tanque: Number(tanqueForm.elements["id_tipo_tanque"].value),
-      numero_tanque: Number(tanqueForm.elements["numero_tanque"].value),
-    };
-    if (!payload.id_zoocriadero) { alert("Debe seleccionar un zoocriadero."); return; }
-    if (!payload.numero_tanque || payload.numero_tanque < 1) {
-      alert("El número de tanque debe ser un entero mayor que cero.");
-      return;
-    }
-    if (!payload.id_tipo_tanque) { alert("Debe seleccionar el tipo de tanque."); return; }
-
-    try {
-      var res = await postJson("postTanque", payload); // INSERT en tanque
-      bootstrap.Modal.getOrCreateInstance(tanqueModalEl).hide();
-      await recargar();
-      showMessage(res.message, "success");
-    } catch (error) {
-      alert(error.message);
-    }
   }
 
   async function handleSubmit(e) {
@@ -394,13 +313,23 @@ function permisos() {
     };
 
     // Un campo escrito solo con espacios queda vacío tras el .trim() de arriba
-    if (payload.nombre.length < 3) {
-      alert("El nombre es obligatorio y debe tener al menos 3 caracteres (no solo espacios).");
+    if (payload.nombre.length < 4) {
+      alert("El nombre es obligatorio y debe tener al menos 4 caracteres (no solo espacios).");
+      form.elements["nombre"].focus();
+      return;
+    }
+    if (payload.nombre.length > 100) {
+      alert("El nombre no puede superar 100 caracteres.");
       form.elements["nombre"].focus();
       return;
     }
     if (payload.direccion.length < 5) {
       alert("La dirección es obligatoria y debe tener al menos 5 caracteres (no solo espacios).");
+      form.elements["direccion"].focus();
+      return;
+    }
+    if (payload.direccion.length > 200) {
+      alert("La dirección no puede superar 200 caracteres.");
       form.elements["direccion"].focus();
       return;
     }
@@ -460,10 +389,6 @@ function permisos() {
     if (e.target.closest("#btnAbrirRegistrar")) openCreateModal();
   });
 
-  document.getElementById("registrarTanqueWrap").addEventListener("click", function (e) {
-    if (e.target.closest("#btnAbrirRegistrarTanque")) openCreateTanqueModal();
-  });
-
   document.getElementById("comunaSelect").addEventListener("change", function () {
     cargarBarrios(this.value, null).catch(function (error) {
       showMessage(error.message, "danger");
@@ -471,7 +396,6 @@ function permisos() {
   });
 
   form.addEventListener("submit", handleSubmit);
-  tanqueForm.addEventListener("submit", handleTanqueSubmit);
 
   document.getElementById("zoocriaderosSearch").addEventListener("input", function () {
     state.q = this.value;
@@ -486,9 +410,6 @@ function permisos() {
     if (!permisos().crear && modalEl.classList.contains("show")) {
       bootstrap.Modal.getOrCreateInstance(modalEl).hide();
     }
-    if (!permisos().crear && tanqueModalEl.classList.contains("show")) {
-      bootstrap.Modal.getOrCreateInstance(tanqueModalEl).hide();
-    }
     render();
   });
 
@@ -500,11 +421,12 @@ function permisos() {
       var resultados = await Promise.all([
         getJson("lista"),
         getJson("comunas"),
-        getJson("tiposTanque"),
       ]);
       data = resultados[0].map(normalizar);
-      comunas = resultados[1];
-      tiposTanque = resultados[2];
+      // Orden natural: "Comuna 2" antes que "Comuna 10" (numeric: true)
+      comunas = resultados[1].slice().sort(function (a, b) {
+        return String(a.nombre).localeCompare(String(b.nombre), "es", { numeric: true, sensitivity: "base" });
+      });
       clearMessage();
       render();
     } catch (error) {

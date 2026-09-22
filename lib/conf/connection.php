@@ -1,14 +1,4 @@
 <?php
-
-// ============================================================
-// Conexión a PostgreSQL SIN PDO.
-// Usa la extensión nativa "pgsql" de PHP: pg_connect, pg_query,
-// pg_query_params, pg_fetch_assoc...
-//
-// Requisito: en php.ini debe estar activa la línea
-//     extension=pgsql
-// (NO hace falta pdo_pgsql)
-// ============================================================
 class Connection
 {
 
@@ -17,9 +7,6 @@ class Connection
     private $password;
     private $database;
     private $port;
-
-    // Estática: aunque se creen varios modelos en la misma
-    // petición, todos comparten UNA sola conexión.
     private static $link = null;
 
     function __construct()
@@ -52,25 +39,42 @@ class Connection
 
 
 
-        $conexion = pg_connect($cadena);
-
+        $conexion = @pg_connect($cadena);
         if ($conexion === false) {
             $error = error_get_last();
-
-            die("ERROR REAL DE POSTGRESQL:<br><pre>" .
-                print_r($error, true) .
-                "</pre>");
+            error_log("Error de conexión a PostgreSQL: " . print_r($error, true));
+            throw new Exception("No fue posible conectar con la base de datos.");
         }
 
 
 
         pg_set_client_encoding($conexion, "UTF8");
+
+        $idUsuarioSesion = $_SESSION['id_usuario'] ?? null;
+        @pg_query_params(
+            $conexion,
+            "SELECT set_config('app.id_usuario', $1, false)",
+            [$idUsuarioSesion !== null ? (string) $idUsuarioSesion : '']
+        );
+
         self::$link = $conexion;
     }
 
     protected function getConnect()
     {
         return self::$link;
+    }
+    public function actualizarUsuarioAuditoria()
+    {
+        if (self::$link === null) {
+            return;
+        }
+        $idUsuarioSesion = $_SESSION['id_usuario'] ?? null;
+        @pg_query_params(
+            self::$link,
+            "SELECT set_config('app.id_usuario', $1, false)",
+            [$idUsuarioSesion !== null ? (string) $idUsuarioSesion : '']
+        );
     }
 
     protected function close()

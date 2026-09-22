@@ -1,5 +1,3 @@
-
-
 (function () {
   "use strict";
 
@@ -20,10 +18,16 @@
     });
   }
 
+  // Permisos reales del rol de la sesión sobre este módulo (ver
+  // lib/permisos.php / View/partials/footer.php), en vez del selector de
+  // rol de mentira que se usaba antes (auxiliar/coordinador).
+  var PERMISOS_VACIOS = { ver: false, consultar: false, crear: false, editar: false, inhabilitar: false, exportar: false };
+
   function permisos() {
-    // Igual que en Zoocriaderos: por ahora todos los roles pueden
-    // editar/inhabilitar (sin filtrar por rol todavía).
-    return { editar: true, inhabilitar: true };
+    return window.SIG_PERMISOS || PERMISOS_VACIOS;
+  }
+  function lockedTitle(accion) {
+    return "No tienes permiso para " + accion + ".";
   }
 
   function showMessage(text, type) {
@@ -67,7 +71,7 @@
   function normalizar(t) {
     return {
       id: Number(t.id_tanque),
-      numero: Number(t.numero_tanque),
+      nombre: t.nombre_tanque || "",
       estado: Number(t.estado),
       idZoocriadero: Number(t.id_zoocriadero),
       zoocriadero: t.zoocriadero || "",
@@ -130,7 +134,7 @@
     return (
       "<tr>" +
       "<td>" + escapeHtml(t.zoocriadero) + "</td>" +
-      "<td>Tanque " + t.numero + "</td>" +
+      "<td>" + escapeHtml(t.nombre) + "</td>" +
       "<td>" + escapeHtml(t.tipoTanque) + "</td>" +
       '<td class="text-center">' + estadoBadge + "</td>" +
       '<td class="text-center">' + renderAcciones(t) + "</td>" +
@@ -141,7 +145,7 @@
   function filteredData() {
     var q = state.q.trim().toLowerCase();
     return data.filter(function (t) {
-      var texto = (t.zoocriadero + " " + t.tipoTanque + " " + t.numero).toLowerCase();
+      var texto = (t.zoocriadero + " " + t.tipoTanque + " " + t.nombre).toLowerCase();
       var matchesQ = !q || texto.indexOf(q) !== -1;
       var matchesEstado =
         state.estado === "todos" ||
@@ -162,7 +166,110 @@
     }
     var countEl = document.getElementById("tanquesCount");
     if (countEl) countEl.textContent = rows.length + " de " + data.length + " tanques";
+    renderRegistrarBtn();
   }
+
+  function renderRegistrarBtn() {
+    var wrap = document.getElementById("registrarTanqueWrap");
+    if (!wrap) return;
+    if (permisos().crear) {
+      wrap.innerHTML =
+        '<button type="button" class="btn btn-primary btn-round" data-bs-toggle="modal" data-bs-target="#tanqueCreateModal" id="btnAbrirRegistrarTanque">' +
+        '<i class="fas fa-plus me-1"></i> Registrar Tanque</button>';
+    } else {
+      wrap.innerHTML =
+        '<button type="button" class="btn btn-round btn-locked" disabled title="' +
+        escapeHtml(lockedTitle("registrar tanques")) + '">' +
+        '<i class="fas fa-lock me-1"></i> Registrar Tanque</button>';
+    }
+  }
+
+  // ---------- Modal Registrar ----------
+  var createModalEl = document.getElementById("tanqueCreateModal");
+  var createForm = document.getElementById("tanqueCreateForm");
+  var createNumeroHint = document.getElementById("tanqueCreateNumeroHint");
+
+  // Chequeo en vivo contra los tanques ya cargados (mismo listado que
+  // alimenta la tabla): si el zoocriadero elegido ya tiene un tanque con
+  // ese nombre (sin importar mayúsculas/espacios), se avisa antes de
+  // intentar guardar, en vez de esperar el error del servidor.
+  function nombreTanqueRepetido(idZoocriadero, nombre, idExcluir) {
+    var normalizado = nombre.trim().replace(/\s+/g, " ").toLowerCase();
+    if (!normalizado) return false;
+    return data.some(function (t) {
+      return (
+        t.idZoocriadero === idZoocriadero &&
+        t.nombre.trim().replace(/\s+/g, " ").toLowerCase() === normalizado &&
+        t.id !== idExcluir
+      );
+    });
+  }
+
+  function actualizarHintNumeroCreate() {
+    var idZoo = Number(createForm.elements["id_zoocriadero"].value);
+    var nombre = createForm.elements["nombre_tanque"].value;
+
+    if (!idZoo) {
+      createNumeroHint.textContent = "Seleccione primero el zoocriadero.";
+      createNumeroHint.className = "form-text";
+      return;
+    }
+    if (nombre.trim() && nombreTanqueRepetido(idZoo, nombre, null)) {
+      createNumeroHint.textContent =
+        'Ese zoocriadero ya tiene un tanque llamado "' + nombre.trim() + '". Cambia el nombre.';
+      createNumeroHint.className = "form-text text-danger fw-bold";
+      return;
+    }
+    createNumeroHint.textContent = "Nombre disponible para este zoocriadero.";
+    createNumeroHint.className = "form-text text-success";
+  }
+
+  function openCreateModal() {
+    createForm.reset();
+    fillZoocriaderosSelect(createForm.elements["id_zoocriadero"], null);
+    fillTiposTanqueSelect(createForm.elements["id_tipo_tanque"], null);
+    actualizarHintNumeroCreate();
+  }
+
+  createForm.elements["id_zoocriadero"].addEventListener("change", actualizarHintNumeroCreate);
+  createForm.elements["nombre_tanque"].addEventListener("input", actualizarHintNumeroCreate);
+
+  async function handleCreateSubmit(e) {
+    e.preventDefault();
+    if (!permisos().crear) return;
+
+    var payload = {
+      id_zoocriadero: Number(createForm.elements["id_zoocriadero"].value),
+      id_tipo_tanque: Number(createForm.elements["id_tipo_tanque"].value),
+      nombre_tanque: createForm.elements["nombre_tanque"].value.trim(),
+    };
+    if (!payload.id_zoocriadero) { alert("Debe seleccionar un zoocriadero."); return; }
+    if (!payload.nombre_tanque || payload.nombre_tanque.length < 2) {
+      alert("El nombre del tanque debe tener al menos 2 caracteres.");
+      return;
+    }
+    if (!payload.id_tipo_tanque) { alert("Debe seleccionar el tipo de tanque."); return; }
+    if (nombreTanqueRepetido(payload.id_zoocriadero, payload.nombre_tanque, null)) {
+      alert('Ese zoocriadero ya tiene un tanque llamado "' + payload.nombre_tanque + '". Cambia el nombre antes de guardar.');
+      createForm.elements["nombre_tanque"].focus();
+      return;
+    }
+
+    try {
+      var res = await postJson("postCreate", payload);
+      bootstrap.Modal.getOrCreateInstance(createModalEl).hide();
+      await recargar();
+      showMessage(res.message, "success");
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  createForm.addEventListener("submit", handleCreateSubmit);
+
+  document.getElementById("registrarTanqueWrap").addEventListener("click", function (e) {
+    if (e.target.closest("#btnAbrirRegistrarTanque")) openCreateModal();
+  });
 
   // ---------- Modal Editar ----------
   var modalEl = document.getElementById("tanqueEditModal");
@@ -173,7 +280,7 @@
     if (!t) return;
 
     form.elements["id_tanque"].value = t.id;
-    form.elements["numero_tanque"].value = t.numero;
+    form.elements["nombre_tanque"].value = t.nombre;
     fillZoocriaderosSelect(form.elements["id_zoocriadero"], t.idZoocriadero);
     fillTiposTanqueSelect(form.elements["id_tipo_tanque"], t.idTipoTanque);
 
@@ -188,12 +295,16 @@
       id_tanque: Number(form.elements["id_tanque"].value),
       id_zoocriadero: Number(form.elements["id_zoocriadero"].value),
       id_tipo_tanque: Number(form.elements["id_tipo_tanque"].value),
-      numero_tanque: Number(form.elements["numero_tanque"].value),
+      nombre_tanque: form.elements["nombre_tanque"].value.trim(),
     };
     if (!payload.id_zoocriadero) { alert("Debe seleccionar un zoocriadero."); return; }
     if (!payload.id_tipo_tanque) { alert("Debe seleccionar el tipo de tanque."); return; }
-    if (!payload.numero_tanque || payload.numero_tanque < 1) {
-      alert("El número de tanque debe ser un entero mayor que cero.");
+    if (!payload.nombre_tanque || payload.nombre_tanque.length < 2) {
+      alert("El nombre del tanque debe tener al menos 2 caracteres.");
+      return;
+    }
+    if (nombreTanqueRepetido(payload.id_zoocriadero, payload.nombre_tanque, payload.id_tanque)) {
+      alert('Ese zoocriadero ya tiene un tanque llamado "' + payload.nombre_tanque + '".');
       return;
     }
 
@@ -217,7 +328,7 @@
       nuevoEstado === 0
         ? " Mientras esté inhabilitado no se podrán registrar seguimientos para este tanque."
         : "";
-    if (!confirm("¿Seguro que deseas " + accion + " el Tanque " + t.numero + " de " + t.zoocriadero + "?" + advertencia)) return;
+    if (!confirm("¿Seguro que deseas " + accion + " el tanque \"" + t.nombre + "\" de " + t.zoocriadero + "?" + advertencia)) return;
 
     try {
       var res = await postJson("postEstado", { id_tanque: id, estado: nuevoEstado });
@@ -257,6 +368,9 @@
   });
 
   document.addEventListener("siguppys:role-changed", function () {
+    if (!permisos().crear && createModalEl.classList.contains("show")) {
+      bootstrap.Modal.getOrCreateInstance(createModalEl).hide();
+    }
     render();
   });
 

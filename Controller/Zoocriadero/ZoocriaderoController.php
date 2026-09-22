@@ -1,13 +1,9 @@
 <?php
 
+
 include_once '../Model/Zoocriadero/ZoocriaderoModel.php';
 include_once __DIR__ . '/../../lib/geocodificador.php';
 
-// ============================================================
-// Controlador del módulo Zoocriaderos. Responde solo JSON, así
-// que se llama siempre por Web/ajax.php:
-//   Web/ajax.php?modulo=Zoocriadero&controlador=Zoocriadero&funcion=lista
-// ============================================================
 class ZoocriaderoController
 {
 
@@ -57,9 +53,10 @@ class ZoocriaderoController
 
     public function postCreate()
     {
+        sigExigirPermiso('Zoocriaderos', 'crear');
         $obj = new ZoocriaderoModel();
         $body = requestJsonBody();
-        $datos = $this->validarZoocriadero($body, $obj);
+        $datos = $this->validarZoocriadero($body, $obj, null);
 
         $id = $obj->crear($datos);
         if ($id === null) {
@@ -75,6 +72,7 @@ class ZoocriaderoController
 
     public function postUpdate()
     {
+        sigExigirPermiso('Zoocriaderos', 'editar');
         $obj = new ZoocriaderoModel();
         $body = requestJsonBody();
 
@@ -86,7 +84,7 @@ class ZoocriaderoController
             jsonResponse(['ok' => false, 'message' => 'El zoocriadero no existe.'], 404);
         }
 
-        $datos = $this->validarZoocriadero($body, $obj);
+        $datos = $this->validarZoocriadero($body, $obj, $idZoo);
 
         if ($obj->actualizar($idZoo, $datos) === false) {
             jsonResponse(['ok' => false, 'message' => 'No se pudo actualizar: ' . $obj->ultimoError()], 500);
@@ -97,6 +95,7 @@ class ZoocriaderoController
 
     public function postEstado()
     {
+        sigExigirPermiso('Zoocriaderos', 'inhabilitar');
         $obj = new ZoocriaderoModel();
         $body = requestJsonBody();
 
@@ -117,41 +116,8 @@ class ZoocriaderoController
         ]);
     }
 
-    public function postTanque()
-    {
-        $obj = new ZoocriaderoModel();
-        $body = requestJsonBody();
-
-        $idZoo = filter_var($body['id_zoocriadero'] ?? null, FILTER_VALIDATE_INT);
-        $idTipo = filter_var($body['id_tipo_tanque'] ?? null, FILTER_VALIDATE_INT);
-        $numero = filter_var($body['numero_tanque'] ?? null, FILTER_VALIDATE_INT);
-
-        if (!$idZoo) {
-            jsonResponse(['ok' => false, 'message' => 'Debe seleccionar un zoocriadero.'], 422);
-        }
-        if (!$idTipo || !$obj->tipoTanqueExiste($idTipo)) {
-            jsonResponse(['ok' => false, 'message' => 'Debe seleccionar un tipo de tanque válido.'], 422);
-        }
-        if (!$numero || $numero <= 0) {
-            jsonResponse(['ok' => false, 'message' => 'El número de tanque debe ser un entero mayor que cero.'], 422);
-        }
-        if (!$obj->buscar($idZoo)) {
-            jsonResponse(['ok' => false, 'message' => 'El zoocriadero no existe.'], 404);
-        }
-        if ($obj->existeNumeroTanque($idZoo, $numero)) {
-            jsonResponse(['ok' => false, 'message' => "Ese zoocriadero ya tiene un tanque número $numero."], 422);
-        }
-
-        $id = $obj->crearTanque($idZoo, $idTipo, $numero);
-        if ($id === null) {
-            jsonResponse(['ok' => false, 'message' => 'No se pudo registrar el tanque: ' . $obj->ultimoError()], 500);
-        }
-
-        jsonResponse(['ok' => true, 'message' => 'Tanque registrado correctamente.'], 201);
-    }
-
     // ---------- Validación compartida por create y update ----------
-    private function validarZoocriadero($body, $obj)
+    private function validarZoocriadero($body, $obj, $idActual = null)
     {
         $nombre = limpiar($body['nombre'] ?? '');
         $direccion = limpiar($body['direccion'] ?? '');
@@ -161,7 +127,7 @@ class ZoocriaderoController
         $longitud = $body['longitud'] ?? null;
 
         foreach ([
-            validarTexto($nombre, 'Nombre', 3, 100),
+            validarTexto($nombre, 'Nombre', 4, 100),
             validarTexto($direccion, 'Dirección', 5, 200),
             validarTextoOpcional($comuna, 'Comuna', 60),
             validarTextoOpcional($barrio, 'Barrio', 60),
@@ -171,11 +137,22 @@ class ZoocriaderoController
             }
         }
 
+        // Nombre duplicado (se revisa antes de geocodificar para responder rápido)
+        $duplicado = $obj->buscarDuplicado($nombre, $idActual);
+        if ($duplicado) {
+            $mensaje = 'Ya existe un zoocriadero llamado "' . $duplicado['nombre'] . '".';
+            if ((int) $duplicado['estado'] !== 1) {
+                $mensaje .= ' Está inhabilitado: puede habilitarlo desde la lista en lugar de crearlo de nuevo.';
+            }
+            jsonResponse(['ok' => false, 'message' => $mensaje], 409);
+        }
+
         if ($comuna !== '' && $barrio !== '' && !$obj->barrioPerteneceAComuna($barrio, $comuna)) {
             jsonResponse(['ok' => false, 'message' => 'El barrio seleccionado no pertenece a esa comuna.'], 422);
         }
 
-       
+        // Si no llegan coordenadas manuales, se geocodifica la dirección
+        // automáticamente (Nominatim/OpenStreetMap).
         if (!is_numeric($latitud) || !is_numeric($longitud)) {
             $punto = geocodificarDireccion($direccion, $barrio, $comuna);
             $latitud = $punto['lat'] ?? 0;

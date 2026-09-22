@@ -41,8 +41,17 @@ class CopiaSeguridadController {
     // Lista de .sql disponibles en BACKUP_DIR (para el selector del modal Restaurar)
     public function archivos() {
         $archivos = array_map(function ($ruta) {
+            $nombre = basename($ruta);
+            if (strpos($nombre, '_auto_') !== false) {
+                $tipo = 'automatico';
+            } elseif (strpos($nombre, 'subido_') === 0) {
+                $tipo = 'subido';
+            } else {
+                $tipo = 'manual';
+            }
             return [
-                'nombre' => basename($ruta),
+                'nombre' => $nombre,
+                'tipo'   => $tipo,
                 'tamano' => filesize($ruta),
                 'fecha'  => date('Y-m-d H:i:s', filemtime($ruta)),
             ];
@@ -55,8 +64,17 @@ class CopiaSeguridadController {
         if (!is_dir(BACKUP_DIR)) {
             return [];
         }
-        $archivos = glob(BACKUP_DIR . '*.sql');
-        rsort($archivos); // el nombre incluye fecha_hora, así que ordena de más reciente a más antiguo
+        $archivos = glob(BACKUP_DIR . '*.sql') ?: [];
+
+        // Se ordena por la fecha real del archivo (filemtime), de más
+        // reciente a más antiguo. Antes se usaba rsort() sobre el nombre,
+        // y como "..._auto_2026..." es alfabéticamente mayor que
+        // "..._2026...", todos los automáticos salían primero y los
+        // directos después, sin importar la fecha.
+        usort($archivos, function ($a, $b) {
+            $diferencia = filemtime($b) - filemtime($a);
+            return $diferencia !== 0 ? $diferencia : strcmp(basename($b), basename($a));
+        });
         return $archivos;
     }
 
@@ -64,6 +82,7 @@ class CopiaSeguridadController {
     // Se invoca con window.location.href (no fetch): el navegador debe
     // recibir el archivo, no una respuesta JSON.
     public function descargar() {
+        sigExigirPermiso('Copia de seguridad', 'exportar');
         $obj = new CopiaSeguridadModel();
         $archivo = $this->generarDump();
 
@@ -84,6 +103,7 @@ class CopiaSeguridadController {
 
     // Descarga un respaldo YA existente (fila del historial o de la lista de archivos)
     public function descargarArchivo() {
+        sigExigirPermiso('Copia de seguridad', 'exportar');
         $nombre = basename($_GET['archivo'] ?? '');
         $ruta = BACKUP_DIR . $nombre;
 
@@ -147,6 +167,7 @@ class CopiaSeguridadController {
     // Acepta un respaldo subido por el usuario (multipart) o el nombre
     // de uno que ya está en BACKUP_DIR (seleccionado del historial).
     public function restaurar() {
+        sigExigirPermiso('Copia de seguridad', 'editar');
         $obj = new CopiaSeguridadModel();
 
         if (!empty($_FILES['archivo']['tmp_name'])) {
@@ -202,13 +223,15 @@ class CopiaSeguridadController {
     }
 
     // ---------- Usuario que ejecuta la acción ----------
-    // Mismo patrón que SeguimientoZoocriaderoController: usa la sesión
-    // si ya existe, y no rompe nada mientras el login real no esté conectado.
+    // El login (Controller/login/login_process.php) guarda en la sesión
+    // 'id_usuario' y 'usuario' (nombre completo). Antes se leían 'id' y
+    // 'nombre', que nunca existen, y por eso "Ejecutado por" siempre
+    // decía "Sistema" y id_usuario quedaba en NULL.
     private function idUsuarioActual() {
-        return isset($_SESSION['id']) ? (int) $_SESSION['id'] : null;
+        return isset($_SESSION['id_usuario']) ? (int) $_SESSION['id_usuario'] : null;
     }
 
     private function nombreUsuarioActual() {
-        return $_SESSION['nombre'] ?? 'Sistema';
+        return $_SESSION['usuario'] ?? 'Sistema';
     }
 }

@@ -21,11 +21,11 @@ class SeguimientoZoocriaderoModel extends MasterModel
     public function tanquesPorZoocriadero($idZoocriadero)
     {
         return $this->selectAll(
-            "SELECT t.id_tanque, t.id_zoocriadero, t.numero_tanque, tt.nombre AS tipo_tanque
+            "SELECT t.id_tanque, t.id_zoocriadero, t.nombre_tanque, tt.nombre AS tipo_tanque
             FROM tanque t
             INNER JOIN tipo_tanque tt ON tt.id_tipo_tanque = t.id_tipo_tanque
             WHERE t.id_zoocriadero = $1 AND t.estado = 1
-            ORDER BY t.numero_tanque",
+            ORDER BY t.nombre_tanque",
             [$idZoocriadero]
         );
     }
@@ -132,30 +132,61 @@ class SeguimientoZoocriaderoModel extends MasterModel
         }
     }
 
+    // Vincula varias acciones a un mismo seguimiento (el formulario ahora
+    // permite elegir más de una acción por registro).
+    public function vincularActividades($idSeguimiento, array $idsActividad)
+    {
+        foreach ($idsActividad as $idActividad) {
+            $this->vincularActividad($idSeguimiento, $idActividad);
+        }
+    }
+
     // Historial para la tabla de consulta (RF002).
     // Trae también los ids para poder cargar un registro en el formulario y editarlo.
+    // Un seguimiento puede tener varias acciones vinculadas (tabla
+    // actividad_zoocriadero), así que se agrupan en una sola fila:
+    // "actividad" trae los nombres separados por coma para mostrar en la
+    // tabla, e "id_actividades" trae el arreglo de ids para poder
+    // precargar el formulario al editar.
     public function historial($limite = 50)
     {
-        return $this->selectAll(
+        $filas = $this->selectAll(
             "SELECT s.id_seguimiento, TO_CHAR(s.fecha, 'YYYY-MM-DD') AS fecha,
                     s.id_zoocriadero, z.nombre AS zoocriadero,
-                    s.id_tanque, t.numero_tanque,
+                    s.id_tanque, t.nombre_tanque,
                     s.ph, s.temperatura,
                     s.numero_sembrados, s.numero_nacidos, s.numero_muertos,
                     s.numero_nacidos_hembra, s.numero_nacidos_macho,
                     s.numero_muertos_hembra, s.numero_muertos_macho,
-                    s.observaciones,
-                    az.id_actividad, a.nombre AS actividad
+                    s.observaciones, s.estado,
+                    u.nombre || ' ' || u.apellido AS responsable,
+                    STRING_AGG(a.nombre, ', ' ORDER BY a.nombre) AS actividad,
+                    STRING_AGG(az.id_actividad::text, ',' ORDER BY az.id_actividad) AS id_actividades_csv
             FROM seguimiento_zoocriadero s
             INNER JOIN zoocriadero z ON z.id_zoocriadero = s.id_zoocriadero
             INNER JOIN tanque t      ON t.id_tanque = s.id_tanque
+            LEFT JOIN usuario u      ON u.id_usuario = s.id_usuario
             LEFT JOIN actividad_zoocriadero az ON az.id_seguimiento = s.id_seguimiento
             LEFT JOIN actividad a    ON a.id_actividad = az.id_actividad
-            WHERE s.estado = 1
+            GROUP BY s.id_seguimiento, z.id_zoocriadero, t.id_tanque, u.id_usuario, u.nombre, u.apellido
             ORDER BY s.fecha DESC, s.id_seguimiento DESC
             LIMIT $1",
             [$limite]
         );
+
+        // STRING_AGG de Postgres llega como texto "3,7,9": se convierte
+        // aquí a un arreglo real de enteros para que el JSON de salida
+        // ya traiga id_actividades como lista, lista para el formulario.
+        foreach ($filas as &$fila) {
+            $csv = $fila['id_actividades_csv'] ?? '';
+            $fila['id_actividades'] = ($csv === '' || $csv === null)
+                ? []
+                : array_map('intval', explode(',', $csv));
+            unset($fila['id_actividades_csv']);
+        }
+        unset($fila);
+
+        return $filas;
     }
 
     public function buscarSeguimiento($idSeguimiento)
@@ -205,13 +236,47 @@ class SeguimientoZoocriaderoModel extends MasterModel
         return true;
     }
 
-    // La actividad vive en una tabla aparte: se borra la anterior y se pone la nueva.
-    public function reemplazarActividad($idSeguimiento, $idActividad)
+    // Las actividades viven en una tabla aparte: se borran las anteriores y
+    // se ponen las nuevas (puede ser una o varias).
+    public function reemplazarActividades($idSeguimiento, array $idsActividad)
     {
         $this->delete(
             "DELETE FROM actividad_zoocriadero WHERE id_seguimiento = $1",
             [$idSeguimiento]
         );
-        $this->vincularActividad($idSeguimiento, $idActividad);
+        $this->vincularActividades($idSeguimiento, $idsActividad);
+    }
+
+    public function existeSeguimiento($idSeguimiento)
+    {
+        return $this->selectValue(
+            "SELECT 1 FROM seguimiento_zoocriadero WHERE id_seguimiento = $1",
+            [$idSeguimiento]
+        ) !== null;
+    }
+
+    // Descartar / restaurar UN seguimiento (no se borra, se cambia el estado,
+    // igual que en el resto de módulos del sistema).
+    public function cambiarEstado($idSeguimiento, $estado)
+    {
+        return $this->update(
+            "UPDATE seguimiento_zoocriadero SET estado = $1 WHERE id_seguimiento = $2",
+            [$estado, $idSeguimiento]
+        ) !== false;
+    }
+
+    // Descartar / restaurar VARIOS seguimientos a la vez, seleccionados en
+    // la tabla en vez de tener que abrir uno por uno.
+    public function cambiarEstadoMasivo(array $ids, $estado)
+    {
+        if (empty($ids)) {
+            return 0;
+        }
+        $idsEnteros = array_values(array_map('intval', $ids));
+        $resultado = $this->update(
+            "UPDATE seguimiento_zoocriadero SET estado = $1 WHERE id_seguimiento = ANY($2::bigint[])",
+            [$estado, '{' . implode(',', $idsEnteros) . '}']
+        );
+        return $resultado !== false ? count($idsEnteros) : false;
     }
 }

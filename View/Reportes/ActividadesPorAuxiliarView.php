@@ -37,6 +37,10 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                     <!--Título principal de la página.-->
                     <h2 class="titulo-pagina">Actividades De Terreno Por Auxiliar Responsable</h2>
 
+                    <?php if (!empty($errorRangoFechas)): ?>
+                        <div class="alert alert-warning"><?= htmlspecialchars($errorRangoFechas) ?> No se aplicó el filtro de fechas.</div>
+                    <?php endif; ?>
+
                     <!--Subtítulo que indica que la siguiente sección contiene filtros.-->
                     <h3>Filtros</h3>
 
@@ -72,7 +76,7 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 <label>Fecha Inicio</label>
 
                                 <!--input de tipo date permite seleccionar una fecha mediante el calendario del navegador. -->
-                                <input type="date" name="fecha_inicio" class="form-control" value="<?= $filtroFechaInicio ?>">
+                                <input type="date" name="fecha_inicio" value="<?= $filtroFechaInicio ?>">
                             </div>
 
                             <!--Tercer bloque de filtro de seleccionar un fecha.-->
@@ -106,10 +110,8 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 <span class="numero azul"><?= $totalActividades ?></span>
                             </div>
                         </div>
-                        <p class="comparativa positivo">12.8% vs Periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,30 15,20 30,25 45,10 60,18 75,8 90,15 105,5 120,12" fill="none" stroke="#2f7dfa" stroke-width="2" />
-                        </svg>
+                        <p class="comparativa <?= $comparativas['totalActividades']['clase'] ?>"><?= $comparativas['totalActividades']['texto'] ?></p>
+                        
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -119,10 +121,7 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 <span class="numero verde"><?= $totalCompletas ?></span>
                             </div>
                         </div>
-                        <p class="comparativa positivo">13.8% vs Periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,28 15,18 30,24 45,12 60,20 75,10 90,16 105,6 120,14" fill="none" stroke="#21a666" stroke-width="2" />
-                        </svg>
+                        <p class="comparativa <?= $comparativas['totalCompletas']['clase'] ?>"><?= $comparativas['totalCompletas']['texto'] ?></p>
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -132,10 +131,7 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 <span class="numero naranja"><?= $totalEnProgreso ?></span>
                             </div>
                         </div>
-                        <p class="comparativa negativo">-8.3% vs Periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,15 15,25 30,10 45,22 60,8 75,20 90,6 105,18 120,12" fill="none" stroke="#e0952d" stroke-width="2" />
-                        </svg>
+                        <p class="comparativa <?= $comparativas['totalEnProgreso']['clase'] ?>"><?= $comparativas['totalEnProgreso']['texto'] ?></p>
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -145,10 +141,7 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 <span class="numero rojo"><?= $totalRetrasadas ?></span>
                             </div>
                         </div>
-                        <p class="comparativa negativo">-25.0% vs Periodo anterior</p>
-                        <svg viewBox="0 0 120 40" class="sparkline">
-                            <polyline points="0,10 15,22 30,8 45,20 60,6 75,18 90,4 105,16 120,10" fill="none" stroke="#e64545" stroke-width="2" />
-                        </svg>
+                        <p class="comparativa <?= $comparativas['totalRetrasadas']['clase'] ?>"><?= $comparativas['totalRetrasadas']['texto'] ?></p>
                     </div>
                 </div>
 
@@ -168,9 +161,9 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 </thead>
                                 <tbody>
                                     <?php if (count($auxiliaresPagina) === 0): ?>
-                                        <tr class="sig-empty-row">
-                                        <td colspan="5">No hay auxiliares con esos filtros</td></tr>
-                                    
+                                        <tr>
+                                            <td colspan="5" style="text-align:center; color:#888;">No hay auxiliares con esos filtros</td>
+                                        </tr>
                                     <?php endif; ?>
                                     <?php foreach ($auxiliaresPagina as $fila): ?>
                                         <tr>
@@ -322,6 +315,25 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                         margin-right: 8px;
                     }
 
+                    .btn-excel {
+                        background-color: #ffffff;
+                        color: #21a666;
+                        border: 1px solid #21a666;
+                        padding: 10px 18px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: bold;
+                        margin-right: 8px;
+                    }
+
+                    .btn-excel:hover {
+                        background-color: rgba(33, 166, 102, 0.1);
+                    }
+
+                    body[data-background-color="dark"] .btn-excel {
+                        background-color: transparent;
+                    }
+
                     .tarjetas {
                         display: flex;
                         gap: 20px;
@@ -407,6 +419,10 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
 
                     .negativo {
                         color: #e64545;
+                    }
+
+                    .neutro {
+                        color: #888888;
                     }
 
                     .sparkline {

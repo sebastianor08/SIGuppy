@@ -6,6 +6,18 @@
     //   - Sin ?id_rol  -> INSERT en "rol" + INSERT en "rol_permiso"
     //   - Con  ?id_rol -> UPDATE del rol y reemplazo de sus permisos
     // =========================================================
+
+    // La verificación de sesión y de permisos va ANTES de tocar el
+    // $_POST: antes, todo el procesamiento del formulario (crear/editar
+    // un rol) ocurría antes de incluir head.php (que es donde se
+    // revisaba la sesión), así que una petición POST directa a este
+    // archivo, sin haber iniciado sesión, igual creaba o modificaba un
+    // rol.
+    $basePath = '../../';
+    require_once __DIR__ . '/../../lib/requiere_sesion.php';
+    require_once __DIR__ . '/../../lib/permisos.php';
+    $permisosRoles = sigPermisosDeModulo('Gestión de Roles');
+
     include_once '../../lib/validaciones.php';
     include_once '../../Model/Roles/RolesModel.php';
 
@@ -25,6 +37,21 @@
     $editando = $idRol !== null;
 
     if($_SERVER['REQUEST_METHOD'] === 'POST'){
+
+        // Permiso real del rol de la sesión: "crear" para registrar un rol
+        // nuevo, "editar" para modificar uno existente. Se revisa ANTES de
+        // cualquier otra validación, para no darle pistas de por qué
+        // fallaría el guardado a quien no tiene permiso de intentarlo.
+        $accionRequerida = $editando ? 'editar' : 'crear';
+        $sinPermiso = empty($permisosRoles[$accionRequerida]);
+
+        if($sinPermiso){
+            $mensaje = ['tipo' => 'danger', 'texto' => 'No tienes permiso para ' . ($editando ? 'editar' : 'crear') . ' roles.'];
+            $nombre      = limpiar($_POST['nombre_rol'] ?? '');
+            $descripcion = limpiar($_POST['descripcion'] ?? '');
+            $marcados    = $_POST['permisos'] ?? [];
+
+        }else{
 
         // limpiar() recorta los extremos y colapsa los espacios repetidos
         $nombre      = limpiar($_POST['nombre_rol'] ?? '');
@@ -79,6 +106,8 @@
             }
         }
 
+        } // cierra el "else" del chequeo de permiso ($sinPermiso)
+
     }elseif($editando){
         // Primera carga en modo edición: se traen los datos y la matriz guardada
         $nombre      = $rolEditado['nombre_rol'];
@@ -112,7 +141,7 @@
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
               <div>
                 <h3 class="fw-bold mb-3"><?php echo $editando ? 'Editar Rol' : 'Registro Roles'; ?></h3>
-                <h6 class="op-7 mb-2">Usuarios / Roles y Permisos<?php echo $editando ? ' / Editar' : ''; ?></h6>
+                <h6 class="op-7 mb-2">Usuarios / Gestión de Roles<?php echo $editando ? ' / Editar' : ''; ?></h6>
               </div>
               <div class="ms-md-auto py-2 py-md-0">
                 <a href="consultar-roles.php" class="btn btn-label-primary btn-round">
@@ -137,7 +166,7 @@
                   <div class="row">
                     <div class="col-md-4">
                       <div class="form-group">
-                        <label for="nombre_rol">Nombre:</label>
+                        <label for="nombre_rol">Nombre: </label>
                         <input type="text" class="form-control" id="nombre_rol" name="nombre_rol"
                                maxlength="50" minlength="3" required placeholder="Ej: Auxiliar"
                                value="<?php echo h($nombre); ?>">
@@ -201,7 +230,8 @@
 
                 </div>
 <div class="card-action">
-  <button type="submit" class="btn text-white" style="background-color: #19A1FF; border-color: #19A1FF;">
+  <button type="submit" class="btn text-white" style="background-color: #19A1FF; border-color: #19A1FF;"
+    <?php echo ($editando ? empty($permisosRoles['editar']) : empty($permisosRoles['crear'])) ? 'disabled title="No tienes permiso para guardar roles."' : ''; ?>>
     <?php echo $editando ? 'Guardar cambios' : 'Registrar'; ?>
   </button>
   <?php if($editando): ?>

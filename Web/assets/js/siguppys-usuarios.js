@@ -1,4 +1,3 @@
-
 (function () {
   "use strict";
 
@@ -26,20 +25,15 @@
     return d.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
   }
 
-  function role() {
-    return (window.SIGuppys && window.SIGuppys.getRole()) || "auxiliar";
-  }
-  function roleLabel() {
-    var rolesUi = window.SIGuppys && window.SIGuppys.ROLES;
-    return (rolesUi && rolesUi[role()] && rolesUi[role()].label) || role();
-  }
+  // Permisos reales del rol de la sesión sobre este módulo (ver
+  // lib/permisos.php / View/partials/footer.php), en vez de dejar
+  // crear/editar/inhabilitar siempre habilitados para cualquier rol.
+  var PERMISOS_VACIOS = { ver: false, consultar: false, crear: false, editar: false, inhabilitar: false, exportar: false };
   function permisos() {
-    // Por ahora, todos los roles ven habilitado crear/editar/inhabilitar
-    // (sin filtrar por rol todavía, igual que en Zoocriaderos).
-    return { crear: true, editar: true, inhabilitar: true };
+    return window.SIG_PERMISOS || PERMISOS_VACIOS;
   }
   function lockedTitle(accion) {
-    return "Tu rol (" + roleLabel() + ") no tiene permiso para " + accion + ".";
+    return "No tienes permiso para " + accion + ".";
   }
 
   function colorRol(nombreRol) {
@@ -78,15 +72,69 @@
     return String(valor || "").replace(/\s+/g, "").toUpperCase();
   }
 
-  function validarDocumento(valor) {
-    var doc = normalizarDocumento(valor);
-    if (!doc) return "El número de documento es obligatorio.";
-    // Si solo quieres permitir números, cambia por: /^[0-9]+$/
-    if (!/^[A-Z0-9]+$/.test(doc)) {
-      return "El número de documento solo puede contener letras y números, sin espacios ni signos.";
+  // Reglas por tipo de documento (debe coincidir con REGLAS_DOCUMENTO_POR_TIPO
+  // en lib/validaciones.php). El PPT no viene en la referencia que
+  // compartiste, así que se dejó igual que C.E./Pasaporte (alfanumérico,
+  // hasta 15) como valor conservador; ajusta aquí y en el PHP si tienes el
+  // rango oficial.
+  var REGLAS_DOCUMENTO_POR_TIPO = {
+    "cédula de ciudadanía": { min: 6, max: 10, soloNumeros: true },
+    "tarjeta de identidad": { min: 10, max: 11, soloNumeros: false },
+    "cédula de extranjería": { min: 6, max: 15, soloNumeros: false },
+    "pasaporte": { min: 6, max: 15, soloNumeros: false },
+    "permiso por protección temporal": { min: 6, max: 15, soloNumeros: false },
+  };
+  var REGLA_DOCUMENTO_DEFECTO = { min: 5, max: 20, soloNumeros: false };
+
+  function reglasDocumentoPorTipo(nombreTipo) {
+    var clave = String(nombreTipo || "").trim().toLowerCase();
+    return REGLAS_DOCUMENTO_POR_TIPO[clave] || REGLA_DOCUMENTO_DEFECTO;
+  }
+
+  function reglasDocumentoTexto(nombreTipo) {
+    var regla = reglasDocumentoPorTipo(nombreTipo);
+    var tipoCaracteres = regla.soloNumeros ? "solo números" : "letras y/o números";
+    if (regla.min === regla.max) {
+      return "Debe tener exactamente " + regla.min + " caracteres (" + tipoCaracteres + ").";
     }
-    if (doc.length < 5) return "El número de documento debe tener al menos 5 caracteres.";
-    if (doc.length > 20) return "El número de documento no puede superar 20 caracteres.";
+    return "Debe tener entre " + regla.min + " y " + regla.max + " caracteres (" + tipoCaracteres + ").";
+  }
+
+  function validarDocumento(valor, nombreTipo) {
+    var doc = normalizarDocumento(valor);
+    var regla = reglasDocumentoPorTipo(nombreTipo);
+
+    if (!doc) return "El número de documento es obligatorio.";
+    var patron = regla.soloNumeros ? /^[0-9]+$/ : /^[A-Z0-9]+$/;
+    if (!patron.test(doc)) {
+      return regla.soloNumeros
+        ? "Para " + nombreTipo + ", el número de documento solo puede contener números."
+        : "El número de documento solo puede contener letras y números, sin espacios ni signos.";
+    }
+    if (doc.length < regla.min) {
+      return "Para " + nombreTipo + ", el número de documento debe tener al menos " + regla.min + " caracteres.";
+    }
+    if (doc.length > regla.max) {
+      return "Para " + nombreTipo + ", el número de documento no puede superar " + regla.max + " caracteres.";
+    }
+    return null;
+  }
+
+  // Solo letras (con tildes/ñ), espacios simples entre palabras, y
+  // apóstrofe/guion para casos como "O'Higgins" o "Pérez-Gómez". Nada de
+  // números ni otros símbolos.
+  var REGEX_NOMBRE_PROPIO = /^[\p{L}\p{M}'-]+(?: [\p{L}\p{M}'-]+)*$/u;
+  var REGEX_CARACTERES_PERMITIDOS_NOMBRE = /[^\p{L}\p{M}\s'-]/gu;
+
+  function validarNombrePropio(valor, etiqueta, min, max) {
+    var limpio = String(valor || "").trim().replace(/\s+/g, " ");
+    if (!limpio) return 'El campo "' + etiqueta + '" es obligatorio.';
+    if (/[0-9]/.test(limpio)) return 'El campo "' + etiqueta + '" no puede contener números.';
+    if (!REGEX_NOMBRE_PROPIO.test(limpio)) {
+      return 'El campo "' + etiqueta + '" solo puede contener letras (sin números ni símbolos, aparte de apóstrofe o guion).';
+    }
+    if (limpio.length < min) return 'El campo "' + etiqueta + '" debe tener al menos ' + min + ' caracteres.';
+    if (limpio.length > max) return 'El campo "' + etiqueta + '" no puede superar ' + max + ' caracteres.';
     return null;
   }
 
@@ -95,11 +143,17 @@
   // solo avisa antes de tiempo, la que manda de verdad es la de PHP).
   var DOMINIOS_CORREO_PERMITIDOS = ["cali.gov.co", "gmail.com"];
 
+  // Solo letras, números, punto, guion y guion bajo antes de la @ (así que
+  // algo como "juan#23@gmail.com" o "juan 23@gmail.com" queda bloqueado
+  // aquí mismo, sin esperar la respuesta del servidor).
+  var REGEX_CORREO_ESTRICTO = /^[a-z0-9]+(?:[._-][a-z0-9]+)*@[a-z0-9]+(?:[.-][a-z0-9]+)*\.[a-z]{2,}$/;
+
   function validarCorreo(valor) {
-    var correo = String(valor || "").trim().toLowerCase();
+    var correo = String(valor || "").replace(/\u00a0/g, " ").trim().toLowerCase();
     if (!correo) return "El correo electrónico es obligatorio.";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
-      return "El correo electrónico no es válido.";
+    if (/\s/.test(correo)) return "El correo electrónico no puede contener espacios.";
+    if (!REGEX_CORREO_ESTRICTO.test(correo)) {
+      return "El correo electrónico no es válido. Solo se permiten letras, números, puntos, guiones y guion bajo antes de la @.";
     }
     var dominio = correo.split("@").pop();
     if (DOMINIOS_CORREO_PERMITIDOS.indexOf(dominio) === -1) {
@@ -291,8 +345,50 @@
   // ---------- Modal Registrar / Editar ----------
   var modalEl = document.getElementById("usuarioModal");
   var form = document.getElementById("usuarioForm");
-  var passwordGroup = document.getElementById("usuarioPasswordGroup");
-  var passwordInput = form.elements["contrasena"];
+  var passwordGroup = document.getElementById("usuarioPasswordGroup"); // nota informativa, ya no hay campo de contraseña
+  var nombreInput = form.elements["nombre"];
+  var apellidoInput = form.elements["apellido"];
+  var documentoInput = form.elements["documento"];
+  var tipoDocumentoSelect = form.elements["id_tipodocumento"];
+  var documentoHint = document.getElementById("documentoHint");
+
+  function tipoDocumentoSeleccionadoTexto() {
+    var opcion = tipoDocumentoSelect.options[tipoDocumentoSelect.selectedIndex];
+    return opcion ? opcion.text.trim() : "";
+  }
+
+  // No deja ni siquiera escribir números/símbolos en Nombres y Apellidos:
+  // se limpia el valor en cada tecla, no solo al enviar el formulario.
+  function filtrarSoloLetras(input) {
+    input.addEventListener("input", function () {
+      var limpio = this.value.replace(REGEX_CARACTERES_PERMITIDOS_NOMBRE, "");
+      if (limpio !== this.value) this.value = limpio;
+    });
+  }
+  filtrarSoloLetras(nombreInput);
+  filtrarSoloLetras(apellidoInput);
+
+  // El documento se filtra distinto según el tipo elegido: solo números
+  // para Cédula de Ciudadanía, o alfanumérico (sin espacios/signos) para
+  // el resto. También actualiza el texto de ayuda y el maxlength.
+  function actualizarReglaDocumento() {
+    var tieneTipoSeleccionado = !!tipoDocumentoSelect.value;
+    var tipoTexto = tipoDocumentoSeleccionadoTexto();
+    var regla = reglasDocumentoPorTipo(tieneTipoSeleccionado ? tipoTexto : "");
+    documentoInput.maxLength = regla.max;
+    if (documentoHint) {
+      documentoHint.textContent = tieneTipoSeleccionado
+        ? reglasDocumentoTexto(tipoTexto)
+        : "Seleccione primero el tipo de documento.";
+    }
+    // Si el valor actual ya no cumple el patrón del nuevo tipo (por ejemplo,
+    // tenía letras y ahora eligió Cédula de Ciudadanía), se recorta en vivo.
+    var patron = regla.soloNumeros ? /[^0-9]/g : /[^A-Za-z0-9]/g;
+    var limpio = documentoInput.value.replace(patron, "");
+    if (limpio !== documentoInput.value) documentoInput.value = limpio;
+  }
+  documentoInput.addEventListener("input", actualizarReglaDocumento);
+  tipoDocumentoSelect.addEventListener("change", actualizarReglaDocumento);
 
   function openCreateModal() {
     form.reset();
@@ -302,7 +398,7 @@
     fillTiposDocumentoSelect(form.elements["id_tipodocumento"], null);
     fillRolesSelect(form.elements["id_rol"], null);
     passwordGroup.style.display = "";
-    passwordInput.required = true;
+    actualizarReglaDocumento();
   }
 
   function openEditModal(id) {
@@ -318,8 +414,7 @@
     fillTiposDocumentoSelect(form.elements["id_tipodocumento"], u.id_tipodocumento);
     fillRolesSelect(form.elements["id_rol"], u.id_rol);
     passwordGroup.style.display = "none";
-    passwordInput.required = false;
-    passwordInput.value = "";
+    actualizarReglaDocumento();
 
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
   }
@@ -329,29 +424,33 @@
     if (!permisos().crear) return;
 
     var id = form.elements["id_usuario"].value;
+    var tipoDocumentoTexto = tipoDocumentoSeleccionadoTexto();
     var payload = {
-      nombre: form.elements["nombre"].value.trim(),
-      apellido: form.elements["apellido"].value.trim(),
-      documento: normalizarDocumento(form.elements["documento"].value),
+      nombre: nombreInput.value.trim().replace(/\s+/g, " "),
+      apellido: apellidoInput.value.trim().replace(/\s+/g, " "),
+      documento: normalizarDocumento(documentoInput.value),
       correo: form.elements["correo"].value.trim(),
       id_tipodocumento: Number(form.elements["id_tipodocumento"].value),
       id_rol: Number(form.elements["id_rol"].value),
     };
 
-    if (payload.nombre.length < 2) {
-      alert("Los nombres son obligatorios.");
-      form.elements["nombre"].focus();
+    var errorNombre = validarNombrePropio(payload.nombre, "Nombres", 2, 50);
+    if (errorNombre) {
+      alert(errorNombre);
+      nombreInput.focus();
       return;
     }
-    if (payload.apellido.length < 2) {
-      alert("Los apellidos son obligatorios.");
-      form.elements["apellido"].focus();
+    var errorApellido = validarNombrePropio(payload.apellido, "Apellidos", 2, 50);
+    if (errorApellido) {
+      alert(errorApellido);
+      apellidoInput.focus();
       return;
     }
-    var errorDoc = validarDocumento(payload.documento);
+    if (!payload.id_tipodocumento) { alert("Debe seleccionar el tipo de documento."); return; }
+    var errorDoc = validarDocumento(payload.documento, tipoDocumentoTexto);
     if (errorDoc) {
       alert(errorDoc);
-      form.elements["documento"].focus();
+      documentoInput.focus();
       return;
     }
     var errorCorreo = validarCorreo(payload.correo);
@@ -360,8 +459,16 @@
       form.elements["correo"].focus();
       return;
     }
-    if (!payload.id_tipodocumento) { alert("Debe seleccionar el tipo de documento."); return; }
     if (!payload.id_rol) { alert("Debe seleccionar el rol."); return; }
+
+    // Al crear, el servidor también envía el correo con las credenciales (tarda unos
+    // segundos): se bloquea el botón para evitar un segundo envío por doble clic.
+    var btnGuardar = document.getElementById("usuarioSubmitBtn");
+    var textoBtn = btnGuardar ? btnGuardar.textContent : "";
+    if (btnGuardar) {
+      btnGuardar.disabled = true;
+      btnGuardar.textContent = id ? "Guardando..." : "Guardando y enviando correo...";
+    }
 
     try {
       var res;
@@ -369,20 +476,19 @@
         payload.id_usuario = Number(id);
         res = await postJson("postUpdate", payload); // UPDATE
       } else {
-        payload.contrasena = passwordInput.value;
-        var errorClave = validarContrasena(payload.contrasena);
-        if (errorClave) {
-          alert(errorClave);
-          passwordInput.focus();
-          return;
-        }
-        res = await postJson("postCreate", payload); // INSERT
+        res = await postJson("postCreate", payload); // INSERT: la contraseña inicial la define el servidor (documento)
       }
       bootstrap.Modal.getOrCreateInstance(modalEl).hide();
       await recargar();
-      showMessage(res.message, "success");
+      // Si el usuario se creó pero el correo no salió, se muestra como advertencia.
+      showMessage(res.message, res.correo_enviado === false ? "warning" : "success");
     } catch (error) {
       alert(error.message);
+    } finally {
+      if (btnGuardar) {
+        btnGuardar.disabled = false;
+        btnGuardar.textContent = textoBtn;
+      }
     }
   }
 

@@ -13,6 +13,7 @@ class AccionesController{
  
 
     public function postCreate(){
+        sigExigirPermiso('Acciones de Zoocriadero', 'crear');
         $obj   = new AccionesModel();
         $body  = requestJsonBody();
         $datos = $this->validarAccion($body, $obj, null);
@@ -30,6 +31,7 @@ class AccionesController{
     }
 
     public function postUpdate(){
+        sigExigirPermiso('Acciones de Zoocriadero', 'editar');
         $obj  = new AccionesModel();
         $body = requestJsonBody();
 
@@ -51,6 +53,7 @@ class AccionesController{
     }
 
     public function postEstado(){
+        sigExigirPermiso('Acciones de Zoocriadero', 'inhabilitar');
         $obj  = new AccionesModel();
         $body = requestJsonBody();
 

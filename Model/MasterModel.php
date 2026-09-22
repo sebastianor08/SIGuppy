@@ -2,19 +2,27 @@
 
     include_once __DIR__ . '/../lib/conf/connection.php';
 
-    // ============================================================
-    // MasterModel con la extensión nativa pgsql (SIN PDO).
-    //
-    // Cada método acepta un segundo parámetro opcional con los
-    // valores de la consulta. Si se envía, se usa pg_query_params y
-    // los datos viajan APARTE del SQL ($1, $2, $3...), que es como
-    // PostgreSQL evita la inyección SQL:
-    //
-    //   $this->selectAll("SELECT * FROM rol WHERE id_rol = $1", [$id]);
-    // ============================================================
     class MasterModel extends Connection{
 
+        private static $ultimoUsuarioAuditoria = null;
+        private function sincronizarUsuarioAuditoria(){
+            if(session_status() === PHP_SESSION_NONE && !headers_sent()){
+                session_start();
+            }
+
+            $idUsuario = isset($_SESSION['id_usuario']) ? (string) $_SESSION['id_usuario'] : '';
+
+            if(self::$ultimoUsuarioAuditoria === $idUsuario){
+                return;
+            }
+
+            $this->actualizarUsuarioAuditoria();
+            self::$ultimoUsuarioAuditoria = $idUsuario;
+        }
+
         protected function ejecutar($sql, $parametros = []){
+            $this->sincronizarUsuarioAuditoria();
+
             if(!empty($parametros)){
                 $resultado = @pg_query_params($this->getConnect(), $sql, array_values($parametros));
             }else{
@@ -71,9 +79,17 @@
         }
 
         // ---- Transacciones (sin PDO) ----
-        public function beginTransaction(){ return pg_query($this->getConnect(), "BEGIN"); }
+        public function beginTransaction(){
+            $this->sincronizarUsuarioAuditoria();
+            return pg_query($this->getConnect(), "BEGIN");
+        }
         public function commit(){           return pg_query($this->getConnect(), "COMMIT"); }
-        public function rollBack(){         return @pg_query($this->getConnect(), "ROLLBACK"); }
+        public function rollBack(){
+            // un ROLLBACK también deshace el set_config de la sesión:
+            // se fuerza a volver a informar el usuario en la próxima consulta
+            self::$ultimoUsuarioAuditoria = null;
+            return @pg_query($this->getConnect(), "ROLLBACK");
+        }
 
         public function ultimoError(){ return pg_last_error($this->getConnect()); }
 

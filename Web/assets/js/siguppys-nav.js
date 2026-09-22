@@ -82,6 +82,27 @@
     }
   }
 
+  // Con el botón de colapsar (los "tres puntos") quitado, la única
+  // forma de volver a expandir el sidebar colapsado es tocando
+  // cualquier ícono del menú. Si además ese ícono abre un submenú
+  // (Reportes, Zoocriaderos, Terreno, Usuarios), Bootstrap ya se
+  // encarga de mostrar ese submenú solo; aquí solo quitamos
+  // "sidebar_minimize" para que ese submenú deje de estar oculto
+  // por el CSS del modo íconos.
+  function initSidebarExpandOnClick() {
+    var sidebar = document.querySelector(".siguppys-sidebar");
+    if (!sidebar) return;
+    sidebar.addEventListener("click", function (e) {
+      var link = e.target.closest(".nav-item > a");
+      if (!link) return;
+      var wrapper = document.querySelector(".wrapper");
+      if (wrapper && wrapper.classList.contains("sidebar_minimize")) {
+        wrapper.classList.remove("sidebar_minimize");
+        wrapper.classList.remove("sidebar_minimize_hover");
+      }
+    });
+  }
+
   function getBoolPref(key) {
     try {
       return localStorage.getItem(key) === "1";
@@ -161,10 +182,29 @@
     applyDaltonismo(getDaltonismoTipo());
   }
 
+  // El modo oscuro se guarda en localStorage, que es almacenamiento
+  // del sitio y NO se borra al "limpiar caché" del navegador (son
+  // cosas distintas). Cerrar sesión tampoco lo tocaba, porque logout
+  // solo destruye la sesión de PHP. Por eso quedaba activado aunque
+  // el usuario cerrara sesión y limpiara caché. Con esto, cualquier
+  // clic en un link de logout borra la preferencia antes de navegar,
+  // así la próxima sesión siempre arranca en modo claro.
+  function initLogoutLimpiaModoOscuro() {
+    document.addEventListener("click", function (e) {
+      var link = e.target.closest('a[href*="logout.php"]');
+      if (!link) return;
+      try {
+        localStorage.removeItem("siguppys_dark_mode");
+      } catch (err) {}
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     highlightActiveNav();
     initRoleSwitcher();
     initPreferences();
+    initSidebarExpandOnClick();
+    initLogoutLimpiaModoOscuro();
   });
 
   window.SIGuppys = window.SIGuppys || {};

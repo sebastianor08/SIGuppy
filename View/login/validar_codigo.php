@@ -22,7 +22,7 @@
         <!-- Títulos exactos de tu Figma -->
         <div class="mb-4">
             <h4 class="fw-bold text-dark mb-1">Ingresa el codigo enviado al correo</h4>
-            <p class="text-muted small">No te preocupes sabemos que eres tu , pero queres confirmar tu entidad</p>
+            <p class="text-muted small">No te preocupes sabemos que eres tu, pero queremos confirmar tu identidad</p>
         </div>
 
         <!-- Alerta de Error -->

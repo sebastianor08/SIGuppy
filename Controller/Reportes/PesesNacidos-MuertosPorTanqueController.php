@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/ComparativaMensual.php';
+
 function obtenerDatosPecesNacidosMuertosPorTanque()
 {
     require __DIR__ . '/../../lib/conf/conf.php';
@@ -13,7 +15,7 @@ function obtenerDatosPecesNacidosMuertosPorTanque()
     // La tabla seguimiento_zoocriadero guarda el desglose por sexo de
     // nacidos y muertos en cada visita, así que no hay que contar filas.
     $sql = "SELECT z.nombre AS zoocriadero,
-                'Tanque ' || t.numero_tanque AS tanque,
+                t.nombre_tanque AS tanque,
                 TO_CHAR(sz.fecha, 'DD/MM/YYYY') AS fecha,
                 sz.numero_nacidos_hembra AS nacidos_hembra,
                 sz.numero_nacidos_macho AS nacidos_macho,
@@ -22,7 +24,7 @@ function obtenerDatosPecesNacidosMuertosPorTanque()
             FROM seguimiento_zoocriadero sz
             INNER JOIN tanque t ON t.id_tanque = sz.id_tanque
             INNER JOIN zoocriadero z ON z.id_zoocriadero = sz.id_zoocriadero
-            ORDER BY z.nombre, t.numero_tanque, sz.fecha";
+            ORDER BY z.nombre, t.nombre_tanque, sz.fecha";
 
     $resultado = pg_query($conexion, $sql);
 
@@ -47,6 +49,13 @@ function obtenerDatosPecesNacidosMuertosPorTanque()
     $filtroSexo        = $_GET['sexo']         ?? '';
     $filtroFechaInicio = $_GET['fecha_inicio'] ?? '';
     $filtroFechaFin    = $_GET['fecha_fin']    ?? '';
+
+    require_once __DIR__ . '/../../lib/validaciones.php';
+    $errorRangoFechas = validarRangoFechas($filtroFechaInicio, $filtroFechaFin, 'Fecha inicio', 'Fecha fin');
+    if ($errorRangoFechas !== null) {
+        $filtroFechaInicio = '';
+        $filtroFechaFin    = '';
+    }
 
     // --- VALORES ÚNICOS PARA LLENAR LOS SELECT ---
     $listaZoocriaderos = array_unique(array_column($registros, 'zoocriadero'));
@@ -131,6 +140,51 @@ function obtenerDatosPecesNacidosMuertosPorTanque()
     $totalGeneral = $totalNacidos + $totalMuertos;
     $tasaMortalidadGeneral = $totalGeneral > 0 ? ($totalMuertos / $totalGeneral) * 100 : 0;
 
+    // --- COMPARATIVA VS EL MES ANTERIOR (respeta zoocriadero, tanque y sexo; no depende de Fecha Inicio/Fin) ---
+    $meses = mesesComparativa($filtroFechaInicio);
+    $actualNacidos = 0;
+    $actualMuertos = 0;
+    $anteriorNacidos = 0;
+    $anteriorMuertos = 0;
+
+    foreach ($registros as $registro) {
+        $cumpleZoocriadero = ($filtroZoocriadero === '' || $registro['zoocriadero'] === $filtroZoocriadero);
+        $cumpleTanque      = ($filtroTanque === '' || $registro['tanque'] === $filtroTanque);
+        if (!$cumpleZoocriadero || !$cumpleTanque) {
+            continue;
+        }
+
+        if ($filtroSexo === 'Hembra') {
+            $nacidos = $registro['nacidos_hembra'];
+            $muertos = $registro['muertos_hembra'];
+        } elseif ($filtroSexo === 'Macho') {
+            $nacidos = $registro['nacidos_macho'];
+            $muertos = $registro['muertos_macho'];
+        } else {
+            $nacidos = $registro['nacidos_hembra'] + $registro['nacidos_macho'];
+            $muertos = $registro['muertos_hembra'] + $registro['muertos_macho'];
+        }
+
+        if (fechaEnMes($registro['fecha'], $meses['actual'])) {
+            $actualNacidos += $nacidos;
+            $actualMuertos += $muertos;
+        } elseif (fechaEnMes($registro['fecha'], $meses['anterior'])) {
+            $anteriorNacidos += $nacidos;
+            $anteriorMuertos += $muertos;
+        }
+    }
+
+    $actualGeneral = $actualNacidos + $actualMuertos;
+    $actualTasa = $actualGeneral > 0 ? ($actualMuertos / $actualGeneral) * 100 : 0;
+    $anteriorGeneral = $anteriorNacidos + $anteriorMuertos;
+    $anteriorTasa = $anteriorGeneral > 0 ? ($anteriorMuertos / $anteriorGeneral) * 100 : 0;
+
+    $comparativas = [
+        'totalNacidos'          => armarComparativa($actualNacidos, $anteriorNacidos, true),
+        'totalMuertos'          => armarComparativa($actualMuertos, $anteriorMuertos, false),
+        'tasaMortalidadGeneral' => armarComparativa($actualTasa, $anteriorTasa, false),
+    ];
+
     // --- VALOR MÁXIMO PARA DIBUJAR LAS BARRAS DEL GRÁFICO ---
     $valorMaximoGrafico = 1; // evita dividir entre 0
     foreach ($resumenPorTanque as $fila) {
@@ -146,10 +200,12 @@ function obtenerDatosPecesNacidosMuertosPorTanque()
         'filtroSexo'             => $filtroSexo,
         'filtroFechaInicio'      => $filtroFechaInicio,
         'filtroFechaFin'         => $filtroFechaFin,
+        'errorRangoFechas'       => $errorRangoFechas,
         'resumenPorTanque'       => $resumenPorTanque,
         'totalNacidos'           => $totalNacidos,
         'totalMuertos'           => $totalMuertos,
         'tasaMortalidadGeneral'  => $tasaMortalidadGeneral,
+        'comparativas'           => $comparativas,
         'valorMaximoGrafico'     => $valorMaximoGrafico,
     ];
 }

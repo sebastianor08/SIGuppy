@@ -22,10 +22,6 @@
                   <i class="fas fa-clipboard-check me-1"></i> Registrar Seguimiento
                 </a>
                 <div id="registrarZoocriaderoWrap">
-                  <!-- el botón Registrar Zoocriadero lo arma Web/assets/js/siguppys-zoocriaderos.js según el rol -->
-                </div>
-                <div id="registrarTanqueWrap">
-                  <!-- el botón Registrar Tanque lo arma Web/assets/js/siguppys-zoocriaderos.js según el rol -->
                 </div>
               </div>
             </div>
@@ -71,79 +67,41 @@
                 <div class="modal-content">
                   <form id="zoocriaderoForm">
                     <input type="hidden" name="id" />
+                    <!-- Coordenadas: vacías al registrar (el servidor geocodifica la
+                         dirección); al editar conservan las del zoocriadero. -->
+                    <input type="hidden" name="latitud" />
+                    <input type="hidden" name="longitud" />
                     <div class="modal-header">
                       <h5 class="modal-title" id="zoocriaderoModalLabel">Registrar Zoocriadero</h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body">
                       <div class="mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input type="text" name="nombre" class="form-control" required />
+                        <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" name="nombre" class="form-control" minlength="4" maxlength="100" required />
                       </div>
                       <div class="mb-3">
-                        <label class="form-label">Dirección</label>
-                        <input type="text" name="direccion" class="form-control" required />
+                        <label class="form-label">Dirección <span class="text-danger">*</span></label>
+                        <input type="text" name="direccion" class="form-control" minlength="5" maxlength="200" required />
                       </div>
                       <div class="row">
                         <div class="col-6 mb-3">
-                          <label class="form-label">Comuna</label>
+                          <label class="form-label">Comuna <span class="text-danger">*</span></label>
                           <select name="comuna" id="comunaSelect" class="form-select" required>
                             <option value="">Seleccione la comuna</option>
                           </select>
                         </div>
                         <div class="col-6 mb-3">
-                          <label class="form-label">Barrio</label>
+                          <label class="form-label">Barrio <span class="text-danger">*</span></label>
                           <select name="barrio" id="barrioSelect" class="form-select" disabled required>
                             <option value="">Seleccione primero la comuna</option>
                           </select>
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="col-6 mb-1">
-                          <label class="form-label">Latitud <span class="text-muted small">(opcional)</span></label>
-                          <input type="number" step="0.00000001" name="latitud" class="form-control" placeholder="3.42158000" />
-                        </div>
-                        <div class="col-6 mb-1">
-                          <label class="form-label">Longitud <span class="text-muted small">(opcional)</span></label>
-                          <input type="number" step="0.00000001" name="longitud" class="form-control" placeholder="-76.52050000" />
                         </div>
                       </div>
                     </div>
                     <div class="modal-footer">
                       <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancelar</button>
                       <button type="submit" class="btn btn-primary" id="zoocriaderoSubmitBtn">Guardar Registro</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-
-            <!-- Modal Registrar Tanque -->
-            <div class="modal fade" id="tanqueModal" tabindex="-1" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <form id="tanqueForm">
-                    <div class="modal-header">
-                      <h5 class="modal-title">Registrar Tanque</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                    </div>
-                    <div class="modal-body">
-                      <div class="mb-3">
-                        <label class="form-label">Zoocriadero</label>
-                        <select name="id_zoocriadero" class="form-select" required></select>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Número de tanque</label>
-                        <input type="number" min="1" step="1" name="numero_tanque" class="form-control" placeholder="Ej. 1" required />
-                      </div>
-                      <div class="mb-1">
-                        <label class="form-label">Tipo de tanque</label>
-                        <select name="id_tipo_tanque" class="form-select" required></select>
-                      </div>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancelar</button>
-                      <button type="submit" class="btn btn-primary">Guardar Tanque</button>
                     </div>
                   </form>
                 </div>
@@ -171,6 +129,7 @@
     </div>
 
 <?php
+    $moduloPermisos = 'Zoocriaderos';
     $pageScripts = ['Web/assets/js/siguppys-zoocriaderos.js'];
     include '../partials/footer.php';
 ?>

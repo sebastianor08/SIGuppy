@@ -19,6 +19,9 @@ include '../partials/head.php';
 
                 <div class="caja">
                     <h2 class="titulo-pagina">Seguimiento de Actividades en los Zoocriaderos</h2>
+                    <?php if (!empty($errorRangoFechas)): ?>
+                        <div class="alert alert-warning"><?= htmlspecialchars($errorRangoFechas) ?> No se aplicó el filtro de fechas.</div>
+                    <?php endif; ?>
                     <h3>Filtros</h3>
                     <form method="GET">
                         <div class="fila-filtros">
@@ -192,6 +195,25 @@ include '../partials/head.php';
                         cursor: pointer;
                         font-weight: bold;
                         margin-left: 8px;
+                    }
+
+                    .btn-excel {
+                        background-color: #ffffff;
+                        color: #21a666;
+                        border: 1px solid #21a666;
+                        padding: 10px 18px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: bold;
+                        margin-left: 8px;
+                    }
+
+                    .btn-excel:hover {
+                        background-color: rgba(33, 166, 102, 0.1);
+                    }
+
+                    body[data-background-color="dark"] .btn-excel {
+                        background-color: transparent;
                     }
 
                     .tarjetas {

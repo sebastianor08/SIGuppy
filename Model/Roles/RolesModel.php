@@ -2,11 +2,6 @@
 
 include_once __DIR__ . '/../MasterModel.php';
 
-// ============================================================
-// Modelo del módulo Roles y Permisos.
-// Trabaja con las tablas que ya existen en BD_Dengue_SIGuppy.sql:
-//   rol, modulo, accion_permiso, rol_permiso
-// ============================================================
 class RolesModel extends MasterModel{
 
     // Filas del formulario: Registrar / Consultar / Editar / Eliminar
@@ -18,11 +13,11 @@ class RolesModel extends MasterModel{
         );
     }
 
-    // Columnas del formulario: los módulos del sistema
     public function modulos(){
         return $this->selectAll(
             "SELECT id_modulo, nombre, descripcion
              FROM modulo
+             WHERE id_modulo <> 13
              ORDER BY id_modulo"
         );
     }
@@ -128,11 +123,6 @@ class RolesModel extends MasterModel{
         );
     }
 
-    // Combinaciones módulo-acción válidas (tabla modulo_accion_permitida):
-    // ['idModulo-idAccion' => true, ...]. Sirve para bloquear en el
-    // formulario las casillas que no tienen sentido para ese módulo
-    // (ej. "Exportar" en Zoocriaderos, o cualquier acción que no sea
-    // "Ver" en Auditoría).
     public function combinacionesPermitidas(){
         $filas = $this->selectAll(
             "SELECT id_modulo, id_accion_permiso FROM modulo_accion_permitida"
@@ -145,9 +135,6 @@ class RolesModel extends MasterModel{
         return $permitidas;
     }
 
-    // Para la sesión: ¿el rol $idRol tiene la acción $nombreAccion
-    // habilitada en el módulo $nombreModulo? Se usa en el sidebar para
-    // mostrar/ocultar cada opción de menú según el permiso "Ver".
     public function tienePermisoPorId($idRol, $nombreModulo, $nombreAccion){
         return $this->selectValue(
             "SELECT 1
@@ -162,6 +149,11 @@ class RolesModel extends MasterModel{
             [$idRol, $nombreModulo, $nombreAccion]
         ) !== null;
     }
+
+    // Todos los permisos (Ver/Crear/Editar/Inhabilitar/Exportar/Consultar)
+    // que tiene un rol sobre UN módulo puntual. Ver la definición completa
+    // más abajo (accionesDeModulo), que además valida que el rol esté
+    // activo (r.estado = 1).
 
     public function permisosPorNombre($nombreRol, $nombreModulo){
         $filas = $this->selectAll(
@@ -188,9 +180,39 @@ class RolesModel extends MasterModel{
         ];
     }
 
-    // No se borra el rol físicamente: se inhabilita (estado = 0) o se
-    // habilita (estado = 1), igual que zoocriadero, tanque y las demás
-    // tablas del sistema. Así se conserva el histórico de usuarios/permisos.
+    // Todas las acciones que un rol (por id) tiene sobre un módulo, en
+    // minúsculas y con las llaves que usa la interfaz (ver/crear/editar/
+    // inhabilitar/exportar/consultar), a diferencia de permisosPorNombre()
+    // (que recibe el NOMBRE del rol y solo devuelve 4 llaves fijas). Esta
+    // es la que alimenta el objeto de permisos que se expone al
+    // JavaScript de cada módulo (ver lib/permisos.php).
+    public function accionesDeModulo($idRol, $nombreModulo){
+        $filas = $this->selectAll(
+            "SELECT a.nombre AS accion
+             FROM rol_permiso rp
+             INNER JOIN rol r ON r.id_rol = rp.id_rol
+             INNER JOIN modulo m ON m.id_modulo = rp.id_modulo
+             INNER JOIN accion_permiso a ON a.id_accion_permiso = rp.id_accion_permiso
+             WHERE rp.id_rol = $1
+               AND LOWER(m.nombre) = LOWER($2)
+               AND r.estado = 1",
+            [$idRol, $nombreModulo]
+        );
+
+        $acciones = array_map(function($f){
+            return mb_strtolower($f['accion'], 'UTF-8');
+        }, $filas);
+
+        return [
+            'ver'         => in_array('ver', $acciones, true),
+            'consultar'   => in_array('consultar', $acciones, true),
+            'crear'       => in_array('crear', $acciones, true),
+            'editar'      => in_array('editar', $acciones, true),
+            'inhabilitar' => in_array('inhabilitar', $acciones, true),
+            'exportar'    => in_array('exportar', $acciones, true),
+        ];
+    }
+
     public function cambiarEstado($idRol, $estado){
         return $this->update(
             "UPDATE rol SET estado = $1 WHERE id_rol = $2",

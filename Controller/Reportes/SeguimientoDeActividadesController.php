@@ -18,12 +18,14 @@ function obtenerDatosSeguimientoDeActividades()
     // ---------------------------------------------------------
     // Una fila de seguimiento_zoocriadero puede tener varias actividades,
     // por eso se une con actividad_zoocriadero y con actividad.
+    // seguimiento_zoocriadero ya tiene una columna de texto (estado_actividad)
+    // con 'Completada'/'En progreso'/'Retrasada'; se usa directamente.
     $sql = "SELECT a.nombre AS actividad,
                 z.nombre AS zoocriadero,
                 TO_CHAR(sz.fecha, 'DD/MM/YYYY') AS inicio,
                 TO_CHAR(sz.fecha, 'DD/MM/YYYY') AS fin,
                 u.nombre || ' ' || u.apellido AS responsable,
-                sz.estado AS estado
+                sz.estado_actividad AS estado
             FROM seguimiento_zoocriadero sz
             INNER JOIN actividad_zoocriadero az ON az.id_seguimiento = sz.id_seguimiento
             INNER JOIN actividad a ON a.id_actividad = az.id_actividad
@@ -52,6 +54,16 @@ function obtenerDatosSeguimientoDeActividades()
     $filtroActividad   = $_GET['actividad']    ?? '';
     $filtroFechaInicio = $_GET['fecha_inicio'] ?? '';
     $filtroFechaFin    = $_GET['fecha_fin']    ?? '';
+
+    // La fecha de inicio no puede ser posterior a la fecha fin: si pasa,
+    // se ignora el rango (en vez de aplicar un filtro invertido que no
+    // devolvería nada) y se avisa en la vista.
+    require_once __DIR__ . '/../../lib/validaciones.php';
+    $errorRangoFechas = validarRangoFechas($filtroFechaInicio, $filtroFechaFin, 'Fecha inicio', 'Fecha fin');
+    if ($errorRangoFechas !== null) {
+        $filtroFechaInicio = '';
+        $filtroFechaFin    = '';
+    }
 
     // --- VALORES ÚNICOS PARA LLENAR LOS SELECT ---
     $listaZoocriaderos = array_unique(array_column($actividades, 'zoocriadero'));
@@ -109,6 +121,7 @@ function obtenerDatosSeguimientoDeActividades()
         'filtroActividad'      => $filtroActividad,
         'filtroFechaInicio'    => $filtroFechaInicio,
         'filtroFechaFin'       => $filtroFechaFin,
+        'errorRangoFechas'     => $errorRangoFechas,
         'totalActividades'     => $totalActividades,
         'totalCompletas'       => $totalCompletas,
         'totalEnProgreso'      => $totalEnProgreso,

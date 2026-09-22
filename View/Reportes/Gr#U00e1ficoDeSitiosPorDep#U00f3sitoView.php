@@ -19,11 +19,14 @@ include '../partials/head.php';
 
                 <div class="caja">
                     <h2 class="titulo-pagina">Gráfico de Sitios por Tipo de Depósito</h2>
+                    <?php if (!empty($errorRangoFechas)): ?>
+                        <div class="alert alert-warning"><?= htmlspecialchars($errorRangoFechas) ?> No se aplicó el filtro de fechas.</div>
+                    <?php endif; ?>
                     <form method="GET">
                         <div class="fila-filtros">
                             <div>
                                 <label>Zoocriadero</label>
-                                <select name="zoocriadero">
+                                <select name="zoocriadero" class="form-select">
                                     <option value="">Todos</option>
                                     <?php foreach ($listaZoocriaderos as $zoo): ?>
                                         <option value="<?= $zoo ?>" <?= $filtroZoocriadero === $zoo ? 'selected' : '' ?>><?= $zoo ?></option>
@@ -32,7 +35,7 @@ include '../partials/head.php';
                             </div>
                             <div>
                                 <label>Estado del sitio</label>
-                                <select name="estado">
+                                <select name="estado" class="form-select">
                                     <option value="">Todos</option>
                                     <?php foreach ($listaEstados as $est): ?>
                                         <option value="<?= $est ?>" <?= $filtroEstado === $est ? 'selected' : '' ?>><?= $est ?></option>
@@ -41,7 +44,7 @@ include '../partials/head.php';
                             </div>
                             <div>
                                 <label>Tipo de depósito</label>
-                                <select name="tipo_deposito">
+                                <select name="tipo_deposito" class="form-select">
                                     <option value="">Todos</option>
                                     <?php foreach ($listaTipos as $tipo): ?>
                                         <option value="<?= $tipo ?>" <?= $filtroTipo === $tipo ? 'selected' : '' ?>><?= $tipo ?></option>
@@ -50,11 +53,11 @@ include '../partials/head.php';
                             </div>
                             <div>
                                 <label>Fecha inicio</label>
-                                <input type="date" name="fecha_inicio" value="<?= $filtroFechaInicio ?>">
+                                <input type="date" name="fecha_inicio" class="form-control" value="<?= $filtroFechaInicio ?>">
                             </div>
                             <div>
                                 <label>Fecha fin</label>
-                                <input type="date" name="fecha_fin" value="<?= $filtroFechaFin ?>">
+                                <input type="date" name="fecha_fin" class="form-control" value="<?= $filtroFechaFin ?>">
                             </div>
                             <div>
                                 <button type="button" class="btn-reportes">Generar Reportes</button>
@@ -188,9 +191,9 @@ include '../partials/head.php';
                             </thead>
                             <tbody>
                                 <?php if (count($sitiosPagina) === 0): ?>
-                                    <tr>
-                                        <td colspan="7" style="text-align:center; color:#888;">No hay sitios con esos filtros</td>
-                                    </tr>
+                                    <tr class="sig-empty-row">
+                                        <td colspan="7">No hay sitios con esos filtros</td>
+                                    
                                 <?php endif; ?>
                                 <?php foreach ($sitiosPagina as $sitio): ?>
                                     <tr>
@@ -204,7 +207,21 @@ include '../partials/head.php';
                                                 <?= $sitio['estado'] ?>
                                             </span>
                                         </td>
-                                        <td><span class="ojito">👁</span></td>
+                                        <td>
+                                            <div class="table-actions">
+                                                <button type="button" class="btn-icon" data-action="ver-sitio"
+                                                    data-id="<?= htmlspecialchars($sitio['id']) ?>"
+                                                    data-nombre="<?= htmlspecialchars($sitio['nombre']) ?>"
+                                                    data-zoocriadero="<?= htmlspecialchars($sitio['zoocriadero']) ?>"
+                                                    data-tipo="<?= htmlspecialchars($sitio['tipo'] !== '' ? $sitio['tipo'] : 'Sin depósito') ?>"
+                                                    data-tanques="<?= htmlspecialchars($sitio['tanques']) ?>"
+                                                    data-estado="<?= htmlspecialchars($sitio['estado']) ?>"
+                                                    data-fecha="<?= htmlspecialchars($sitio['fecha']) ?>"
+                                                    title="Ver detalle">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -219,6 +236,22 @@ include '../partials/head.php';
                                 <a class="boton-pagina <?= $n === $paginaActual ? 'activo' : '' ?>" href="?<?= http_build_query(array_merge($_GET, ['pagina' => $n])) ?>"><?= $n ?></a>
                             <?php endfor; ?>
                             <a class="boton-pagina" href="?<?= http_build_query(array_merge($_GET, ['pagina' => min($totalPaginas, $paginaActual + 1)])) ?>">&gt;</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Ver Detalle (mismo patrón que el módulo de Zoocriaderos) -->
+                <div class="modal fade" id="sitioDetailModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Detalle del sitio</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body" id="sitioDetailBody"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -278,6 +311,26 @@ include '../partials/head.php';
                         border-radius: 8px;
                         cursor: pointer;
                         font-weight: bold;
+                    }
+
+                    .btn-excel {
+                        background-color: #ffffff;
+                        color: #21a666;
+                        border: 1px solid #21a666;
+                        padding: 10px 18px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: bold;
+                        margin-left: 8px;
+                        margin-right: 8px;
+                    }
+
+                    .btn-excel:hover {
+                        background-color: rgba(33, 166, 102, 0.1);
+                    }
+
+                    body[data-background-color="dark"] .btn-excel {
+                        background-color: transparent;
                     }
 
                     .tarjetas {
@@ -580,6 +633,36 @@ include '../partials/head.php';
 $pageScripts = [];
 include '../partials/footer.php';
 ?>
+<script>
+(function () {
+    "use strict";
+
+    var modalEl = document.getElementById("sitioDetailModal");
+    var modalBody = document.getElementById("sitioDetailBody");
+    if (!modalEl || !modalBody) return;
+    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+    document.querySelectorAll('[data-action="ver-sitio"]').forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            var estadoBadge = btn.dataset.estado === "Activo"
+                ? '<span class="badge-estado activo">Activo</span>'
+                : '<span class="badge-estado inactivo">' + btn.dataset.estado + "</span>";
+
+            modalBody.innerHTML =
+                '<dl class="row mb-0">' +
+                '<dt class="col-5">ID Sitio</dt><dd class="col-7">' + btn.dataset.id + "</dd>" +
+                '<dt class="col-5">Nombre del sitio</dt><dd class="col-7">' + btn.dataset.nombre + "</dd>" +
+                '<dt class="col-5">Zoocriadero</dt><dd class="col-7">' + btn.dataset.zoocriadero + "</dd>" +
+                '<dt class="col-5">Tipo de depósito</dt><dd class="col-7">' + btn.dataset.tipo + "</dd>" +
+                '<dt class="col-5">Cantidad de tanques</dt><dd class="col-7">' + btn.dataset.tanques + "</dd>" +
+                '<dt class="col-5">Estado</dt><dd class="col-7">' + estadoBadge + "</dd>" +
+                '<dt class="col-5">Fecha de registro</dt><dd class="col-7">' + btn.dataset.fecha + "</dd>" +
+                "</dl>";
+            modal.show();
+        });
+    });
+})();
+</script>
 </body>
 
 </html>

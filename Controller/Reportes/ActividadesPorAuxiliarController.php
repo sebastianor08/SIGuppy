@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/ComparativaMensual.php';
+
 function obtenerDatosActividadesPorAuxiliar()
 {
     require __DIR__ . '/../../lib/conf/conf.php';
@@ -14,9 +16,13 @@ function obtenerDatosActividadesPorAuxiliar()
     // seguimiento_zoocriadero y seguimiento_terreno.
     // UNION ALL simplemente pega los resultados de las dos consultas,
     // una debajo de la otra.
+    // seguimiento_zoocriadero SÍ tiene una columna de texto (estado_actividad)
+    // con 'Completada'/'En progreso'/'Retrasada'; se usa directamente.
+    // seguimiento_terreno NO la tiene, solo un número (1/2/3) en "estado",
+    // así que ahí se convierte a texto con CASE.
     $sql = "SELECT u.nombre || ' ' || u.apellido AS auxiliar,
                 TO_CHAR(sz.fecha, 'DD/MM/YYYY') AS fecha,
-                sz.estado AS estado
+                sz.estado_actividad AS estado
             FROM seguimiento_zoocriadero sz
             INNER JOIN usuario u ON u.id_usuario = sz.id_usuario
             INNER JOIN rol r ON r.id_rol = u.id_rol
@@ -26,7 +32,12 @@ function obtenerDatosActividadesPorAuxiliar()
 
             SELECT u.nombre || ' ' || u.apellido AS auxiliar,
                 TO_CHAR(st.fecha, 'DD/MM/YYYY') AS fecha,
-                st.estado AS estado
+                CASE st.estado
+                    WHEN 1 THEN 'Completada'
+                    WHEN 2 THEN 'En progreso'
+                    WHEN 3 THEN 'Retrasada'
+                    ELSE 'Completada'
+                END AS estado
             FROM seguimiento_terreno st
             INNER JOIN usuario u ON u.id_usuario = st.id_usuario
             INNER JOIN rol r ON r.id_rol = u.id_rol
@@ -50,6 +61,13 @@ function obtenerDatosActividadesPorAuxiliar()
     $filtroAuxiliar = $_GET['auxiliar'] ?? '';
     $filtroFechaInicio = $_GET['fecha_inicio'] ?? '';
     $filtroFechaFin = $_GET['fecha_fin'] ?? '';
+
+    require_once __DIR__ . '/../../lib/validaciones.php';
+    $errorRangoFechas = validarRangoFechas($filtroFechaInicio, $filtroFechaFin, 'Fecha inicio', 'Fecha fin');
+    if ($errorRangoFechas !== null) {
+        $filtroFechaInicio = '';
+        $filtroFechaFin    = '';
+    }
 
     $listaAuxiliares = array_unique(array_column($registros, 'auxiliar'));
 
@@ -124,6 +142,50 @@ function obtenerDatosActividadesPorAuxiliar()
         ? round(($totalCompletas / $totalActividades) * 100, 1)
         : 0;
 
+    // --- COMPARATIVA VS EL MES ANTERIOR (respeta el filtro de auxiliar; no depende de Fecha Inicio/Fin) ---
+    $meses = mesesComparativa($filtroFechaInicio);
+    $actualTotal = 0;
+    $actualCompletas = 0;
+    $actualEnProgreso = 0;
+    $actualRetrasadas = 0;
+    $anteriorTotal = 0;
+    $anteriorCompletas = 0;
+    $anteriorEnProgreso = 0;
+    $anteriorRetrasadas = 0;
+
+    foreach ($registros as $registro) {
+        if ($filtroAuxiliar !== '' && $registro['auxiliar'] !== $filtroAuxiliar) {
+            continue;
+        }
+
+        if (fechaEnMes($registro['fecha'], $meses['actual'])) {
+            $actualTotal++;
+            if ($registro['estado'] === 'Completada') {
+                $actualCompletas++;
+            } elseif ($registro['estado'] === 'En progreso') {
+                $actualEnProgreso++;
+            } elseif ($registro['estado'] === 'Retrasada') {
+                $actualRetrasadas++;
+            }
+        } elseif (fechaEnMes($registro['fecha'], $meses['anterior'])) {
+            $anteriorTotal++;
+            if ($registro['estado'] === 'Completada') {
+                $anteriorCompletas++;
+            } elseif ($registro['estado'] === 'En progreso') {
+                $anteriorEnProgreso++;
+            } elseif ($registro['estado'] === 'Retrasada') {
+                $anteriorRetrasadas++;
+            }
+        }
+    }
+
+    $comparativas = [
+        'totalActividades' => armarComparativa($actualTotal, $anteriorTotal, true),
+        'totalCompletas'   => armarComparativa($actualCompletas, $anteriorCompletas, true),
+        'totalEnProgreso'  => armarComparativa($actualEnProgreso, $anteriorEnProgreso, true),
+        'totalRetrasadas'  => armarComparativa($actualRetrasadas, $anteriorRetrasadas, false),
+    ];
+
     $paletaColores = ['#2f7dfa', '#3b3fa8', '#7c6ee0', '#8bd8f0', '#21a666', '#e0952d'];
 
     $segmentosDonut = [];
@@ -163,11 +225,13 @@ function obtenerDatosActividadesPorAuxiliar()
         'filtroAuxiliar' => $filtroAuxiliar,
         'filtroFechaInicio' => $filtroFechaInicio,
         'filtroFechaFin' => $filtroFechaFin,
+        'errorRangoFechas' => $errorRangoFechas,
         'totalActividades' => $totalActividades,
         'totalCompletas' => $totalCompletas,
         'totalEnProgreso' => $totalEnProgreso,
         'totalRetrasadas' => $totalRetrasadas,
         'cumplimientoGeneral' => $cumplimientoGeneral,
+        'comparativas' => $comparativas,
         'segmentosDonut' => $segmentosDonut,
         'auxiliaresPagina' => $auxiliaresPagina,
         'totalAuxiliares' => $totalAuxiliares,

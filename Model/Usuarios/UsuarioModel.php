@@ -2,10 +2,6 @@
 
 include_once __DIR__ . '/../MasterModel.php';
 
-// ============================================================
-// Modelo del módulo Gestión de Usuarios.
-// Tablas: usuario, rol, tipo_documento
-// ============================================================
 class UsuarioModel extends MasterModel{
 
     // Listado para la tabla: nombre del rol y del tipo de documento ya resueltos.
@@ -60,6 +56,15 @@ class UsuarioModel extends MasterModel{
         ) !== null;
     }
 
+    // Nombre del tipo de documento (p.ej. "Cédula de Ciudadanía"), para
+    // aplicar la regla de longitud/formato que corresponda según el tipo.
+    public function nombreTipoDocumento($idTipoDocumento){
+        return $this->selectValue(
+            "SELECT nombre FROM tipo_documento WHERE id_tipodocumento = $1",
+            [$idTipoDocumento]
+        );
+    }
+
     // El correo es único en toda la tabla (usuario_correo_key). Al editar se
     // excluye al propio usuario, igual que existeNombreRol en RolesModel.
     public function existeCorreo($correo, $idExcluir = null){
@@ -95,12 +100,15 @@ class UsuarioModel extends MasterModel{
     }
 
     // ---------------- INSERT ----------------
-    // $datos ya trae la contraseña como hash (password_hash), nunca en texto plano.
+    // $datos ya trae la contraseña como hash (password_hash) del número de
+    // documento del usuario, nunca en texto plano. debe_cambiar_contrasena
+    // siempre entra en TRUE: todo usuario nuevo debe cambiar esa contraseña
+    // inicial antes de poder usar el sistema (ver login_process.php).
     public function crear($datos){
         return $this->selectValue(
             "INSERT INTO usuario
-             (id_tipodocumento, id_rol, nombre, apellido, documento, correo, contrasena, estado)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, 1)
+             (id_tipodocumento, id_rol, nombre, apellido, documento, correo, contrasena, estado, debe_cambiar_contrasena)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, 1, TRUE)
              RETURNING id_usuario",
             [
                 $datos['id_tipodocumento'],

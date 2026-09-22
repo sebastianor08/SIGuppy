@@ -1,11 +1,11 @@
 <?php
 
 include_once '../Model/Usuarios/UsuarioModel.php';
+include_once __DIR__ . '/../../lib/Mailer.php';
 
 class UsuariosController
 {
 
-    // ---------- Lecturas ----------
 
     public function lista()
     {
@@ -28,31 +28,49 @@ class UsuariosController
 
     public function postCreate()
     {
+        sigExigirPermiso('Gestión de Usuarios', 'crear');
         $obj = new UsuarioModel();
         $body = requestJsonBody();
         $datos = $this->validarUsuario($body, $obj, null);
 
-        $contrasena = (string) ($body['contrasena'] ?? '');
-        $errorClave = validarContrasena($contrasena);
-        if ($errorClave !== null) {
-            jsonResponse(['ok' => false, 'message' => $errorClave], 422);
-        }
-        $datos['contrasena_hash'] = password_hash($contrasena, PASSWORD_BCRYPT);
+        // La contraseña inicial ya NO la escribe quien registra al usuario:
+        // siempre es su número de documento. Es una contraseña temporal —
+        // debe_cambiar_contrasena queda en TRUE, así que el sistema exige
+        // cambiarla antes de dejar entrar al usuario (ver login_process.php).
+        $contrasenaInicial = $datos['documento'];
+        $datos['contrasena_hash'] = password_hash($contrasenaInicial, PASSWORD_BCRYPT);
 
         $id = $obj->crear($datos);
         if ($id === null) {
             jsonResponse(['ok' => false, 'message' => 'No se pudo registrar: ' . $obj->ultimoError()], 500);
         }
 
+        // Envía al correo del nuevo usuario su usuario (= el correo) y su
+        // contraseña inicial (el número de documento). Es lo último que se
+        // hace: si el correo falla (sin internet, credenciales de Gmail
+        // vencidas...) el usuario YA quedó creado, así que solo se avisa en
+        // el mensaje en vez de devolver error.
+        $correoEnviado = enviarCredencialesUsuario(
+            $datos['correo'],
+            $datos['nombre'] . ' ' . $datos['apellido'],
+            $datos['correo'],
+            $contrasenaInicial
+        );
+
         jsonResponse([
             'ok' => true,
-            'message' => 'Usuario registrado correctamente.',
+            'message' => $correoEnviado
+                ? 'Usuario registrado correctamente. Sus credenciales (contraseña = su número de documento) se enviaron a ' . $datos['correo'] . '.'
+                : 'Usuario registrado correctamente, pero NO se pudo enviar el correo con sus credenciales. '
+                    . 'Su contraseña inicial es su número de documento (' . $contrasenaInicial . '); infórmesela manualmente y revise la configuración de correo (lib/conf/mail.php).',
             'id_usuario' => (int) $id,
+            'correo_enviado' => $correoEnviado,
         ], 201);
     }
 
     public function postUpdate()
     {
+        sigExigirPermiso('Gestión de Usuarios', 'editar');
         $obj = new UsuarioModel();
         $body = requestJsonBody();
 
@@ -75,6 +93,7 @@ class UsuariosController
 
     public function postEstado()
     {
+        sigExigirPermiso('Gestión de Usuarios', 'inhabilitar');
         $obj = new UsuarioModel();
         $body = requestJsonBody();
 
@@ -99,20 +118,24 @@ class UsuariosController
         ]);
     }
 
-    // ---------- Validación compartida por create y update ----------
     private function validarUsuario($body, $obj, $idExcluir)
     {
         $nombre = limpiar($body['nombre'] ?? '');
         $apellido = limpiar($body['apellido'] ?? '');
-        $correo = strtolower(trim($body['correo'] ?? ''));
+        $correo = normalizarCorreo($body['correo'] ?? '');
         $documento = normalizarDocumento($body['documento'] ?? '');
         $idRol = filter_var($body['id_rol'] ?? null, FILTER_VALIDATE_INT);
         $idTipoDocumento = filter_var($body['id_tipodocumento'] ?? null, FILTER_VALIDATE_INT);
 
+        if (!$idTipoDocumento || !$obj->tipoDocumentoExiste($idTipoDocumento)) {
+            jsonResponse(['ok' => false, 'message' => 'Debe seleccionar un tipo de documento válido.'], 422);
+        }
+        $nombreTipoDocumento = $obj->nombreTipoDocumento($idTipoDocumento);
+
         foreach ([
-            validarTexto($nombre, 'Nombres', 2, 80),
-            validarTexto($apellido, 'Apellidos', 2, 80),
-            validarDocumento($documento, 'Número de documento'),
+            validarNombrePropio($nombre, 'Nombres', 2, 50),
+            validarNombrePropio($apellido, 'Apellidos', 2, 50),
+            validarDocumentoPorTipo($documento, $nombreTipoDocumento, 'Número de documento'),
             validarCorreo($correo),
         ] as $error) {
             if ($error !== null) {
@@ -127,9 +150,6 @@ class UsuariosController
             jsonResponse(['ok' => false, 'message' => 'Ya existe un usuario registrado con ese número de documento.'], 422);
         }
 
-        if (!$idTipoDocumento || !$obj->tipoDocumentoExiste($idTipoDocumento)) {
-            jsonResponse(['ok' => false, 'message' => 'Debe seleccionar un tipo de documento válido.'], 422);
-        }
         if (!$idRol || !$obj->rolExiste($idRol)) {
             jsonResponse(['ok' => false, 'message' => 'Debe seleccionar un rol válido.'], 422);
         }
