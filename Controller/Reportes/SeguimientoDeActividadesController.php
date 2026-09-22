@@ -18,12 +18,14 @@ function obtenerDatosSeguimientoDeActividades()
     // ---------------------------------------------------------
     // Una fila de seguimiento_zoocriadero puede tener varias actividades,
     // por eso se une con actividad_zoocriadero y con actividad.
+    // seguimiento_zoocriadero ya tiene una columna de texto (estado_actividad)
+    // con 'Completada'/'En progreso'/'Retrasada'; se usa directamente.
     $sql = "SELECT a.nombre AS actividad,
                 z.nombre AS zoocriadero,
                 TO_CHAR(sz.fecha, 'DD/MM/YYYY') AS inicio,
                 TO_CHAR(sz.fecha, 'DD/MM/YYYY') AS fin,
                 u.nombre || ' ' || u.apellido AS responsable,
-                sz.estado AS estado
+                sz.estado_actividad AS estado
             FROM seguimiento_zoocriadero sz
             INNER JOIN actividad_zoocriadero az ON az.id_seguimiento = sz.id_seguimiento
             INNER JOIN actividad a ON a.id_actividad = az.id_actividad

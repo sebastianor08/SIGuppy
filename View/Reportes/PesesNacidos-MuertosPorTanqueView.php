@@ -75,30 +75,17 @@ include '../partials/head.php';
                     <div class="tarjeta-resumen">
                         <p>Peces nacidos</p>
                         <span class="numero azul"><?= number_format($totalNacidos) ?></span>
-                        <p class="comparativa">15.4% vs Periodo anterior</p>
-                        <!-- Esta línea (sparkline) es decorativa por ahora, con puntos fijos -->
-                        <svg viewBox="0 0 120 40">
-                            <polyline points="0,30 15,20 30,25 45,10 60,18 75,8 90,15 105,5 120,12"
-                                fill="none" stroke="#2f7dfa" stroke-width="2" />
-                        </svg>
+                        <p class="comparativa <?= $comparativas['totalNacidos']['clase'] ?>"><?= $comparativas['totalNacidos']['texto'] ?></p>
                     </div>
                     <div class="tarjeta-resumen">
                         <p>Peces muertos</p>
                         <span class="numero rojo"><?= number_format($totalMuertos) ?></span>
-                        <p class="comparativa">6.3% vs Periodo anterior</p>
-                        <svg viewBox="0 0 120 40">
-                            <polyline points="0,25 15,15 30,22 45,12 60,20 75,10 90,18 105,8 120,15"
-                                fill="none" stroke="#6c5ce7" stroke-width="2" />
-                        </svg>
+                        <p class="comparativa <?= $comparativas['totalMuertos']['clase'] ?>"><?= $comparativas['totalMuertos']['texto'] ?></p>
                     </div>
                     <div class="tarjeta-resumen">
                         <p>Tasa de mortalidad</p>
                         <span class="numero morado"><?= number_format($tasaMortalidadGeneral, 2) ?>%</span>
-                        <p class="comparativa">-1.2% vs Periodo anterior</p>
-                        <svg viewBox="0 0 120 40">
-                            <polyline points="0,20 15,10 30,18 45,8 60,16 75,6 90,14 105,4 120,10"
-                                fill="none" stroke="#6c5ce7" stroke-width="2" />
-                        </svg>
+                        <p class="comparativa <?= $comparativas['tasaMortalidadGeneral']['clase'] ?>"><?= $comparativas['tasaMortalidadGeneral']['texto'] ?></p>
                     </div>
                 </div>
 
@@ -147,32 +134,41 @@ include '../partials/head.php';
                         </div>
                     </div>
 
+                    <?php
+                    // Ancho real que necesitan las barras (62px por tanque + 18px de separación entre ellas).
+                    // No se usa como mínimo fijo de la caja (eso rompería en pantallas angostas);
+                    // solo dimensiona el contenido que se desplaza con scroll dentro de .grafica-contenedor.
+                    $cantidadTanques = count($resumenPorTanque);
+                    $anchoMinimoGrafica = $cantidadTanques * 62 + max(0, $cantidadTanques - 1) * 18;
+                    ?>
                     <div class="caja caja-gris caja-grafica">
                         <h3>Comparativa Nacidos vs. Muertos por Tanque</h3>
                         <div class="leyenda-grafica">
                             <span><span class="punto-leyenda punto-nacidos"></span>Nacidos</span>
                             <span><span class="punto-leyenda punto-muertos"></span>Muertos</span>
                         </div>
-                        <div class="grafica-barras">
-                            <?php foreach ($resumenPorTanque as $fila): ?>
-                                <?php
-                                $alturaNacidos = round(($fila['nacidos'] / $valorMaximoGrafico) * 100, 1);
-                                $alturaMuertos = round(($fila['muertos'] / $valorMaximoGrafico) * 100, 1);
-                                ?>
-                                <div class="grupo-barras">
-                                    <div class="barra barra-nacidos" style="height: <?= $alturaNacidos ?>%;">
-                                        <span><?= $fila['nacidos'] ?></span>
+                        <div class="grafica-contenedor">
+                            <div class="grafica-barras" style="min-width: <?= $anchoMinimoGrafica ?>px;">
+                                <?php foreach ($resumenPorTanque as $fila): ?>
+                                    <?php
+                                    $alturaNacidos = round(($fila['nacidos'] / $valorMaximoGrafico) * 100, 1);
+                                    $alturaMuertos = round(($fila['muertos'] / $valorMaximoGrafico) * 100, 1);
+                                    ?>
+                                    <div class="grupo-barras">
+                                        <div class="barra barra-nacidos" style="height: <?= $alturaNacidos ?>%;">
+                                            <span><?= $fila['nacidos'] ?></span>
+                                        </div>
+                                        <div class="barra barra-muertos" style="height: <?= $alturaMuertos ?>%;">
+                                            <span><?= $fila['muertos'] ?></span>
+                                        </div>
                                     </div>
-                                    <div class="barra barra-muertos" style="height: <?= $alturaMuertos ?>%;">
-                                        <span><?= $fila['muertos'] ?></span>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <div class="etiquetas-tanques">
-                            <?php foreach ($resumenPorTanque as $fila): ?>
-                                <span><?= $fila['tanque'] ?></span>
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            </div>
+                            <div class="etiquetas-tanques" style="min-width: <?= $anchoMinimoGrafica ?>px;">
+                                <?php foreach ($resumenPorTanque as $fila): ?>
+                                    <span class="etiqueta-tanque"><?= $fila['tanque'] ?></span>
+                                <?php endforeach; ?>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -286,9 +282,20 @@ include '../partials/head.php';
                     }
 
                     .tarjeta-resumen .comparativa {
-                        color: #21a666;
                         font-size: 13px;
                         margin-top: 6px;
+                    }
+
+                    .tarjeta-resumen .comparativa.positivo {
+                        color: #21a666;
+                    }
+
+                    .tarjeta-resumen .comparativa.negativo {
+                        color: #e64545;
+                    }
+
+                    .tarjeta-resumen .comparativa.neutro {
+                        color: #888888;
                     }
 
                     .tarjeta-resumen svg {
@@ -311,23 +318,25 @@ include '../partials/head.php';
                         color: #6c5ce7;
                     }
 
-                    /* Fila inferior: tabla + gráfica */
+                    /* Fila inferior: tabla + gráfica, en grilla (no flex).
+                       auto-fit + minmax hace que, si las dos cajas no caben una al lado
+                       de la otra (pantallas medianas, con la barra lateral abierta), la
+                       gráfica baje a su propia fila sola, sin necesidad de calcular un
+                       punto de quiebre a mano: se ajusta al ancho real disponible. */
                     .fila-inferior {
-                        display: flex;
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr));
                         gap: 20px;
-                        align-items: flex-start;
+                        align-items: start;
                     }
 
                     .fila-inferior .caja {
                         margin-bottom: 0;
                     }
 
-                    .caja-tabla {
-                        flex: 3;
-                    }
-
+                    .caja-tabla,
                     .caja-grafica {
-                        flex: 2;
+                        min-width: 0;
                     }
 
                     table {
@@ -376,10 +385,18 @@ include '../partials/head.php';
                         background-color: #6c5ce7;
                     }
 
+                    /* Envuelve barras + etiquetas: si no caben en la caja, se desplazan
+                       con scroll horizontal en vez de salirse de la pantalla. */
+                    .grafica-contenedor {
+                        overflow-x: auto;
+                        padding-bottom: 2px;
+                    }
+
                     .grafica-barras {
                         display: flex;
                         align-items: flex-end;
                         justify-content: space-around;
+                        gap: 18px;
                         height: 220px;
                         border-bottom: 2px solid #c7c7cf;
                     }
@@ -387,8 +404,11 @@ include '../partials/head.php';
                     .grupo-barras {
                         display: flex;
                         align-items: flex-end;
+                        justify-content: center;
                         gap: 6px;
                         height: 100%;
+                        flex: 0 0 auto;
+                        width: 62px;
                     }
 
                     .barra {
@@ -417,8 +437,15 @@ include '../partials/head.php';
                     .etiquetas-tanques {
                         display: flex;
                         justify-content: space-around;
+                        gap: 18px;
                         margin-top: 8px;
                         font-size: 13px;
+                    }
+
+                    .etiqueta-tanque {
+                        flex: 0 0 auto;
+                        width: 62px;
+                        text-align: center;
                     }
 
                     .tabla-responsive {

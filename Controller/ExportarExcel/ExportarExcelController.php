@@ -9,9 +9,11 @@ require_once __DIR__ . '/../../Model/Auditoria/AuditoriaModel.php';
 // Se llama por:
 //   Web/ajax.php?modulo=ExportarExcel&controlador=ExportarExcel&funcion=descargar&reporte=<data-page>&<filtros>
 
-class ExportarExcelController {
+class ExportarExcelController
+{
 
-    public function descargar() {
+    public function descargar()
+    {
         $modelo  = new ExportarExcelModel();
         $reporte = $_GET['reporte'] ?? '';
 
@@ -29,8 +31,7 @@ class ExportarExcelController {
         }
         require_once $autoload;
 
-        // Captura cualquier salida  de los controladores de datos
-        // para que no se cuele dentro del archivo .xlsx.
+        // Captura cualquier salida  de los controladores
         ob_start();
         $datos = $modelo->obtenerReporte($reporte);
         $libro = (new ExportarExcelView())->construir($datos);
@@ -50,7 +51,9 @@ class ExportarExcelController {
         header('Content-Disposition: attachment; filename="' . $nombre . '"');
         header('Cache-Control: max-age=0');
 
-        (new Xlsx($libro))->save('php://output');
+        $escritor = new Xlsx($libro);
+        $escritor->setIncludeCharts(true); // sin esto los gráficos de la hoja Resumen no se guardan
+        $escritor->save('php://output');
         exit;
     }
 }

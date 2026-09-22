@@ -3,41 +3,22 @@ $basePath  = '../../';
 $pageTitle = 'Acerca de';
 $bodyPage  = 'acerca-de';
 
-// Tarjetas de "¿Qué permite SIGuppy?": ícono, título, texto y a dónde lleva la flecha.
-$funcionalidades = [
-    [
-        'icono'  => 'fa-fish',
-        'titulo' => 'Zoocriaderos',
-        'texto'  => 'Consulta y gestión de la información de los zoocriaderos registrados.',
-        'enlace' => 'View/Zoocriadero/zoocriaderos.php',
-    ],
-    [
-        'icono'  => 'fa-swimming-pool',
-        'titulo' => 'Tanques',
-        'texto'  => 'Registro y seguimiento de los tanques utilizados para la cría de peces guppy.',
-        'enlace' => 'View/Tanque/tanques.php',
-    ],
-    [
-        'icono'  => 'fa-map-marker-alt',
-        'titulo' => 'Sitios de terreno',
-        'texto'  => 'Organización de los sitios identificados y la información relacionada con ellos.',
-        'enlace' => 'View/Deposito/DepositoView.php',
-    ],
-    [
-        'icono'  => 'fa-chart-bar',
-        'titulo' => 'Reportes',
-        'texto'  => 'Generación de reportes filtrables y gráficos para facilitar el análisis de la información.',
-        'enlace' => 'View/Reportes/SeguimientoDeActividadesView.php',
-    ],
-];
 
-// Integrantes del equipo y color de su avatar (en el orden del diseño).
+// Integrantes del equipo.
 $integrantes = [
     ['nombre' => 'Andrea Rivera Quino',                 'color' => 'cyan'],
     ['nombre' => 'Juan Sebastian Olano Reginfo',        'color' => 'azul'],
     ['nombre' => 'Lenin David Idarraga Montaño',        'color' => 'morado'],
     ['nombre' => 'Jaider Alexis Montaño Mondragon',     'color' => 'cyan'],
     ['nombre' => 'Lilliannys Fabiana Baptista Paolini', 'color' => 'morado'],
+];
+
+// Personas del agredecimiento.
+$agradecimientos = [
+    ['nombre' => 'Paula Andrea Martínez Espinosa',   'color' => 'verde'],
+    ['nombre' => 'José Fredy Caicedo Tenorio',       'color' => 'ambar'],
+    ['nombre' => 'Nicolas Riascos Echeverry',        'color' => 'verde'],
+    ['nombre' => 'Andrés Fernando Sanchez Solarte',  'color' => 'ambar'],
 ];
 
 include '../partials/head.php';
@@ -94,34 +75,6 @@ include '../partials/head.php';
                     </div>
                 </div>
 
-                <!-- ¿Qué permite SIGuppy? -->
-                <div class="acd-card mb-3">
-                    <div class="acd-seccion-titulo">
-                        <span class="acd-icono">
-                            <i class="fas fa-layer-group"></i>
-                        </span>
-                        <h5 class="fw-bold mb-0 acd-titulo">¿Qué permite SIGuppy?</h5>
-                    </div>
-                    <div class="row g-3">
-                        <?php foreach ($funcionalidades as $i => $funcion): ?>
-                            <div class="col-12 col-sm-6 col-xl-3">
-                                <div class="acd-funcion">
-                                    <span class="acd-icono <?= $i === 3 ? 'acd-icono--morado' : '' ?>">
-                                        <i class="fas <?= $funcion['icono'] ?>"></i>
-                                    </span>
-                                    <h6 class="fw-bold mt-3 mb-2 acd-titulo"><?= $funcion['titulo'] ?></h6>
-                                    <p class="acd-texto small mb-3"><?= $funcion['texto'] ?></p>
-                                    <a href="<?= $rutaBase . $funcion['enlace'] ?>"
-                                        class="acd-flecha stretched-link"
-                                        aria-label="Ir a <?= $funcion['titulo'] ?>">
-                                        <i class="fas fa-arrow-right"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-
                 <!-- Nuestro equipo -->
                 <div class="acd-card mb-3">
                     <div class="acd-seccion-titulo mb-1">
@@ -139,7 +92,30 @@ include '../partials/head.php';
                                         <i class="fas fa-user"></i>
                                     </span>
                                     <div class="acd-miembro-nombre"><?= $integrante['nombre'] ?></div>
-                                    <div class="acd-miembro-rol">Integrante del proyecto</div>
+                                    <div class="acd-miembro-rol">Desarrollador del proyecto</div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <!-- Agradecimientos -->
+                <div class="acd-card mb-3">
+                    <div class="acd-seccion-titulo mb-1">
+                        <span class="acd-icono acd-icono--verde">
+                            <i class="fas fa-hands-helping"></i>
+                        </span>
+                        <h5 class="fw-bold mb-0 acd-titulo">Agradecimientos</h5>
+                    </div>
+                    <p class="acd-texto small mb-3">Gracias a las personas que con su tiempo, orientación y apoyo hicieron posible este proyecto.</p>
+                    <div class="row g-3 row-cols-1 row-cols-sm-2 row-cols-md-4">
+                        <?php foreach ($agradecimientos as $agradecido): ?>
+                            <div class="col">
+                                <div class="acd-miembro">
+                                    <span class="acd-avatar acd-avatar--<?= $agradecido['color'] ?>">
+                                        <i class="fas fa-heart"></i>
+                                    </span>
+                                    <div class="acd-miembro-nombre"><?= $agradecido['nombre'] ?></div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -192,6 +168,11 @@ include '../partials/head.php';
                     .acd-icono--morado {
                         background-color: #efe9fd;
                         color: #6c5ce7;
+                    }
+
+                    .acd-icono--verde {
+                        background-color: #e2f8ee;
+                        color: #21a666;
                     }
 
                     /* ¿Qué es SIGuppy?: texto a la izquierda, ilustración a la derecha */
@@ -290,6 +271,14 @@ include '../partials/head.php';
                         background: linear-gradient(135deg, #9b8cf0, #6c5ce7);
                     }
 
+                    .acd-avatar--verde {
+                        background: linear-gradient(135deg, #5fe0ac, #21a666);
+                    }
+
+                    .acd-avatar--ambar {
+                        background: linear-gradient(135deg, #f7c15c, #e0952d);
+                    }
+
                     .acd-miembro-nombre {
                         font-size: 13px;
                         font-weight: 700;
@@ -324,6 +313,10 @@ include '../partials/head.php';
 
                     body[data-background-color="dark"] .acd-icono--morado {
                         background-color: rgba(108, 92, 231, 0.22);
+                    }
+
+                    body[data-background-color="dark"] .acd-icono--verde {
+                        background-color: rgba(33, 166, 102, 0.22);
                     }
 
                     body[data-background-color="dark"] .acd-funcion,
