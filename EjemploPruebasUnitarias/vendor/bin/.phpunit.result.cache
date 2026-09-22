@@ -1,0 +1,1 @@
+{"version":2,"defects":[],"times":{"ExampleTest::testSum":0.001,"ActividadModelTest::testListarDevuelveUnArreglo":0.082,"RolesModelTest::testExisteNombreRolConNombreInexistente":0.083,"UsuarioModelTest::testExisteCorreoConCorreoInexistente":0.075,"TanqueModelTest::testZoocriaderoExisteConIdInvalido":0.177}}
