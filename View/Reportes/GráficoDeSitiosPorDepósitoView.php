@@ -25,7 +25,7 @@ include '../partials/head.php';
                     <form method="GET">
                         <div class="fila-filtros">
                             <div>
-                                <label>Zoocriadero</label>
+                                <label>Barrio</label>
                                 <select name="zoocriadero" class="form-select">
                                     <option value="">Todos</option>
                                     <?php foreach ($listaZoocriaderos as $zoo): ?>

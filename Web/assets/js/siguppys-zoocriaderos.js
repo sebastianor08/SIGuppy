@@ -218,6 +218,10 @@
   function openCreateModal() {
     form.reset();
     form.elements["id"].value = "";
+    // form.reset() no limpia los <input type="hidden">: sin esto, un registro
+    // nuevo heredaría las coordenadas del último zoocriadero editado.
+    form.elements["latitud"].value = "";
+    form.elements["longitud"].value = "";
     document.getElementById("zoocriaderoModalLabel").textContent = "Registrar Zoocriadero";
     document.getElementById("zoocriaderoSubmitBtn").textContent = "Guardar Registro";
     fillComunasSelect(document.getElementById("comunaSelect"), null);
@@ -419,7 +423,10 @@
         getJson("comunas"),
       ]);
       data = resultados[0].map(normalizar);
-      comunas = resultados[1];
+      // Orden natural: "Comuna 2" antes que "Comuna 10" (numeric: true)
+      comunas = resultados[1].slice().sort(function (a, b) {
+        return String(a.nombre).localeCompare(String(b.nombre), "es", { numeric: true, sensitivity: "base" });
+      });
       clearMessage();
       render();
     } catch (error) {

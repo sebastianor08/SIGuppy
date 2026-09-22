@@ -67,6 +67,10 @@
                 <div class="modal-content">
                   <form id="zoocriaderoForm">
                     <input type="hidden" name="id" />
+                    <!-- Coordenadas: vacías al registrar (el servidor geocodifica la
+                         dirección); al editar conservan las del zoocriadero. -->
+                    <input type="hidden" name="latitud" />
+                    <input type="hidden" name="longitud" />
                     <div class="modal-header">
                       <h5 class="modal-title" id="zoocriaderoModalLabel">Registrar Zoocriadero</h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
