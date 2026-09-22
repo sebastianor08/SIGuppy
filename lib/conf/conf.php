@@ -6,7 +6,7 @@
     $host     = "127.0.0.1";
     $user     = "postgres";
     $password = "sigcetv123"; 
-    $database = "SIGuppy";
+    $database = "BD_Dengue_SIGuppy";
     $port     = "5432";
 
 ?>
