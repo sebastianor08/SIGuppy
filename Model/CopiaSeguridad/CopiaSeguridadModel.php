@@ -4,7 +4,7 @@ include_once __DIR__ . '/../MasterModel.php';
 
 // ============================================================
 // Modelo del módulo Copia de Seguridad.
-// Tabla: copia_seguridad_historial (ver sql/copia_seguridad_historial.sql)
+// Tabla: copia_seguridad_historial (ver Database/copia_seguridad_historial.sql)
 // El archivo .sql en sí NO se guarda en la base de datos: vive en
 // disco (BACKUP_DIR, ver lib/conf/backup_conf.php). Aquí solo se
 // guarda el registro de auditoría de cada operación.

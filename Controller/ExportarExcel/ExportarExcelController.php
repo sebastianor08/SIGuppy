@@ -4,6 +4,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 require_once __DIR__ . '/../../Model/ExportarExcel/ExportarExcelModel.php';
 require_once __DIR__ . '/../../View/ExportarExcel/ExportarExcelView.php';
+require_once __DIR__ . '/../../Model/Auditoria/AuditoriaModel.php';
 
 // Se llama por:
 //   Web/ajax.php?modulo=ExportarExcel&controlador=ExportarExcel&funcion=descargar&reporte=<data-page>&<filtros>
@@ -35,6 +36,15 @@ class ExportarExcelController
         $datos = $modelo->obtenerReporte($reporte);
         $libro = (new ExportarExcelView())->construir($datos);
         ob_end_clean();
+
+        // Queda registro en Auditoría de quién exportó qué reporte y
+        // cuándo. Solo cubre este "Excel completo" (el que pasa por el
+        // servidor): el "Excel sencillo" y el PDF se generan enteros en
+        // el navegador y no pasan por aquí.
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        (new AuditoriaModel())->registrarExportacion($reporte, $_SESSION['id_usuario'] ?? null);
 
         $nombre = 'reporte_' . $reporte . '_completo_' . date('Y-m-d') . '.xlsx';
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

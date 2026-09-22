@@ -328,6 +328,53 @@
     color: #0f9c8c;
   }
 
+  /* ---- Tablas de seguimiento (Zoocriadero / Depósito): menos apretadas,
+     con más aire entre filas. ---- */
+
+  /* Estas tablas suelen quedar más anchas que su contenedor y se
+     desplazan en horizontal; sin esto, arrastrar con el mouse para
+     desplazarlas termina seleccionando el texto de las celdas. */
+  .table-responsive:has(> .sig-followup-table) {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+
+  .sig-followup-table thead th {
+    padding: 14px 16px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6a6f78;
+    border-bottom: 2px solid #eef0f4;
+    white-space: nowrap;
+  }
+
+  .sig-followup-table tbody td {
+    padding: 14px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f2f6;
+  }
+
+  .sig-followup-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .sig-followup-table .form-check-input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  /* ---- Barra de selección múltiple (descartar/restaurar varios a la vez) ---- */
+  .sig-bulk-bar {
+    background: #eef4ff;
+    border: 1px solid #d7e6ff;
+    border-radius: 10px;
+    padding: 10px 14px;
+    flex-wrap: wrap;
+  }
+
   /* ---- Utilidades por rol (JS agrega data-role al <body>) ---- */
   [data-role] .only-auxiliar,
   [data-role] .only-coordinador {
@@ -1224,4 +1271,63 @@ body[data-background-color="dark"] .caja .texto-eje {
   width: 100%;
   border-radius: 8px;
   z-index: 0; /* evita que los tiles queden por encima del sidebar/topbar */
+}
+
+/* ---- Seguimiento de Depósito: mapa y leyenda ---- */
+#mapaSeguimientoDeposito {
+  min-height: 420px;
+  width: 100%;
+  border-radius: 8px;
+  z-index: 0; /* evita que los tiles queden por encima del sidebar/topbar */
+}
+
+/* Puntos de la leyenda: misma forma/color que los marcadores del mapa
+   (rombo rojo = con larvas, círculo azul = sin larvas, círculo gris = sin seguimiento). */
+.sd-punto {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+  border: 1px solid #fff;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+  vertical-align: middle;
+}
+.sd-punto-positivo {
+  background: #e53935;
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+.sd-punto-negativo {
+  background: #1e88e5;
+  border-radius: 50%;
+}
+.sd-punto-sin {
+  background: #8d99a6;
+  border-radius: 50%;
+}
+
+/* ============================================================
+   Icono de respaldo (base de datos + flecha de restaurar).
+   Se dibuja con mask-image para que tome el color del texto
+   (currentColor): blanco en la tarjeta naranja y gris/activo en
+   el menú lateral, igual que un icono de Font Awesome.
+   ============================================================ */
+.sig-icon-respaldo {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background-color: currentColor;
+  -webkit-mask: url("../img/icons/respaldo-bd.png") center / contain no-repeat;
+          mask: url("../img/icons/respaldo-bd.png") center / contain no-repeat;
+  vertical-align: middle;
+}
+.card-stats .icon-big .sig-icon-respaldo {
+  width: 1.2em;
+  height: 1.2em;
+  background-color: #ffffff;
+}
+.sidebar .nav > .nav-item a i.sig-icon-respaldo {
+  height: 30px;
+  -webkit-mask-size: 20px 20px;
+          mask-size: 20px 20px;
 }

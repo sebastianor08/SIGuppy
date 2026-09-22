@@ -8,19 +8,36 @@ class MapaController
     {
         $obj = new MapaModel();
 
-        $zoocriaderos = array_map(function ($z) {
+        // Tanques agrupados por zoocriadero: se resuelven todos de una
+        // vez (una sola consulta) y se reparten en memoria, en vez de
+        // pedirle uno por uno al servidor cada vez que se abre un marcador.
+        $tanquesPorZoocriadero = [];
+        foreach ($obj->tanques() as $t) {
+            $idZoo = (int) $t['id_zoocriadero'];
+            $tanquesPorZoocriadero[$idZoo][] = [
+                'id'          => (int) $t['id_tanque'],
+                'nombre'      => $t['nombre_tanque'],
+                'tipo'        => $t['tipo_tanque'],
+                'estado'      => (int) $t['estado'],
+            ];
+        }
+
+        $zoocriaderos = array_map(function ($z) use ($tanquesPorZoocriadero) {
+            $idZoo = (int) $z['id'];
             return [
-                'id' => (int) $z['id'], 'categoria' => 'zoocriadero', 'tipo' => 'Zoocriadero',
+                'id' => $idZoo, 'categoria' => 'zoocriadero', 'tipo' => 'Zoocriadero',
                 'nombre' => $z['nombre'], 'direccion' => $z['direccion'],
                 'comuna' => $z['comuna'], 'barrio' => $z['barrio'],
                 'lat' => (float) $z['latitud'], 'lng' => (float) $z['longitud'],
+                'tanques' => $tanquesPorZoocriadero[$idZoo] ?? [],
             ];
         }, $obj->zoocriaderos());
 
         $depositos = array_map(function ($d) {
             return [
                 'id' => (int) $d['id'], 'categoria' => 'deposito', 'tipo' => $d['tipo_deposito'],
-                'nombre' => $d['tipo_deposito'], 'direccion' => $d['direccion'],
+                'nombre' => ($d['descripcion'] !== null && $d['descripcion'] !== '') ? $d['descripcion'] : $d['tipo_deposito'],
+                'sitio' => $d['sitio'], 'direccion' => $d['direccion'],
                 'comuna' => $d['comuna'], 'barrio' => $d['barrio'],
                 'lat' => (float) $d['latitud'], 'lng' => (float) $d['longitud'],
             ];

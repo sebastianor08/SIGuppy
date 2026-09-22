@@ -106,12 +106,10 @@
                         </div>
                       </div>
                       <div class="mb-1" id="usuarioPasswordGroup">
-                        <label class="form-label">Contraseña <span class="text-danger">*</span></label>
-                        <input type="password" name="contrasena" class="form-control" minlength="8"
-                               placeholder="Mínimo 8 caracteres" autocomplete="new-password" />
-                        <div class="form-text">
-                          Debe tener mínimo 8 caracteres e incluir al menos una letra minúscula,
-                          una letra mayúscula y un carácter especial (! @ # $ % &amp; * ?).
+                        <div class="alert alert-info py-2 px-3 small mb-0">
+                          <i class="fas fa-circle-info me-1"></i>
+                          La contraseña inicial del usuario será su <strong>número de documento</strong>.
+                          Se le enviará por correo junto con un aviso de que debe cambiarla la primera vez que inicie sesión.
                         </div>
                       </div>
                     </div>
@@ -130,6 +128,7 @@
     </div>
 
 <?php
+    $moduloPermisos = 'Gestión de Usuarios';
     $pageScripts = ['Web/assets/js/siguppys-usuarios.js'];
     include '../partials/footer.php';
 ?>

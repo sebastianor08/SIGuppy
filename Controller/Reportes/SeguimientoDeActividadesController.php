@@ -55,6 +55,16 @@ function obtenerDatosSeguimientoDeActividades()
     $filtroFechaInicio = $_GET['fecha_inicio'] ?? '';
     $filtroFechaFin    = $_GET['fecha_fin']    ?? '';
 
+    // La fecha de inicio no puede ser posterior a la fecha fin: si pasa,
+    // se ignora el rango (en vez de aplicar un filtro invertido que no
+    // devolvería nada) y se avisa en la vista.
+    require_once __DIR__ . '/../../lib/validaciones.php';
+    $errorRangoFechas = validarRangoFechas($filtroFechaInicio, $filtroFechaFin, 'Fecha inicio', 'Fecha fin');
+    if ($errorRangoFechas !== null) {
+        $filtroFechaInicio = '';
+        $filtroFechaFin    = '';
+    }
+
     // --- VALORES ÚNICOS PARA LLENAR LOS SELECT ---
     $listaZoocriaderos = array_unique(array_column($actividades, 'zoocriadero'));
     $listaActividades  = array_unique(array_column($actividades, 'actividad'));
@@ -111,6 +121,7 @@ function obtenerDatosSeguimientoDeActividades()
         'filtroActividad'      => $filtroActividad,
         'filtroFechaInicio'    => $filtroFechaInicio,
         'filtroFechaFin'       => $filtroFechaFin,
+        'errorRangoFechas'     => $errorRangoFechas,
         'totalActividades'     => $totalActividades,
         'totalCompletas'       => $totalCompletas,
         'totalEnProgreso'      => $totalEnProgreso,

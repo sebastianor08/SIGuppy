@@ -25,20 +25,15 @@
     return d.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
   }
 
-  function role() {
-    return (window.SIGuppys && window.SIGuppys.getRole()) || "auxiliar";
-  }
-  function roleLabel() {
-    var rolesUi = window.SIGuppys && window.SIGuppys.ROLES;
-    return (rolesUi && rolesUi[role()] && rolesUi[role()].label) || role();
-  }
+  // Permisos reales del rol de la sesión sobre este módulo (ver
+  // lib/permisos.php / View/partials/footer.php), en vez de dejar
+  // crear/editar/inhabilitar siempre habilitados para cualquier rol.
+  var PERMISOS_VACIOS = { ver: false, consultar: false, crear: false, editar: false, inhabilitar: false, exportar: false };
   function permisos() {
-    // Por ahora, todos los roles ven habilitado crear/editar/inhabilitar
-    // (sin filtrar por rol todavía, igual que en Zoocriaderos).
-    return { crear: true, editar: true, inhabilitar: true };
+    return window.SIG_PERMISOS || PERMISOS_VACIOS;
   }
   function lockedTitle(accion) {
-    return "Tu rol (" + roleLabel() + ") no tiene permiso para " + accion + ".";
+    return "No tienes permiso para " + accion + ".";
   }
 
   function colorRol(nombreRol) {
@@ -350,8 +345,7 @@
   // ---------- Modal Registrar / Editar ----------
   var modalEl = document.getElementById("usuarioModal");
   var form = document.getElementById("usuarioForm");
-  var passwordGroup = document.getElementById("usuarioPasswordGroup");
-  var passwordInput = form.elements["contrasena"];
+  var passwordGroup = document.getElementById("usuarioPasswordGroup"); // nota informativa, ya no hay campo de contraseña
   var nombreInput = form.elements["nombre"];
   var apellidoInput = form.elements["apellido"];
   var documentoInput = form.elements["documento"];
@@ -404,7 +398,6 @@
     fillTiposDocumentoSelect(form.elements["id_tipodocumento"], null);
     fillRolesSelect(form.elements["id_rol"], null);
     passwordGroup.style.display = "";
-    passwordInput.required = true;
     actualizarReglaDocumento();
   }
 
@@ -421,8 +414,6 @@
     fillTiposDocumentoSelect(form.elements["id_tipodocumento"], u.id_tipodocumento);
     fillRolesSelect(form.elements["id_rol"], u.id_rol);
     passwordGroup.style.display = "none";
-    passwordInput.required = false;
-    passwordInput.value = "";
     actualizarReglaDocumento();
 
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
@@ -470,26 +461,34 @@
     }
     if (!payload.id_rol) { alert("Debe seleccionar el rol."); return; }
 
+    // Al crear, el servidor también envía el correo con las credenciales (tarda unos
+    // segundos): se bloquea el botón para evitar un segundo envío por doble clic.
+    var btnGuardar = document.getElementById("usuarioSubmitBtn");
+    var textoBtn = btnGuardar ? btnGuardar.textContent : "";
+    if (btnGuardar) {
+      btnGuardar.disabled = true;
+      btnGuardar.textContent = id ? "Guardando..." : "Guardando y enviando correo...";
+    }
+
     try {
       var res;
       if (id) {
         payload.id_usuario = Number(id);
         res = await postJson("postUpdate", payload); // UPDATE
       } else {
-        payload.contrasena = passwordInput.value;
-        var errorClave = validarContrasena(payload.contrasena);
-        if (errorClave) {
-          alert(errorClave);
-          passwordInput.focus();
-          return;
-        }
-        res = await postJson("postCreate", payload); // INSERT
+        res = await postJson("postCreate", payload); // INSERT: la contraseña inicial la define el servidor (documento)
       }
       bootstrap.Modal.getOrCreateInstance(modalEl).hide();
       await recargar();
-      showMessage(res.message, "success");
+      // Si el usuario se creó pero el correo no salió, se muestra como advertencia.
+      showMessage(res.message, res.correo_enviado === false ? "warning" : "success");
     } catch (error) {
       alert(error.message);
+    } finally {
+      if (btnGuardar) {
+        btnGuardar.disabled = false;
+        btnGuardar.textContent = textoBtn;
+      }
     }
   }
 

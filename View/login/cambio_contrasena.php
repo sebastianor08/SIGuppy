@@ -1,7 +1,28 @@
 <?php
 session_start();
-if (!isset($_SESSION['id_recuperar'])) {
-    header("Location: recuperar.php");
+require_once __DIR__ . '/../../Model/MasterModel.php';
+
+// El enlace del correo trae ?token=...; se valida aquí (existencia y
+// vigencia) en vez de depender de una sesión previa de "código validado".
+$token = trim($_GET['token'] ?? $_POST['token'] ?? '');
+$tokenValido = false;
+
+if ($token !== '') {
+    try {
+        $masterModel = new MasterModel();
+        $usuarioToken = $masterModel->selectOne(
+            "SELECT id_usuario FROM usuario WHERE token_recuperacion = $1 AND token_expira > NOW()",
+            [$token]
+        );
+        $tokenValido = $usuarioToken !== null;
+    } catch (Throwable $e) {
+        error_log("Error validando token de recuperación: " . $e->getMessage());
+        $tokenValido = false;
+    }
+}
+
+if (!$tokenValido) {
+    header("Location: recuperar.php?status=token_invalido");
     exit();
 }
 ?>
@@ -50,6 +71,7 @@ if (!isset($_SESSION['id_recuperar'])) {
 
         <!-- Formulario -->
         <form action="../../Controller/login/cambio_contrasena_process.php" method="POST">
+            <input type="hidden" name="token" value="<?php echo htmlspecialchars($token, ENT_QUOTES, 'UTF-8'); ?>">
             
             <div class="form-group mb-3 px-0">
                 <label for="nueva_contrasena" class="form-label fw-bold small text-secondary">Ingrese la nueva contraseña <span class="text-danger">*</span></label>

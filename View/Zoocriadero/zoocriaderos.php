@@ -94,15 +94,6 @@
                           </select>
                         </div>
                       </div>
-                      <div class="row">
-                        <div class="col-6 mb-1">
-                          <label class="form-label">Latitud <span class="text-muted small">(opcional)</span></label>
-                          <input type="number" step="0.00000001" name="latitud" class="form-control" placeholder="3.42158000" />
-                        </div>
-                        <div class="col-6 mb-1">
-                          <label class="form-label">Longitud <span class="text-muted small">(opcional)</span></label>
-                          <input type="number" step="0.00000001" name="longitud" class="form-control" placeholder="-76.52050000" />
-                        </div>
                       </div>
                     </div>
                     <div class="modal-footer">
@@ -135,6 +126,7 @@
     </div>
 
 <?php
+    $moduloPermisos = 'Zoocriaderos';
     $pageScripts = ['Web/assets/js/siguppys-zoocriaderos.js'];
     include '../partials/footer.php';
 ?>

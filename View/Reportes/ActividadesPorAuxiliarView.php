@@ -37,6 +37,10 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                     <!--Título principal de la página.-->
                     <h2 class="titulo-pagina">Actividades De Terreno Por Auxiliar Responsable</h2>
 
+                    <?php if (!empty($errorRangoFechas)): ?>
+                        <div class="alert alert-warning"><?= htmlspecialchars($errorRangoFechas) ?> No se aplicó el filtro de fechas.</div>
+                    <?php endif; ?>
+
                     <!--Subtítulo que indica que la siguiente sección contiene filtros.-->
                     <h3>Filtros</h3>
 

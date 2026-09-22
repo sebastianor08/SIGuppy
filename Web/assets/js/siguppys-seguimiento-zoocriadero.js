@@ -6,12 +6,21 @@
   var AJAX_URL = "../../Web/ajax.php";
   var MODULO = "modulo=SeguimientoZoocriadero&controlador=SeguimientoZoocriadero";
 
+  // Permisos reales del rol de la sesión sobre este módulo (ver
+  // lib/permisos.php / View/partials/footer.php).
+  var PERMISOS_VACIOS = { ver: false, consultar: false, crear: false, editar: false, inhabilitar: false, exportar: false };
+  function permisos() {
+    return window.SIG_PERMISOS || PERMISOS_VACIOS;
+  }
+
   var form = document.getElementById("seguimientoZoocriaderoForm");
   var idSeguimientoInput = document.getElementById("id_seguimiento");
   var zooSelect = document.getElementById("id_zoocriadero");
   var tanqueSelect = document.getElementById("id_tanque");
   var direccionInput = document.getElementById("direccion");
-  var accionSelect = document.getElementById("id_actividad");
+  var accionPicker = document.getElementById("id_actividad_picker");
+  var btnAgregarAccion = document.getElementById("btnAgregarAccion");
+  var accionesContainer = document.getElementById("accionesSeleccionadasContainer");
   var fechaInput = document.getElementById("fecha");
   var phInput = document.getElementById("ph");
   var temperaturaInput = document.getElementById("temperatura");
@@ -88,6 +97,19 @@
     return data;
   }
 
+  async function postJson(funcion, payload) {
+    var response = await fetch(AJAX_URL + "?" + MODULO + "&funcion=" + funcion, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+    });
+    var data = await response.json().catch(function () { return null; });
+    if (!response.ok || !data || data.ok === false) {
+      throw new Error((data && data.message) || "No fue posible completar la acción.");
+    }
+    return data;
+  }
+
   var accionesPH = [
     "Aplicar tratamiento",
     "Cambiar agua",
@@ -146,32 +168,28 @@
   }
 
   function gestionarReglasNegocio() {
-    if (!accionSelect) return;
-
-    // Obtener el texto visible de la opción seleccionada
-    var opcion = accionSelect.options[accionSelect.selectedIndex];
-    var accionSeleccionada = opcion ? opcion.text.trim() : "";
+    // Nombres de todas las acciones que el usuario ya eligió (puede haber varias).
+    var nombresElegidos = accionesElegidas.map(function (a) { return a.nombre; });
+    var algunaCoincide = function (lista) {
+      return nombresElegidos.some(function (n) { return lista.includes(n); });
+    };
 
     // Evaluar campo pH
-    aplicarEstadoCampo(phInput, labelPh, accionesPH.includes(accionSeleccionada));
+    aplicarEstadoCampo(phInput, labelPh, algunaCoincide(accionesPH));
 
     // Evaluar campo Temperatura
-    aplicarEstadoCampo(temperaturaInput, labelTemperatura, accionesTemperatura.includes(accionSeleccionada));
+    aplicarEstadoCampo(temperaturaInput, labelTemperatura, algunaCoincide(accionesTemperatura));
 
-    // Evaluar campo Peces sembrados: solo tiene sentido si la acción es "Sembrar alevinos"
-    aplicarEstadoCampo(sembradosInput, labelSembrados, accionesSembrados.includes(accionSeleccionada), "0");
+    // Evaluar campo Peces sembrados: solo tiene sentido si "Sembrar alevinos" está entre las elegidas
+    aplicarEstadoCampo(sembradosInput, labelSembrados, algunaCoincide(accionesSembrados), "0");
 
-    var requiereConteo = accionesConteo.includes(accionSeleccionada);
+    var requiereConteo = algunaCoincide(accionesConteo);
     marcarObligatorio(nacidosHembraInput, labelNacidosHembra, requiereConteo);
     marcarObligatorio(nacidosMachoInput, labelNacidosMacho, requiereConteo);
     marcarObligatorio(muertosHembraInput, labelMuertosHembra, requiereConteo);
     marcarObligatorio(muertosMachoInput, labelMuertosMacho, requiereConteo);
 
     actualizarTotales();
-  }
-
-  if (accionSelect) {
-    accionSelect.addEventListener("change", gestionarReglasNegocio);
   }
 
   async function loadZoocriaderos() {
@@ -186,17 +204,65 @@
         .join("");
   }
 
+  var acciones = []; // catálogo completo, para buscar el nombre por id (edición, chips)
+
   async function loadAcciones() {
     var result = await getJson(AJAX_URL + "?" + MODULO + "&funcion=acciones");
-    accionSelect.innerHTML =
-      '<option value="">Seleccione la acción</option>' +
-      (result.data || [])
+    acciones = result.data || [];
+    accionPicker.innerHTML =
+      '<option value="">Seleccione una acción para agregarla</option>' +
+      acciones
         .map(function (a) {
           return '<option value="' + a.id_actividad + '">' + escapeHtml(a.nombre) + "</option>";
         })
         .join("");
     gestionarReglasNegocio();
   }
+
+  function nombreAccion(idActividad) {
+    var a = acciones.find(function (x) { return String(x.id_actividad) === String(idActividad); });
+    return a ? a.nombre : "Acción #" + idActividad;
+  }
+
+  // ---------- Acciones seleccionadas en el formulario (varias por seguimiento) ----------
+  var accionesElegidas = []; // [{id, nombre}]
+
+  function renderAccionesElegidas() {
+    accionesContainer.innerHTML = accionesElegidas
+      .map(function (a) {
+        return (
+          '<span class="badge bg-primary d-inline-flex align-items-center gap-2 py-2 px-3" data-chip-accion="' + a.id + '">' +
+          escapeHtml(a.nombre) +
+          '<button type="button" class="btn-close btn-close-white" style="font-size:.6rem;" ' +
+          'aria-label="Quitar ' + escapeHtml(a.nombre) + '" data-quitar-accion="' + a.id + '"></button>' +
+          "</span>"
+        );
+      })
+      .join("");
+  }
+
+  function agregarAccion(idActividad) {
+    if (!idActividad) return;
+    var yaEsta = accionesElegidas.some(function (a) { return String(a.id) === String(idActividad); });
+    if (!yaEsta) {
+      accionesElegidas.push({ id: Number(idActividad), nombre: nombreAccion(idActividad) });
+      renderAccionesElegidas();
+      gestionarReglasNegocio();
+    }
+    accionPicker.value = "";
+  }
+
+  function quitarAccion(idActividad) {
+    accionesElegidas = accionesElegidas.filter(function (a) { return String(a.id) !== String(idActividad); });
+    renderAccionesElegidas();
+    gestionarReglasNegocio();
+  }
+
+  btnAgregarAccion.addEventListener("click", function () { agregarAccion(accionPicker.value); });
+  accionesContainer.addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-quitar-accion]");
+    if (btn) quitarAccion(btn.getAttribute("data-quitar-accion"));
+  });
 
   async function loadTanques(idZoocriadero, seleccionado) {
     tanqueSelect.disabled = true;
@@ -217,8 +283,8 @@
         .map(function (t) {
           var sel = String(t.id_tanque) === String(seleccionado) ? " selected" : "";
           return (
-            '<option value="' + t.id_tanque + '"' + sel + ">Tanque " +
-            escapeHtml(t.numero_tanque) + " - " + escapeHtml(t.tipo_tanque) + "</option>"
+            '<option value="' + t.id_tanque + '"' + sel + ">" +
+            escapeHtml(t.nombre_tanque) + " - " + escapeHtml(t.tipo_tanque) + "</option>"
           );
         })
         .join("")
@@ -227,41 +293,52 @@
   }
 
   async function loadHistorial() {
-    historialBody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">Cargando...</td></tr>';
+    historialBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Cargando...</td></tr>';
     try {
       var result = await getJson(AJAX_URL + "?" + MODULO + "&funcion=historial");
       historial = result.data || [];
     } catch (error) {
       historialBody.innerHTML =
-        '<tr><td colspan="10" class="text-center text-danger py-4">' + escapeHtml(error.message) + "</td></tr>";
+        '<tr><td colspan="7" class="text-center text-danger py-4">' + escapeHtml(error.message) + "</td></tr>";
       return;
     }
 
     if (!historial.length) {
       historialBody.innerHTML =
-        '<tr><td colspan="10" class="text-center text-muted py-4">Todavía no hay seguimientos registrados.</td></tr>';
+        '<tr><td colspan="7" class="text-center text-muted py-4">Todavía no hay seguimientos registrados.</td></tr>';
       return;
     }
 
+    var p = permisos();
+
     historialBody.innerHTML = historial
       .map(function (s) {
+        var activo = Number(s.estado) !== 0;
+        var estadoBadge = activo
+          ? '<span class="badge-estado activo">Activo</span>'
+          : '<span class="badge-estado inactivo">Descartado</span>';
         return (
           "<tr>" +
           "<td>" + escapeHtml(s.fecha) + "</td>" +
           "<td>" + escapeHtml(s.zoocriadero) + "</td>" +
-          '<td class="text-center">' + escapeHtml(s.numero_tanque) + "</td>" +
+          '<td class="text-center">' + escapeHtml(s.nombre_tanque) + "</td>" +
           "<td>" + escapeHtml(s.actividad || "—") + "</td>" +
-          '<td class="text-center">' + escapeHtml(s.numero_sembrados) + "</td>" +
-          '<td class="text-center">' + escapeHtml(s.numero_nacidos) + "</td>" +
-          '<td class="text-center">' + escapeHtml(s.numero_muertos) + "</td>" +
-          '<td class="text-center">' + escapeHtml(s.ph || "—") + "</td>" +
-          '<td class="text-center">' + escapeHtml(s.temperatura || "—") + "</td>" +
+          "<td>" + escapeHtml(s.responsable || "—") + "</td>" +
+          '<td class="text-center">' + estadoBadge + "</td>" +
           '<td class="text-center">' +
           '<div class="table-actions">' +
           '<button type="button" class="btn-icon" data-ver="' + s.id_seguimiento +
           '" title="Ver detalle"><i class="fas fa-eye"></i></button>' +
-          '<button type="button" class="btn-icon" data-editar="' + s.id_seguimiento +
-          '" title="Editar"><i class="fas fa-pen"></i></button>' +
+          (activo && p.editar
+            ? '<button type="button" class="btn-icon" data-editar="' + s.id_seguimiento +
+              '" title="Editar"><i class="fas fa-pen"></i></button>'
+            : "") +
+          (p.inhabilitar
+            ? '<button type="button" class="btn-icon ' + (activo ? "text-danger" : "text-success") +
+              '" data-estado="' + s.id_seguimiento + '" data-nuevo-estado="' + (activo ? 0 : 1) +
+              '" title="' + (activo ? "Descartar" : "Restaurar") + '">' +
+              '<i class="fas ' + (activo ? "fa-ban" : "fa-check-circle") + '"></i></button>'
+            : "") +
           "</div>" +
           "</td>" +
           "</tr>"
@@ -284,8 +361,9 @@
       '<dt class="col-5">Fecha</dt><dd class="col-7">' + escapeHtml(s.fecha) + "</dd>" +
       '<dt class="col-5">Zoocriadero</dt><dd class="col-7">' + escapeHtml(s.zoocriadero) + "</dd>" +
       '<dt class="col-5">Dirección</dt><dd class="col-7">' + escapeHtml(zoo ? zoo.direccion : "—") + "</dd>" +
-      '<dt class="col-5">Tanque</dt><dd class="col-7">' + escapeHtml(s.numero_tanque) + "</dd>" +
+      '<dt class="col-5">Tanque</dt><dd class="col-7">' + escapeHtml(s.nombre_tanque) + "</dd>" +
       '<dt class="col-5">Acción</dt><dd class="col-7">' + escapeHtml(s.actividad || "—") + "</dd>" +
+      '<dt class="col-5">Responsable</dt><dd class="col-7">' + escapeHtml(s.responsable || "—") + "</dd>" +
       '<dt class="col-5">pH</dt><dd class="col-7">' + escapeHtml(s.ph || "—") + "</dd>" +
       '<dt class="col-5">Temperatura</dt><dd class="col-7">' +
       (s.temperatura ? escapeHtml(s.temperatura) + " °C" : "—") + "</dd>" +
@@ -330,7 +408,11 @@
     actualizarTotales();
     obsInput.value = s.observaciones || "";
     obsCount.textContent = obsInput.value.length;
-    accionSelect.value = s.id_actividad || "";
+
+    accionesElegidas = (s.id_actividades || []).map(function (id) {
+      return { id: Number(id), nombre: nombreAccion(id) };
+    });
+    renderAccionesElegidas();
 
     gestionarReglasNegocio();
 
@@ -348,6 +430,8 @@
     tanqueSelect.disabled = true;
     tanqueSelect.innerHTML = '<option value="">Seleccione primero un zoocriadero</option>';
     fijarFechaDeHoy();
+    accionesElegidas = [];
+    renderAccionesElegidas();
     tituloEl.textContent = "Registrar Seguimiento de Zoocriadero";
     saveButton.innerHTML = '<i class="fas fa-save me-1"></i>Guardar';
     btnCancelarEdicion.classList.add("d-none");
@@ -380,8 +464,28 @@
     if (btnVer) { abrirDetalle(btnVer.getAttribute("data-ver")); return; }
 
     var btnEditar = e.target.closest("[data-editar]");
-    if (btnEditar) cargarEnFormulario(btnEditar.getAttribute("data-editar"));
+    if (btnEditar) { cargarEnFormulario(btnEditar.getAttribute("data-editar")); return; }
+
+    var btnEstado = e.target.closest("[data-estado]");
+    if (btnEstado) {
+      cambiarEstadoUno(
+        Number(btnEstado.getAttribute("data-estado")),
+        Number(btnEstado.getAttribute("data-nuevo-estado"))
+      );
+    }
   });
+
+  async function cambiarEstadoUno(id, nuevoEstado) {
+    var accionTexto = nuevoEstado === 1 ? "restaurar" : "descartar";
+    if (!confirm("¿Seguro que deseas " + accionTexto + " este seguimiento?")) return;
+    try {
+      var res = await postJson("postEstado", { id_seguimiento: id, estado: nuevoEstado });
+      await loadHistorial();
+      showMessage(res.message, "success");
+    } catch (error) {
+      showMessage(error.message, "danger");
+    }
+  }
 
   btnCancelarEdicion.addEventListener("click", salirDeEdicion);
 
@@ -397,7 +501,7 @@
     }
     if (!zooSelect.value) { showMessage("Debe seleccionar un zoocriadero.", "danger"); return; }
     if (!tanqueSelect.value) { showMessage("Debe seleccionar un tanque.", "danger"); return; }
-    if (!accionSelect.value) { showMessage("Debe seleccionar una acción.", "danger"); return; }
+    if (!accionesElegidas.length) { showMessage("Debe seleccionar al menos una acción.", "danger"); return; }
 
     var editando = idSeguimientoInput.value !== "";
     saveButton.disabled = true;
@@ -415,7 +519,7 @@
       numero_muertos_hembra: Number(muertosHembraInput.value),
       numero_muertos_macho: Number(muertosMachoInput.value),
       observaciones: obsInput.value.trim(),
-      id_actividad: Number(accionSelect.value),
+      id_actividades: accionesElegidas.map(function (a) { return a.id; }),
     };
     if (editando) payload.id_seguimiento = Number(idSeguimientoInput.value);
 
@@ -448,6 +552,18 @@
     }
   });
   gestionarReglasNegocio();
+
+  function aplicarPermisosUI() {
+    var p = permisos();
+
+    if (!p.crear) {
+      Array.prototype.forEach.call(form.elements, function (el) { el.disabled = true; });
+      saveButton.disabled = true;
+      saveButton.title = "No tienes permiso para registrar seguimientos.";
+      showMessage("Tu rol no tiene permiso para registrar seguimientos de zoocriadero. Puedes consultar el historial abajo.", "warning");
+    }
+  }
+  aplicarPermisosUI();
 
   Promise.all([loadZoocriaderos(), loadAcciones(), loadHistorial()]).catch(function (error) {
     showMessage(error.message + " Verifica que PHP pueda conectarse a PostgreSQL.", "danger");

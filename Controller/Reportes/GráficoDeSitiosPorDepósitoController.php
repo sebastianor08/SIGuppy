@@ -51,6 +51,13 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
     $filtroFechaInicio = $_GET['fecha_inicio'] ?? '';
     $filtroFechaFin = $_GET['fecha_fin'] ?? '';
 
+    require_once __DIR__ . '/../../lib/validaciones.php';
+    $errorRangoFechas = validarRangoFechas($filtroFechaInicio, $filtroFechaFin, 'Fecha inicio', 'Fecha fin');
+    if ($errorRangoFechas !== null) {
+        $filtroFechaInicio = '';
+        $filtroFechaFin    = '';
+    }
+
     $listaZoocriaderos = array_unique(array_column($sitios, 'zoocriadero'));
 
     $listaEstados = [];
@@ -202,6 +209,7 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
         'filtroTipo' => $filtroTipo,
         'filtroFechaInicio' => $filtroFechaInicio,
         'filtroFechaFin' => $filtroFechaFin,
+        'errorRangoFechas' => $errorRangoFechas,
         'totalSitios' => $totalSitios,
         'totalConDeposito' => $totalConDeposito,
         'totalSinDeposito' => $totalSinDeposito,

@@ -19,6 +19,9 @@ include '../partials/head.php';
 
                 <div class="caja">
                     <h2 class="titulo-pagina">Gráfico de Sitios por Tipo de Depósito</h2>
+                    <?php if (!empty($errorRangoFechas)): ?>
+                        <div class="alert alert-warning"><?= htmlspecialchars($errorRangoFechas) ?> No se aplicó el filtro de fechas.</div>
+                    <?php endif; ?>
                     <form method="GET">
                         <div class="fila-filtros">
                             <div>
