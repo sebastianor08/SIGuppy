@@ -8,9 +8,7 @@ class MapaController
     {
         $obj = new MapaModel();
 
-        // Tanques agrupados por zoocriadero: se resuelven todos de una
-        // vez (una sola consulta) y se reparten en memoria, en vez de
-        // pedirle uno por uno al servidor cada vez que se abre un marcador.
+     
         $tanquesPorZoocriadero = [];
         foreach ($obj->tanques() as $t) {
             $idZoo = (int) $t['id_zoocriadero'];
