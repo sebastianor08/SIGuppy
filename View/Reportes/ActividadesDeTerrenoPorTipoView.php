@@ -147,12 +147,11 @@ include '../partials/head.php';
                         <svg viewBox="0 0 560 200" class="grafica-lineas">
                             <line x1="40" y1="10" x2="40" y2="170" class="linea-eje" />
                             <line x1="40" y1="170" x2="540" y2="170" class="linea-eje" />
-                            <text x="30" y="14" class="texto-eje" text-anchor="end">40</text>
-                            <text x="30" y="54" class="texto-eje" text-anchor="end">30</text>
-                            <text x="30" y="94" class="texto-eje" text-anchor="end">20</text>
-                            <text x="30" y="134" class="texto-eje" text-anchor="end">10</text>
-                            <text x="30" y="174" class="texto-eje" text-anchor="end">0</text>
+                            <?php foreach ($etiquetasEjeEvolucion as $indice => $etiqueta): ?>
+                                <text x="30" y="<?= 14 + ($indice * 40) ?>" class="texto-eje" text-anchor="end"><?= $etiqueta ?></text>
+                            <?php endforeach; ?>
                             <?php foreach ($seriesEvolucion as $serie): ?>
+                                <?php if ($serie['puntos'] === '') continue; // sin fechas no hay nada que dibujar ?>
                                 <polyline points="<?= $serie['puntos'] ?>" fill="none" stroke="<?= $serie['color'] ?>" stroke-width="2.5" />
                                 <?php foreach (explode(' ', $serie['puntos']) as $punto): ?>
                                     <?php [$x, $y] = explode(',', $punto); ?>

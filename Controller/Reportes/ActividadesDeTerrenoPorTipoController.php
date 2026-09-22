@@ -22,8 +22,8 @@ function generarPuntosLinea($valores, $valorMaximo, $anchoGrafico, $altoGrafico,
 
 function obtenerDatosActividadesDeTerrenoPorTipo()
 {
-    // ---------------------------------------------------------
-    // 1. NOS CONECTAMOS A LA BASE DE DATOS
+    
+    // NOS CONECTAMOS A LA BASE DE DATOS
     // ---------------------------------------------------------
     require __DIR__ . '/../../lib/conf/conf.php';
 
@@ -40,10 +40,17 @@ function obtenerDatosActividadesDeTerrenoPorTipo()
     // se hacen en sitios que están en una comuna. Por eso la variable
     // $listaZoocriaderos aquí trae COMUNAS (el nombre se dejó igual
     // para no tener que cambiar toda la vista).
+    // st.estado es un número (1/2/3) en la base de datos; aquí se convierte a
+    // texto porque el resto del reporte compara contra 'Completada', etc.
     $sql = "SELECT a.nombre AS tipo,
                 c.nombre AS zoocriadero,
                 TO_CHAR(st.fecha, 'DD/MM/YYYY') AS fecha,
-                st.estado AS estado
+                CASE st.estado
+                    WHEN 1 THEN 'Completada'
+                    WHEN 2 THEN 'En progreso'
+                    WHEN 3 THEN 'Retrasada'
+                    ELSE 'Completada'
+                END AS estado
             FROM seguimiento_terreno st
             INNER JOIN actividad_terreno act ON act.id_seguimiento_terreno = st.id_seguimiento_terreno
             INNER JOIN actividad a ON a.id_actividad = act.id_actividad
@@ -59,8 +66,7 @@ function obtenerDatosActividadesDeTerrenoPorTipo()
         die("Error en la consulta: " . pg_last_error($conexion));
     }
 
-    // ---------------------------------------------------------
-    // 3. GUARDAMOS CADA FILA DENTRO DEL ARREGLO $actividades
+    // GUARDAMOS CADA FILA DENTRO DEL ARREGLO $actividades
     // ---------------------------------------------------------
     $actividades = [];
     while ($fila = pg_fetch_assoc($resultado)) {
@@ -208,6 +214,17 @@ function obtenerDatosActividadesDeTerrenoPorTipo()
     $altoGraficoEvolucion  = 160;
     $margenIzquierdoEvolucion = 40;
 
+    // --- ETIQUETAS DEL EJE VERTICAL, SEGÚN EL MÁXIMO REAL ---
+    // Antes el eje decía siempre "40, 30, 20, 10, 0" sin importar los datos.
+    // Ahora se redondea el máximo real hacia arriba al múltiplo de 4 más
+    // cercano (para repartirlo en 4 tramos iguales) y de ahí salen las 5
+    // etiquetas, de arriba hacia abajo.
+    $maximoEjeEvolucion = (int) (ceil($valorMaximoEvolucion / 4) * 4);
+    $etiquetasEjeEvolucion = [];
+    for ($i = 4; $i >= 0; $i--) {
+        $etiquetasEjeEvolucion[] = (int) round($maximoEjeEvolucion * $i / 4);
+    }
+
     $seriesEvolucion = [];
     foreach ($listaTipos as $tipo) {
         $seriesEvolucion[] = [
@@ -215,7 +232,7 @@ function obtenerDatosActividadesDeTerrenoPorTipo()
             'color'  => $coloresPorTipo[$tipo],
             'puntos' => generarPuntosLinea(
                 $valoresEvolucionPorTipo[$tipo],
-                $valorMaximoEvolucion,
+                $maximoEjeEvolucion,
                 $anchoGraficoEvolucion,
                 $altoGraficoEvolucion,
                 $margenIzquierdoEvolucion
@@ -238,5 +255,6 @@ function obtenerDatosActividadesDeTerrenoPorTipo()
         'fechasEvolucion'      => $fechasEvolucion,
         'seriesEvolucion'      => $seriesEvolucion,
         'valorMaximoEvolucion' => $valorMaximoEvolucion,
+        'etiquetasEjeEvolucion' => $etiquetasEjeEvolucion,
     ];
 }

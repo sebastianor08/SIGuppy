@@ -112,37 +112,50 @@ $conexion = pg_connect("host=$host port=$port dbname=$database user=$user passwo
 
     $totalTiposDeposito = count($cantidadPorTipo);
 
-    // --- COMPARATIVA VS MES ANTERIOR (según la Fecha Inicio; respeta zoocriadero, estado y tipo) ---
+    // --- COMPARATIVA VS EL MES ANTERIOR (respeta zoocriadero, estado y tipo; no depende de Fecha Inicio/Fin) ---
     // La fecha de un sitio es la de su creación.
-    $mesAnterior = obtenerMesAnterior($filtroFechaInicio);
+    $meses = mesesComparativa($filtroFechaInicio);
+    $actualSitios = 0;
+    $actualConDeposito = 0;
+    $actualSinDeposito = 0;
+    $actualTipos = [];
     $anteriorSitios = 0;
     $anteriorConDeposito = 0;
     $anteriorSinDeposito = 0;
     $anteriorTipos = [];
 
-    if ($mesAnterior !== null) {
-        foreach ($sitios as $sitio) {
-            $cumpleZoocriadero = ($filtroZoocriadero === '' || $sitio['zoocriadero'] === $filtroZoocriadero);
-            $cumpleEstado = ($filtroEstado === '' || $sitio['estado'] === $filtroEstado);
-            $cumpleTipo = ($filtroTipo === '' || $sitio['tipo'] === $filtroTipo);
+    foreach ($sitios as $sitio) {
+        $cumpleZoocriadero = ($filtroZoocriadero === '' || $sitio['zoocriadero'] === $filtroZoocriadero);
+        $cumpleEstado = ($filtroEstado === '' || $sitio['estado'] === $filtroEstado);
+        $cumpleTipo = ($filtroTipo === '' || $sitio['tipo'] === $filtroTipo);
+        if (!$cumpleZoocriadero || !$cumpleEstado || !$cumpleTipo) {
+            continue;
+        }
 
-            if ($cumpleZoocriadero && $cumpleEstado && $cumpleTipo && fechaEnMesAnterior($sitio['fecha'], $mesAnterior)) {
-                $anteriorSitios++;
-                if ($sitio['tipo'] === '') {
-                    $anteriorSinDeposito++;
-                } else {
-                    $anteriorConDeposito++;
-                    $anteriorTipos[$sitio['tipo']] = true;
-                }
+        if (fechaEnMes($sitio['fecha'], $meses['actual'])) {
+            $actualSitios++;
+            if ($sitio['tipo'] === '') {
+                $actualSinDeposito++;
+            } else {
+                $actualConDeposito++;
+                $actualTipos[$sitio['tipo']] = true;
+            }
+        } elseif (fechaEnMes($sitio['fecha'], $meses['anterior'])) {
+            $anteriorSitios++;
+            if ($sitio['tipo'] === '') {
+                $anteriorSinDeposito++;
+            } else {
+                $anteriorConDeposito++;
+                $anteriorTipos[$sitio['tipo']] = true;
             }
         }
     }
 
     $comparativas = [
-        'totalSitios'        => armarComparativa($totalSitios, $anteriorSitios, $mesAnterior, true),
-        'totalTiposDeposito' => armarComparativa($totalTiposDeposito, count($anteriorTipos), $mesAnterior, true),
-        'totalConDeposito'   => armarComparativa($totalConDeposito, $anteriorConDeposito, $mesAnterior, true),
-        'totalSinDeposito'   => armarComparativa($totalSinDeposito, $anteriorSinDeposito, $mesAnterior, false),
+        'totalSitios'        => armarComparativa($actualSitios, $anteriorSitios, true),
+        'totalTiposDeposito' => armarComparativa(count($actualTipos), count($anteriorTipos), true),
+        'totalConDeposito'   => armarComparativa($actualConDeposito, $anteriorConDeposito, true),
+        'totalSinDeposito'   => armarComparativa($actualSinDeposito, $anteriorSinDeposito, false),
     ];
 
     $paletaColores = ['#2f7dfa', '#3bc9db', '#7c6ee0', '#8bd8f0', '#21a666', '#e0952d'];

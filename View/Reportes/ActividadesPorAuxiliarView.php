@@ -106,7 +106,7 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 <span class="numero azul"><?= $totalActividades ?></span>
                             </div>
                         </div>
-                        <p class="comparativa positivo">12.8% vs Periodo anterior</p>
+                        <p class="comparativa <?= $comparativas['totalActividades']['clase'] ?>"><?= $comparativas['totalActividades']['texto'] ?></p>
                         
                     </div>
                     <div class="tarjeta">
@@ -117,7 +117,7 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 <span class="numero verde"><?= $totalCompletas ?></span>
                             </div>
                         </div>
-                        <p class="comparativa positivo">13.8% vs Periodo anterior</p>
+                        <p class="comparativa <?= $comparativas['totalCompletas']['clase'] ?>"><?= $comparativas['totalCompletas']['texto'] ?></p>
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -127,7 +127,7 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 <span class="numero naranja"><?= $totalEnProgreso ?></span>
                             </div>
                         </div>
-                        <p class="comparativa negativo">-8.3% vs Periodo anterior</p>
+                        <p class="comparativa <?= $comparativas['totalEnProgreso']['clase'] ?>"><?= $comparativas['totalEnProgreso']['texto'] ?></p>
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -137,7 +137,7 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
                                 <span class="numero rojo"><?= $totalRetrasadas ?></span>
                             </div>
                         </div>
-                        <p class="comparativa negativo">-25.0% vs Periodo anterior</p>
+                        <p class="comparativa <?= $comparativas['totalRetrasadas']['clase'] ?>"><?= $comparativas['totalRetrasadas']['texto'] ?></p>
                     </div>
                 </div>
 
@@ -415,6 +415,10 @@ y tarjetas para mostrar la información de manera organizada y visualmente atrac
 
                     .negativo {
                         color: #e64545;
+                    }
+
+                    .neutro {
+                        color: #888888;
                     }
 
                     .sparkline {

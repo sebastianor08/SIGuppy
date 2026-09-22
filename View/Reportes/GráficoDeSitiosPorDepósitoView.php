@@ -73,7 +73,7 @@ include '../partials/head.php';
                                 <span class="numero azul"><?= $totalSitios ?></span>
                             </div>
                         </div>
-                        <p class="comparativa positivo">+12.0% vs periodo anterior</p>
+                        <p class="comparativa <?= $comparativas['totalSitios']['clase'] ?>"><?= $comparativas['totalSitios']['texto'] ?></p>
                         
                     </div>
                     <div class="tarjeta">
@@ -84,7 +84,7 @@ include '../partials/head.php';
                                 <span class="numero verde"><?= $totalTiposDeposito ?></span>
                             </div>
                         </div>
-                        <p class="comparativa positivo">+33.3% vs periodo anterior</p>
+                        <p class="comparativa <?= $comparativas['totalTiposDeposito']['clase'] ?>"><?= $comparativas['totalTiposDeposito']['texto'] ?></p>
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -94,7 +94,7 @@ include '../partials/head.php';
                                 <span class="numero azul"><?= $totalConDeposito ?></span>
                             </div>
                         </div>
-                        <p class="comparativa positivo">+21.4% vs periodo anterior</p>
+                        <p class="comparativa <?= $comparativas['totalConDeposito']['clase'] ?>"><?= $comparativas['totalConDeposito']['texto'] ?></p>
                     </div>
                     <div class="tarjeta">
                         <div class="cabecera-tarjeta">
@@ -104,7 +104,7 @@ include '../partials/head.php';
                                 <span class="numero morado"><?= $totalSinDeposito ?></span>
                             </div>
                         </div>
-                        <p class="comparativa positivo">+0.0% vs periodo anterior</p>
+                        <p class="comparativa <?= $comparativas['totalSinDeposito']['clase'] ?>"><?= $comparativas['totalSinDeposito']['texto'] ?></p>
                     </div>
                 </div>
 
@@ -299,6 +299,17 @@ include '../partials/head.php';
                         font-weight: bold;
                     }
 
+                    .btn-reportes {
+                        background-color: #ffffff;
+                        color: #2f7dfa;
+                        border: 1px solid #2f7dfa;
+                        padding: 10px 18px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: bold;
+                        margin-right: 8px;
+                    }
+
                     .btn-excel {
                         background-color: #ffffff;
                         color: #21a666;
@@ -391,6 +402,14 @@ include '../partials/head.php';
 
                     .positivo {
                         color: #21a666;
+                    }
+
+                    .negativo {
+                        color: #e64545;
+                    }
+
+                    .neutro {
+                        color: #888888;
                     }
 
                     .sparkline {
