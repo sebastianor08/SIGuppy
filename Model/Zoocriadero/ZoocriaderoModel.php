@@ -32,7 +32,8 @@ class ZoocriaderoModel extends MasterModel{
     // Comunas para el primer select
     public function comunas(){
         return $this->selectAll(
-            "SELECT id_comuna, nombre FROM comuna ORDER BY id_comuna"
+            "SELECT id_comuna, nombre FROM comuna
+             ORDER BY NULLIF(regexp_replace(nombre, '\\D', '', 'g'), '')::int NULLS LAST, nombre"
         );
     }
 
@@ -80,7 +81,19 @@ class ZoocriaderoModel extends MasterModel{
         );
     }
 
-    // ---------------- INSERT ----------------
+
+    public function buscarDuplicado($nombre, $excluirId = null){
+        return $this->selectOne(
+            "SELECT id_zoocriadero, nombre, estado
+             FROM zoocriadero
+             WHERE translate(lower(regexp_replace(btrim(nombre), '\\s+', ' ', 'g')), 'áéíóúüñ', 'aeiouun')
+                 = translate(lower(regexp_replace(btrim($1::text), '\\s+', ' ', 'g')), 'áéíóúüñ', 'aeiouun')
+               AND ($2::bigint IS NULL OR id_zoocriadero <> $2::bigint)
+             LIMIT 1",
+            [$nombre, $excluirId]
+        );
+    }
+
     public function crear($datos){
         return $this->selectValue(
             "INSERT INTO zoocriadero

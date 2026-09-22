@@ -56,7 +56,7 @@ class ZoocriaderoController
         sigExigirPermiso('Zoocriaderos', 'crear');
         $obj = new ZoocriaderoModel();
         $body = requestJsonBody();
-        $datos = $this->validarZoocriadero($body, $obj);
+        $datos = $this->validarZoocriadero($body, $obj, null);
 
         $id = $obj->crear($datos);
         if ($id === null) {
@@ -84,7 +84,7 @@ class ZoocriaderoController
             jsonResponse(['ok' => false, 'message' => 'El zoocriadero no existe.'], 404);
         }
 
-        $datos = $this->validarZoocriadero($body, $obj);
+        $datos = $this->validarZoocriadero($body, $obj, $idZoo);
 
         if ($obj->actualizar($idZoo, $datos) === false) {
             jsonResponse(['ok' => false, 'message' => 'No se pudo actualizar: ' . $obj->ultimoError()], 500);
@@ -117,7 +117,7 @@ class ZoocriaderoController
     }
 
     // ---------- Validación compartida por create y update ----------
-    private function validarZoocriadero($body, $obj)
+    private function validarZoocriadero($body, $obj, $idActual = null)
     {
         $nombre = limpiar($body['nombre'] ?? '');
         $direccion = limpiar($body['direccion'] ?? '');
@@ -135,6 +135,16 @@ class ZoocriaderoController
             if ($error !== null) {
                 jsonResponse(['ok' => false, 'message' => $error], 422);
             }
+        }
+
+        // Nombre duplicado (se revisa antes de geocodificar para responder rápido)
+        $duplicado = $obj->buscarDuplicado($nombre, $idActual);
+        if ($duplicado) {
+            $mensaje = 'Ya existe un zoocriadero llamado "' . $duplicado['nombre'] . '".';
+            if ((int) $duplicado['estado'] !== 1) {
+                $mensaje .= ' Está inhabilitado: puede habilitarlo desde la lista en lugar de crearlo de nuevo.';
+            }
+            jsonResponse(['ok' => false, 'message' => $mensaje], 409);
         }
 
         if ($comuna !== '' && $barrio !== '' && !$obj->barrioPerteneceAComuna($barrio, $comuna)) {

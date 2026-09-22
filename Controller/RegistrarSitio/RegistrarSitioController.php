@@ -42,9 +42,6 @@ class RegistrarSitioController
         jsonResponse(['ok' => true, 'data' => $obj->comunasDeCiudad($id)]);
     }
 
-    // Faltaba: el JS de "Editar Sitio" (cargarEdicion) llama a esta función
-    // para precargar el formulario, pero nunca existió en este controlador
-    // (el modelo ya tenía buscar(), solo que nadie lo exponía por AJAX).
     public function buscar()
     {
         $obj = new RegistrarSitioModel();
@@ -135,9 +132,6 @@ class RegistrarSitioController
 
         $datos = $this->validar($body, $obj);
 
-        // Se vuelve a ubicar la dirección solo si cambió o si aún no tiene coordenadas
-        // (así, editar un sitio que quedó sin ubicar lo reintenta). Si cambió y no se
-        // encuentra, se borran las coordenadas viejas para no dibujarlo en un lugar falso.
         $cambioDireccion = $this->direccionCambio($actual, $datos);
         $sinCoordenadas = ($actual['latitud'] === null || $actual['longitud'] === null);
         $punto = ($cambioDireccion || $sinCoordenadas) ? $this->geocodificar($obj, $datos) : null;
@@ -194,6 +188,21 @@ class RegistrarSitioController
             || (int)$actual['id_departamento'] !== (int)$datos['id_departamento'];
     }
 
+    private function quitarNomenclaturaRepetida($numero, $nomenclatura)
+    {
+        $abreviaturas = [
+            'calle'       => 'calle|cll|cl|clle',
+            'carrera'     => 'carrera|cra|cr|kra|kr|carr|crr',
+            'avenida'     => 'avenida|av|avda|avd',
+            'diagonal'    => 'diagonal|dg|diag',
+            'transversal' => 'transversal|tv|tr|trans|transv',
+        ];
+        $clave = mb_strtolower(trim((string) $nomenclatura), 'UTF-8');
+        $patron = $abreviaturas[$clave] ?? preg_quote($clave, '/');
+
+        return trim(preg_replace('/^(?:(?:' . $patron . ')\.?\s+)+/iu', '', $numero));
+    }
+
     private function validar($body, $obj)
     {
         $nombre = limpiar($body['nombre'] ?? '');
@@ -243,6 +252,10 @@ class RegistrarSitioController
         $nomenclatura = $obj->nombreNomenclatura($idNomenclatura);
         if (!$nomenclatura) {
             jsonResponse(['ok' => false, 'message' => 'No se pudo obtener la nomenclatura.'], 422);
+        }
+        $numeroDireccion = $this->quitarNomenclaturaRepetida($numeroDireccion, $nomenclatura);
+        if ($numeroDireccion === '') {
+            jsonResponse(['ok' => false, 'message' => 'Escriba el número de la dirección (por ejemplo: 7 # 8-75).'], 422);
         }
 
         return [
