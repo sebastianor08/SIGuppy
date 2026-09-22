@@ -1,0 +1,12 @@
+{
+    "name": "usuario/test",
+    "authors": [
+        {
+            "name": "Lenindavid9",
+            "email": "idarragalenindavid@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    }
+}
